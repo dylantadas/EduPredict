@@ -17,8 +17,8 @@ USER codespace
 RUN conda install -n base -c conda-forge jupyterlab numpy pandas matplotlib seaborn scikit-learn
 
 # create and activate conda environment
-RUN conda create -n myenv python=3.10 && \
-    echo "conda activate myenv" >> ~/.bashrc
+RUN conda create -n edupredenv python=3.10 && \
+    echo "conda activate edupredenv" >> ~/.bashrc
 
 # jupyter server port
 EXPOSE 8888
