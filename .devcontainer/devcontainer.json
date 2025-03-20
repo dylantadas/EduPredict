@@ -10,6 +10,5 @@
         ]
       }
     },
-    "forwardPorts": [8888], // jupyter server port
-    "remoteUser": "codespace"
+    "forwardPorts": [8888] // jupyter server port
   }
