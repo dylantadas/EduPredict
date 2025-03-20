@@ -1,6 +1,7 @@
 {
     "name": "EduPredict Environment",
     "image": "continuumio/anaconda3",
+    "remoteUser": "codespace",
     "postCreateCommand": "conda create -n edupredenv python=3.10 && conda activate myenv && pip install -r requirements.txt",
     "customizations": {
       "vscode": {

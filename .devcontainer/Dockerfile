@@ -20,8 +20,12 @@ RUN conda install -n base -c conda-forge jupyterlab numpy pandas matplotlib seab
 RUN conda create -n edupredenv python=3.10 && \
     echo "conda activate edupredenv" >> ~/.bashrc
 
+ENV PATH="/opt/conda/envs/edupredenv/bin:$PATH"
+ENV CONDA_DEFAULT_ENV="edupredenv"
+    
+
 # jupyter server port
 EXPOSE 8888
 
 # command on container startup
-CMD ["jupyter", "lab", "--ip=0.0.0.0", "--port=8888", "--no-browser", "--allow-root"]
+CMD ["/bin/bash", "-c", "source ~/.bashrc && jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root"]
