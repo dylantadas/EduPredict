@@ -8,8 +8,8 @@ WORKDIR /workspace
 RUN conda install -n base -c conda-forge jupyterlab numpy pandas matplotlib seaborn scikit-learn
 
 # create and activate environment
-RUN conda create -n myenv python=3.10
-RUN echo "conda activate myenv" >> ~/.bashrc
+RUN conda create -n myenv python=3.10 && \
+    echo "conda activate myenv" >> ~/.bashrc
 
 # jupyter server port
 EXPOSE 8888
