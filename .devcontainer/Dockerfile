@@ -1,38 +1,33 @@
-# anaconda as base image
+# anaconda as base
 FROM continuumio/anaconda3
 
 # set working directory
 WORKDIR /workspace
 
-# create codespace user and group (UID 1000 default)
-RUN groupadd -r codespace && \
-    useradd -m -r -g codespace -u 1000 codespace && \
-    echo "codespace:codespace" | chpasswd && \
-    adduser codespace sudo
+# install libraries in base environment
+RUN conda install -y -n base -c conda-forge \
+    jupyterlab \
+    numpy \
+    pandas \
+    matplotlib \
+    seaborn \
+    scikit-learn
 
-# assign ownership and switch to codespace user
-RUN chown -R codespace:codespace /workspace
+# create dedicated environment
+RUN conda create -y -n edupredenv python=3.10
 
-# install common libraries
-RUN conda install -n base -c conda-forge jupyterlab numpy pandas matplotlib seaborn scikit-learn
+# configure conda for terminals
+RUN conda init bash
 
-# create and activate conda environment
-RUN conda create -n edupredenv python=3.10 && \
-    echo "conda activate edupredenv" >> /home/codespace/.bashrc && \
-    echo "source activate edupredenv" >> /home/codespace/.bashrc
+# activate environment when opening terminal
+RUN echo "conda activate edupredenv" >> ~/.bashrc
 
-# assure user has proper permissions
-RUN chown -R codespace:codespace /home/codespace
-
-# force environment activation by default
-ENV PATH="/opt/conda/envs/edupredenv/bin:$PATH"
+# set default environment and path
+ENV PATH="/opt/conda/envs/edupredenv/bin:${PATH}"
 ENV CONDA_DEFAULT_ENV="edupredenv"
 
-# jupyter server port
+# jupyter port
 EXPOSE 8888
 
-# switch to codespace user
-USER codespace
-
-# start container with environment activated
+# command runs jupyter lab with container creation
 CMD ["/bin/bash", "-c", "source ~/.bashrc && jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root"]
