@@ -1,7 +1,7 @@
 # anaconda as base
 FROM continuumio/anaconda3
 
-# set working directory to project root
+# set working directory
 WORKDIR /workspace/EduPredict
 
 # copy requirements file
