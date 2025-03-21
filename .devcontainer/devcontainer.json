@@ -1,28 +1,23 @@
 {
-  "name": "Python 3 & Conda",
-  "build": {
-      "dockerfile": "Dockerfile"
-  },
-  "features": {
-      "ghcr.io/devcontainers/features/python:1": {
-          "installTools": true,
-          "version": "3.10"
-      },
-      "ghcr.io/devcontainers/features/conda:1": {
-          "installConda": true,
-          "environment": {
-              "name": "edupredenv"
-          }
-      }
-  },
-  "customizations": {
-      "vscode": {
-          "extensions": [
-              "ms-python.python",
-              "ms-toolsai.jupyter"
-          ]
-      }
-  },
-  "postCreateCommand": "conda activate edupredenv && pip install -r requirements.txt",
-  "forwardPorts": [8888]
+    "name": "Python 3 & Conda",
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+    "features": {
+        "ghcr.io/devcontainers/features/python:1": {
+            "installTools": true,
+            "version": "3.10"
+        },
+        "ghcr.io/devcontainers/features/conda:1": {}
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python",
+                "ms-toolsai.jupyter"
+            ]
+        }
+    },
+    "postCreateCommand": "conda activate edupredenv && pip install -r requirements.txt",
+    "forwardPorts": [8888]
 }
