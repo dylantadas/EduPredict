@@ -4,6 +4,9 @@ FROM continuumio/anaconda3
 # set working directory
 WORKDIR /workspace
 
+# copy requirements file
+COPY requirements.txt .
+
 # install libraries in base environment
 RUN conda install -y -n base -c conda-forge \
     jupyterlab \
@@ -18,6 +21,11 @@ RUN conda create -y -n edupredenv python=3.10
 
 # configure conda for terminals
 RUN conda init bash
+
+# activate environment and install requirements
+SHELL ["/bin/bash", "-c"]
+RUN source activate edupredenv && \
+    pip install -r requirements.txt
 
 # activate environment when opening terminal
 RUN echo "conda activate edupredenv" >> ~/.bashrc
