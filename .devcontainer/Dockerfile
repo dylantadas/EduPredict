@@ -4,7 +4,7 @@ FROM continuumio/anaconda3
 # set working directory
 WORKDIR /workspace/EduPredict
 
-# copy requirements file
+# copy requirements file from project root
 COPY requirements.txt .
 
 # install libraries in base environment
