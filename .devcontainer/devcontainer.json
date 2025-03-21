@@ -1,8 +1,7 @@
 {
   "name": "EduPredict Environment",
   "build": {
-    "context": "..",
-    "dockerfile": ".devcontainer/Dockerfile"
+    "dockerfile": "Dockerfile"
   },
   "customizations": {
     "vscode": {
