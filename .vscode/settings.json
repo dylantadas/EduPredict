@@ -1,7 +1,9 @@
 {
     "python.pythonPath": "/opt/anaconda3/envs/edupredict/bin/python",
     "terminal.integrated.env.osx": {
+        "PATH": "/opt/anaconda3/envs/edupredict/bin:${env:PATH}",
         "CONDA_DEFAULT_ENV": "edupredict",
         "CONDA_PROMPT_MODIFIER": "(edupredict) "
-    }
+    },
+    "terminal.integrated.inheritEnv": false
 }
