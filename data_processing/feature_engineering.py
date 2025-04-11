@@ -257,7 +257,7 @@ def prepare_target_variable(data):
         'pass': 0,
         'distinction': 0,
         'fail': 1,
-        'withdrawal': 1
+        'withdrawn': 1
     }
     
     # convert to lowercase and map to binary target
