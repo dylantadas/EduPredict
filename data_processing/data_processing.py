@@ -100,6 +100,15 @@ def clean_demographic_data(student_info: pd.DataFrame) -> pd.DataFrame:
     """Performs initial cleaning of demographic data and handles missing values."""
 
     cleaned_data = student_info.copy()
+    original_count = len(cleaned_data)
+    
+    # filter rows with missing final_result 
+    cleaned_data = cleaned_data.dropna(subset=['final_result'])
+    
+    # log filtered out rows
+    removed_count = original_count - len(cleaned_data)
+    if removed_count > 0:
+        print(f"Removed {removed_count} rows ({removed_count/original_count:.2%}) with missing final_result values")
 
     # standardize string columns
     string_columns = ['gender', 'region', 'highest_education', 'imd_band', 'age_band']
