@@ -43,7 +43,7 @@ def tune_random_forest(X_train, y_train,
         scorer = scoring
     
     # initialize base model
-    base_model = RandomForestClassifier(random_state=42)
+    base_model = RandomForestClassifier(random_state=0)
     
     # perform hyperparameter search
     if random_search:
@@ -56,7 +56,7 @@ def tune_random_forest(X_train, y_train,
             scoring=scorer,
             n_jobs=n_jobs,
             verbose=verbose,
-            random_state=42,
+            random_state=0,
             return_train_score=True
         )
     else:
