@@ -1,0 +1,16 @@
+{
+  "demographic_insights": [
+    "Age distribution: {'0-35': 0.7039548369281747, '35-55': 0.2894179731844261, '55<=': 0.0066271898873991346}",
+    "Gender distribution: {'m': 0.5484306446169422, 'f': 0.4515693553830577}",
+    "IMD band distribution: {'20-30%': 0.11210996226183537, '30-40%': 0.1085815972754886, '10-20': 0.10787592427821925, '0-10%': 0.10158623017212284, '40-50%': 0.09989875126560918, '50-60%': 0.09584880188997638, '60-70%': 0.08912956769858559, '70-80%': 0.08833185039732458, '80-90%': 0.08474212254165005, '90-100%': 0.07780811830761207, 'unknown': 0.03408707391157611}"
+  ],
+  "performance_patterns": [],
+  "engagement_patterns": [],
+  "data_quality_issues": [
+    "vle has missing values: {'week_from': 9269544, 'week_to': 9269544}",
+    "assessments has missing values: {'date': 2865}"
+  ],
+  "modeling_implications": [
+    "Data contains missing values (up to 19.3% in some datasets); robust imputation strategies needed"
+  ]
+}
