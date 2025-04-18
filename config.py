@@ -109,5 +109,14 @@ FAIRNESS_THRESHOLDS = {
     'equal_opportunity_difference': 0.05
 }
 
+# Bias mitigation parameters
+BIAS_MITIGATION = {
+    'method': 'reweight',  # Options: 'reweight', 'oversample', 'undersample', 'none'
+    'balance_strategy': 'group_balanced',  # Options: 'group_balanced', 'stratified'
+    'target_ratios': None,  # Optional custom ratios per group
+    'min_group_size': 50,  # Minimum samples per group
+    'max_ratio': 3.0  # Maximum allowed ratio between group sizes
+}
+
 # demographic columns for visualization
 DEMOGRAPHIC_COLS = ['gender', 'age_band', 'imd_band', 'region', 'highest_education']

@@ -9,8 +9,10 @@ import joblib
 import os
 from ..evaluation.fairness_analysis import (
     calculate_fairness_metrics,
-    evaluate_model_fairness
+    evaluate_model_fairness,
+    resample_training_data
 )
+from ..config import BIAS_MITIGATION
 
 
 class FairnessScoringFunction:
@@ -204,23 +206,37 @@ def tune_random_forest(
     random_search: bool = True,
     n_iter: int = 20,
     intersectional: bool = False,
+    bias_mitigation: Optional[Dict] = None,
     verbose: int = 1
 ) -> Tuple[Dict, Any]:
-    """Tunes random forest with demographic-aware CV if protected attributes provided."""
+    """Tunes random forest with optional bias mitigation."""
     
-    from sklearn.ensemble import RandomForestClassifier
+    # Apply bias mitigation if specified
+    if bias_mitigation is None:
+        bias_mitigation = BIAS_MITIGATION
+    
+    if protected_attributes and bias_mitigation['method'] != 'none':
+        X_train_balanced, y_train_balanced, sample_weights = resample_training_data(
+            X_train,
+            y_train,
+            protected_attributes,
+            method=bias_mitigation['method']
+        )
+    else:
+        X_train_balanced = X_train
+        y_train_balanced = y_train
+        sample_weights = None
     
     # Create CV splitter
     if protected_attributes:
         cv = create_fair_cv_splitter(
-            X=X_train,
-            y=y_train,
+            X=X_train_balanced,
+            y=y_train_balanced,
             protected_attributes=protected_attributes,
             n_splits=n_splits,
             intersectional=intersectional
         )
     else:
-        # Fall back to regular StratifiedKFold if no demographics provided
         cv = n_splits
     
     # default param grid if none provided
@@ -274,7 +290,7 @@ def tune_random_forest(
         )
     
     # fit search
-    search.fit(X_train, y_train)
+    search.fit(X_train_balanced, y_train_balanced, sample_weight=sample_weights)
     
     # get best parameters and model
     best_params = search.best_params_
@@ -286,18 +302,52 @@ def tune_random_forest(
     return best_params, best_model
 
 
-def tune_gru_hyperparameters(X_train_dict, y_train, X_val_dict, y_val,
-                            param_grid: Optional[Dict] = None,
-                            epochs: int = 20,
-                            batch_size: int = 32,
-                            early_stopping_patience: int = 5,
-                            verbose: int = 1) -> Tuple[Dict, Dict]:
-    """Tunes GRU hyperparameters using manual validation loop."""
+def tune_gru_hyperparameters(
+    X_train_dict: Dict,
+    y_train: np.ndarray,
+    X_val_dict: Dict,
+    y_val: np.ndarray,
+    protected_attributes: Optional[Dict[str, str]] = None,
+    param_grid: Optional[Dict] = None,
+    bias_mitigation: Optional[Dict] = None,
+    epochs: int = 20,
+    batch_size: int = 32,
+    early_stopping_patience: int = 5,
+    verbose: int = 1
+) -> Tuple[Dict, Dict]:
+    """Tunes GRU hyperparameters with optional bias mitigation."""
     
-    import tensorflow as tf
-    from tensorflow.keras.callbacks import EarlyStopping
-    from itertools import product
-    import time
+    # Apply bias mitigation if specified
+    if bias_mitigation is None:
+        bias_mitigation = BIAS_MITIGATION
+    
+    if protected_attributes and bias_mitigation['method'] != 'none':
+        # Create combined feature matrix for resampling
+        X_combined = np.concatenate([
+            X_train_dict['numerical'].reshape(len(X_train_dict['numerical']), -1),
+            X_train_dict['categorical'].reshape(len(X_train_dict['categorical']), -1)
+        ], axis=1)
+        
+        X_balanced, y_balanced, sample_weights = resample_training_data(
+            X_combined,
+            y_train,
+            protected_attributes,
+            method=bias_mitigation['method']
+        )
+        
+        # Reshape back to sequential format
+        seq_length = X_train_dict['numerical'].shape[1]
+        num_features = X_train_dict['numerical'].shape[2]
+        cat_features = X_train_dict['categorical'].shape[2]
+        
+        X_train_dict_balanced = {
+            'numerical': X_balanced[:, :seq_length*num_features].reshape(-1, seq_length, num_features),
+            'categorical': X_balanced[:, seq_length*num_features:].reshape(-1, seq_length, cat_features)
+        }
+    else:
+        X_train_dict_balanced = X_train_dict
+        y_balanced = y_train
+        sample_weights = None
     
     # default param grid if none provided
     if param_grid is None:
@@ -332,8 +382,8 @@ def tune_gru_hyperparameters(X_train_dict, y_train, X_val_dict, y_val,
         
         # build model with current parameters
         model = build_gru_model(
-            categorical_dim=X_train_dict['categorical'].shape[2] if 'categorical' in X_train_dict and X_train_dict['categorical'] is not None else None,
-            numerical_dim=X_train_dict['numerical'].shape[2] if 'numerical' in X_train_dict and X_train_dict['numerical'] is not None else None,
+            categorical_dim=X_train_dict_balanced['categorical'].shape[2] if 'categorical' in X_train_dict_balanced and X_train_dict_balanced['categorical'] is not None else None,
+            numerical_dim=X_train_dict_balanced['numerical'].shape[2] if 'numerical' in X_train_dict_balanced and X_train_dict_balanced['numerical'] is not None else None,
             gru_units=params['gru_units'],
             dense_units=params['dense_units'],
             dropout_rate=params['dropout_rate'],
@@ -344,18 +394,18 @@ def tune_gru_hyperparameters(X_train_dict, y_train, X_val_dict, y_val,
         train_inputs = {}
         val_inputs = {}
         
-        if 'categorical' in X_train_dict and X_train_dict['categorical'] is not None:
-            train_inputs['categorical_input'] = X_train_dict['categorical']
+        if 'categorical' in X_train_dict_balanced and X_train_dict_balanced['categorical'] is not None:
+            train_inputs['categorical_input'] = X_train_dict_balanced['categorical']
             val_inputs['categorical_input'] = X_val_dict['categorical']
         
-        if 'numerical' in X_train_dict and X_train_dict['numerical'] is not None:
-            train_inputs['numerical_input'] = X_train_dict['numerical']
+        if 'numerical' in X_train_dict_balanced and X_train_dict_balanced['numerical'] is not None:
+            train_inputs['numerical_input'] = X_train_dict_balanced['numerical']
             val_inputs['numerical_input'] = X_val_dict['numerical']
         
         # train model
         history = model.fit(
             train_inputs,
-            y_train,
+            y_balanced,
             epochs=epochs,
             batch_size=batch_size,
             validation_data=(val_inputs, y_val),
