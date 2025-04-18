@@ -1,8 +1,46 @@
+import os
+import json
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from typing import Dict, List, Optional
+from visualization.visualization_runner import VisualizationRunner
+
+def perform_automated_eda(clean_data: Dict[str, pd.DataFrame], 
+                         viz_dir: str,
+                         report_dir: str):
+    """Perform automated exploratory data analysis."""
+    
+    # Get documented findings
+    eda_findings = document_eda_findings(clean_data)
+    
+    # Save findings
+    with open(os.path.join(report_dir, 'eda_findings.json'), 'w') as f:
+        json.dump(eda_findings, f, indent=2)
+    
+    # Use visualization runner for all visualizations
+    viz_runner = VisualizationRunner(viz_dir)
+    
+    # Run all relevant visualizations
+    demo_paths = viz_runner.run_demographic_visualizations(clean_data['demographics'])
+    perf_paths = viz_runner.run_performance_visualizations(
+        clean_data,
+        {'demographics': True}
+    )
+    engagement_paths = viz_runner.run_engagement_visualizations(
+        clean_data['vle'],
+        clean_data['demographics']
+    )
+    
+    return {
+        'findings': eda_findings,
+        'visualization_paths': {
+            'demographics': demo_paths,
+            'performance': perf_paths,
+            'engagement': engagement_paths
+        }
+    }
 
 def perform_automated_eda(datasets):
     """Performs automated eda and displays results identifying potential data quality issues."""
@@ -201,166 +239,3 @@ def run_eda_pipeline(datasets):
     analyze_engagement_patterns(datasets)
 
     print("\nEDA Complete.")
-
-
-def visualize_demographic_distributions(student_info: pd.DataFrame, save_path: Optional[str] = None):
-    """Visualizes distributions of key demographic variables."""
-    
-    demo_cols = ['gender', 'age_band', 'imd_band', 'region', 'highest_education', 'disability']
-    available_cols = [col for col in demo_cols if col in student_info.columns]
-    
-    # calculate number of plots needed
-    n_cols = min(2, len(available_cols))
-    n_rows = (len(available_cols) + n_cols - 1) // n_cols
-    
-    # create subplots
-    fig, axes = plt.subplots(n_rows, n_cols, figsize=(14, 4 * n_rows))
-    if n_rows == 1 and n_cols == 1:
-        axes = np.array([axes])
-    axes = axes.flatten()
-    
-    # create plots
-    for i, col in enumerate(available_cols):
-        if i < len(axes):
-            value_counts = student_info[col].value_counts().sort_values(ascending=False)
-            ax = axes[i]
-            value_counts.plot(kind='bar', ax=ax)
-            ax.set_title(f'Distribution of {col}')
-            ax.set_ylabel('Count')
-            ax.tick_params(axis='x', rotation=45)
-            
-            # add percentage labels
-            total = value_counts.sum()
-            for j, p in enumerate(ax.patches):
-                percentage = f'{100 * p.get_height() / total:.1f}%'
-                ax.annotate(percentage, 
-                           (p.get_x() + p.get_width() / 2., p.get_height()), 
-                           ha='center', va='bottom')
-    
-    # hide unused subplots
-    for i in range(len(available_cols), len(axes)):
-        axes[i].set_visible(False)
-    
-    plt.tight_layout()
-    
-    # save if path provided
-    if save_path:
-        plt.savefig(save_path, dpi=300, bbox_inches='tight')
-        print(f"Saved demographic visualizations to {save_path}")
-    
-    plt.show()
-
-
-def visualize_performance_by_demographics(student_data: pd.DataFrame, 
-                                         demo_cols: List[str] = ['gender', 'age_band', 'imd_band'],
-                                         save_path: Optional[str] = None):
-    """Visualizes student performance across demographic groups."""
-    
-    available_cols = [col for col in demo_cols if col in student_data.columns]
-    
-    if 'final_result' not in student_data.columns:
-        print("Error: final_result column not found in data")
-        return
-    
-    # calculate number of plots needed
-    n_cols = min(2, len(available_cols))
-    n_rows = (len(available_cols) + n_cols - 1) // n_cols
-    
-    # create subplots
-    fig, axes = plt.subplots(n_rows, n_cols, figsize=(14, 4 * n_rows))
-    if n_rows == 1 and n_cols == 1:
-        axes = np.array([axes])
-    axes = axes.flatten()
-    
-    # create plots
-    for i, col in enumerate(available_cols):
-        if i < len(axes):
-            # calculate pass rates by demographic group
-            pass_rate = (
-                student_data
-                .groupby(col)
-                .apply(lambda x: (x['final_result'].str.lower().isin(['pass', 'distinction'])).mean())
-                .sort_values()
-            )
-            
-            ax = axes[i]
-            pass_rate.plot(kind='barh', ax=ax)
-            ax.set_title(f'Pass Rate by {col}')
-            ax.set_xlabel('Pass Rate')
-            ax.set_xlim(0, 1)
-            
-            # add percentage labels
-            for j, p in enumerate(ax.patches):
-                percentage = f'{100 * p.get_width():.1f}%'
-                ax.annotate(percentage, 
-                           (p.get_width(), p.get_y() + p.get_height() / 2.), 
-                           ha='left', va='center')
-    
-    # hide unused subplots
-    for i in range(len(available_cols), len(axes)):
-        axes[i].set_visible(False)
-    
-    plt.tight_layout()
-    
-    # save if path provided
-    if save_path:
-        plt.savefig(save_path, dpi=300, bbox_inches='tight')
-        print(f"Saved performance visualizations to {save_path}")
-    
-    plt.show()
-
-
-def visualize_engagement_patterns(vle_data: pd.DataFrame, 
-                                final_results: Optional[pd.DataFrame] = None,
-                                save_path: Optional[str] = None):
-    """Visualizes temporal engagement patterns, optionally split by final result."""
-    
-    # weekly aggregation
-    vle_data['week'] = vle_data['date'] // 7
-    weekly_data = vle_data.groupby('week')['sum_click'].agg(['mean', 'count', 'sum'])
-    
-    fig, axes = plt.subplots(2, 1, figsize=(14, 10))
-    
-    # plot total clicks over time
-    weekly_data['sum'].plot(ax=axes[0])
-    axes[0].set_title('Total Clicks by Week')
-    axes[0].set_xlabel('Week')
-    axes[0].set_ylabel('Total Clicks')
-    axes[0].grid(True)
-    
-    # plot average clicks per student
-    weekly_data['mean'].plot(ax=axes[1])
-    axes[1].set_title('Average Clicks per Interaction by Week')
-    axes[1].set_xlabel('Week')
-    axes[1].set_ylabel('Average Clicks')
-    axes[1].grid(True)
-    
-    plt.tight_layout()
-    
-    # create second figure for engagement by final result
-    if final_results is not None and 'id_student' in vle_data.columns and 'final_result' in final_results.columns:
-        # merge data
-        merged_data = vle_data.merge(
-            final_results[['id_student', 'final_result']],
-            on='id_student',
-            how='left'
-        )
-        
-        # aggregate by week and final result
-        result_weekly = merged_data.groupby(['week', 'final_result'])['sum_click'].mean().unstack()
-        
-        plt.figure(figsize=(14, 6))
-        result_weekly.plot()
-        plt.title('Average Clicks by Week and Final Result')
-        plt.xlabel('Week')
-        plt.ylabel('Average Clicks')
-        plt.grid(True)
-        plt.legend(title='Final Result')
-        plt.tight_layout()
-    
-    # save if path provided
-    if save_path:
-        plt.savefig(save_path, dpi=300, bbox_inches='tight')
-        print(f"Saved engagement visualizations to {save_path}")
-    
-    plt.show()

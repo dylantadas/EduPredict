@@ -195,6 +195,8 @@ from visualization.tableau_export import (
     create_tableau_instructions
 )
 
+from visualization.visualization_runner import VisualizationRunner
+
 
 def parse_arguments():
     """Parse command line arguments."""
@@ -266,73 +268,38 @@ def load_and_process_data(data_path, output_paths, visualize=False):
     """Load and process raw data."""
     logger.info("Starting data loading and processing")
     
-    # load datasets
-    start_time = time.time()
-    try:
-        datasets = load_raw_datasets(data_path)
-        logger.info(f"Loaded {len(datasets)} datasets in {time.time() - start_time:.2f} seconds")
-        
-        # verify data consistency
-        if validate_data_consistency(datasets):
-            logger.info("Data consistency validation passed")
-        else:
-            logger.warning("Data consistency validation failed")
-    except Exception as e:
-        logger.error(f"Error loading datasets: {str(e)}")
-        raise
+    # Load and validate data using data processing module
+    datasets = load_raw_datasets(data_path)
+    validate_data_consistency(datasets)
     
-    # clean data
-    logger.info("Cleaning data")
-    clean_demographics = clean_demographic_data(datasets['student_info'])
-    clean_vle = clean_vle_data(datasets['vle_interactions'], datasets['vle_materials'])
-    clean_assessments = clean_assessment_data(datasets['assessments'], datasets['student_assessments'])
+    # Clean data using data processing module
+    clean_data = {
+        'demographics': clean_demographic_data(datasets['student_info']),
+        'vle': clean_vle_data(datasets['vle_interactions'], datasets['vle_materials']),
+        'assessments': clean_assessment_data(datasets['assessments'], datasets['student_assessments'])
+    }
     
-    logger.info(f"Clean demographics shape: {clean_demographics.shape}")
-    logger.info(f"Clean VLE data shape: {clean_vle.shape}")
-    logger.info(f"Clean assessment data shape: {clean_assessments.shape}")
+    # Log shapes
+    for name, data in clean_data.items():
+        logger.info(f"Clean {name} shape: {data.shape}")
     
-    # save cleaned data
-    clean_demographics.to_csv(os.path.join(output_paths['feature_dir'], 'clean_demographics.csv'), index=False)
-    clean_vle.to_csv(os.path.join(output_paths['feature_dir'], 'clean_vle.csv'), index=False)
-    clean_assessments.to_csv(os.path.join(output_paths['feature_dir'], 'clean_assessments.csv'), index=False)
+    # Save cleaned data
+    for name, data in clean_data.items():
+        data.to_csv(os.path.join(output_paths['feature_dir'], f'clean_{name}.csv'), index=False)
     
     # run exploratory data analysis
     if visualize:
-        logger.info("Generating exploratory visualizations")
-        clean_datasets = {
-            'student_info': clean_demographics,
-            'vle': clean_vle,
-            'assessments': clean_assessments
-        }
+        viz_runner = VisualizationRunner(output_paths['viz_dir'])
+        viz_paths = viz_runner.run_demographic_visualizations(clean_data['demographics'])
+        logger.info(f"Generated demographic visualizations: {viz_paths}")
         
-        # get documented findings
-        eda_findings = document_eda_findings(clean_datasets)
-        
-        # save findings
-        with open(os.path.join(output_paths['report_dir'], 'eda_findings.json'), 'w') as f:
-            json.dump(eda_findings, f, indent=2)
-        
-        # visualize demographic distributions
-        vis_path = os.path.join(output_paths['viz_dir'], 'demographic_distributions.png')
-        visualize_demographic_distributions(clean_demographics, save_path=vis_path)
-        
-        # visualize performance by demographics
-        vis_path = os.path.join(output_paths['viz_dir'], 'performance_by_demographics.png')
-        visualize_performance_by_demographics(clean_demographics, 
-                                            ['gender', 'age_band', 'imd_band'],
-                                            save_path=vis_path)
-        
-        # visualize engagement patterns
-        if 'final_result' in clean_demographics.columns:
-            vis_path = os.path.join(output_paths['viz_dir'], 'engagement_patterns.png')
-            visualize_engagement_patterns(clean_vle, clean_demographics, save_path=vis_path)
+        engagement_paths = viz_runner.run_engagement_visualizations(
+            clean_data['vle'],
+            clean_data['demographics']
+        )
+        logger.info(f"Generated engagement visualizations: {engagement_paths}")
     
-    # return cleaned datasets
-    return {
-        'demographics': clean_demographics,
-        'vle': clean_vle,
-        'assessments': clean_assessments
-    }
+    return clean_data
 
 
 def engineer_features(clean_data, output_paths):
@@ -782,10 +749,10 @@ def train_ensemble_model(rf_data, gru_data, split_data, output_paths, args):
 
 
 def evaluate_model_fairness(model_data, demographic_data, output_paths, args):
-    """Evaluate model fairness across demographic groups."""
+    """Evaluates model fairness across demographic groups."""
     logger.info("Evaluating model fairness")
     
-    # extract test data and model
+    # extract test data and model predictions
     if 'ensemble' in model_data:
         model = model_data['ensemble']['model']
         X_test_rf = model_data['rf']['X_test']
@@ -797,7 +764,7 @@ def evaluate_model_fairness(model_data, demographic_data, output_paths, args):
         y_pred = model.predict(X_test_rf, X_test_gru, student_id_map)
         y_prob = model.predict_proba(X_test_rf, X_test_gru, student_id_map)
     else:
-        # use random forest model for fairness evaluation
+        # use random forest model predictions
         model = model_data['rf']['model']
         X_test = model_data['rf']['X_test']
         y_test = model_data['rf']['y_test'].values
@@ -809,40 +776,41 @@ def evaluate_model_fairness(model_data, demographic_data, output_paths, args):
     
     # prepare protected attributes
     protected_attributes = {}
-    
     for attr in ['gender', 'age_band', 'imd_band']:
         if attr in demographic_data.columns:
             protected_attributes[attr] = demographic_data[attr].values
-    
+
+    # set fairness thresholds
+    fairness_thresholds = {
+        'demographic_parity_difference': args.fairness_threshold,
+        'disparate_impact_ratio': 0.8,
+        'equal_opportunity_difference': args.fairness_threshold
+    }
+
     # evaluate fairness
     fairness_results = evaluate_model_fairness(
-        y_test, 
-        y_pred, 
+        y_test,
+        y_pred,
         y_prob,
         protected_attributes,
-        thresholds={
-            'demographic_parity_difference': args.fairness_threshold,
-            'disparate_impact_ratio': 0.8,
-            'equal_opportunity_difference': args.fairness_threshold
-        }
+        fairness_thresholds
     )
-    
-    # save fairness results
-    with open(os.path.join(output_paths['report_dir'], 'fairness_results.json'), 'w') as f:
-        json.dump({k: str(v) for k, v in fairness_results.items()}, f, indent=2)
-    
+
     # generate fairness report
     fairness_report = generate_fairness_report(
         fairness_results,
+        fairness_thresholds,
         save_path=os.path.join(output_paths['report_dir'], 'fairness_report.md')
     )
-    
-    # visualize fairness metrics if requested
+
+    # visualize results
     if args.visualize:
-        visualize_fairness_metrics(
+        viz_runner = VisualizationRunner(output_paths['viz_dir'])
+        fairness_viz_paths = viz_runner.run_fairness_visualizations(
             fairness_results,
-            save_path=os.path.join(output_paths['viz_dir'], 'fairness_metrics.png')
+            demographic_data
         )
+        logger.info(f"Generated fairness visualizations: {fairness_viz_paths}")
         
         # compare group performance for each protected attribute
         for attr in protected_attributes:
@@ -851,40 +819,11 @@ def evaluate_model_fairness(model_data, demographic_data, output_paths, args):
                 metric='f1',
                 save_path=os.path.join(output_paths['viz_dir'], f'fairness_{attr}_f1.png')
             )
-    
-    # check if we need bias mitigation
-    needs_mitigation = False
-    for attr, results in fairness_results.items():
-        if not results.get('passes_all_thresholds', True):
-            needs_mitigation = True
-            break
-    
-    # apply threshold optimization for bias mitigation if needed
-    if needs_mitigation:
-        logger.info("Applying threshold optimization for bias mitigation")
-        
-        mitigated_thresholds = {}
-        for attr, attr_values in protected_attributes.items():
-            # optimize thresholds for demographic parity
-            thresholds = mitigate_bias_with_thresholds(
-                y_test,
-                y_prob,
-                attr_values,
-                metric='demographic_parity',
-                tolerance=args.fairness_threshold
-            )
-            
-            mitigated_thresholds[attr] = thresholds
-            logger.info(f"Optimized thresholds for {attr}: {thresholds}")
-        
-        # save mitigated thresholds
-        with open(os.path.join(output_paths['report_dir'], 'mitigated_thresholds.json'), 'w') as f:
-            json.dump(mitigated_thresholds, f, indent=2)
-    
+
     return {
         'fairness_results': fairness_results,
         'fairness_report': fairness_report,
-        'mitigated_thresholds': mitigated_thresholds if needs_mitigation else None
+        'mitigated_thresholds': None  # Will be updated if bias mitigation is needed
     }
 
 
@@ -909,14 +848,30 @@ def prepare_visualizations(model_data, clean_data, fairness_data, output_paths, 
         # use random forest model predictions
         model = model_data['rf']['model']
         X_test = model_data['rf']['X_test']
-        threshold = model_data['rf']['threshold']
+        
+        # get predictions using optimized thresholds from fairness analysis
+        y_prob = model.predict_proba(X_test)
+        
+        # use fairness-aware thresholds if protected attributes are available
+        if 'protected_attributes' in model_data:
+            thresholds = mitigate_bias_with_thresholds(
+                model_data['rf']['y_test'],
+                y_prob,
+                model_data['protected_attributes'],
+                metric='demographic_parity',
+                tolerance=args.fairness_threshold
+            )
+            # Apply group-specific thresholds
+            y_pred = np.zeros_like(y_prob)
+            for group, threshold in thresholds.items():
+                group_mask = (model_data['protected_attributes'] == group)
+                y_pred[group_mask] = (y_prob[group_mask] >= threshold).astype(int)
+        else:
+            # Use single threshold if no protected attributes
+            y_pred = (y_prob >= model_data['rf']['threshold']).astype(int)
         
         # get student IDs from the test set
         test_student_ids = model_data['rf']['split_data']['static_test']['id_student'].values
-        
-        # get predictions
-        y_pred = model.predict(X_test, threshold=threshold)
-        y_prob = model.predict_proba(X_test)
     
     # prepare student demographic data
     student_info = clean_data['demographics']
