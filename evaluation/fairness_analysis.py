@@ -348,3 +348,72 @@ def evaluate_bias_mitigation(
     comparison['overall_improvement'] = total_improvement / metric_count if metric_count > 0 else 0
     
     return comparison
+
+
+def generate_fairness_report(fairness_results, fairness_thresholds, save_path=None):
+    """Generate a comprehensive fairness analysis report."""
+    report = []
+    report.append("# Fairness Analysis Report\n")
+    
+    for attribute, metrics in fairness_results.items():
+        report.append(f"## {attribute} Analysis\n")
+        
+        # Demographic parity
+        dpd = metrics['demographic_parity_difference']
+        report.append(f"- Demographic Parity Difference: {dpd:.3f}")
+        if abs(dpd) > fairness_thresholds['demographic_parity_difference']:
+            report.append("  * ALERT: Exceeds fairness threshold")
+        
+        # Equal opportunity
+        eod = metrics['equal_opportunity_difference']
+        report.append(f"- Equal Opportunity Difference: {eod:.3f}")
+        if abs(eod) > fairness_thresholds['equal_opportunity_difference']:
+            report.append("  * ALERT: Exceeds fairness threshold")
+        
+        report.append("\n")
+    
+    report = '\n'.join(report)
+    if save_path:
+        with open(save_path, 'w') as f:
+            f.write(report)
+    
+    return report
+
+
+def mitigate_bias_with_thresholds(y_true, y_prob, protected_attributes, tolerance=0.05):
+    """Find group-specific thresholds to mitigate prediction bias."""
+    from sklearn.metrics import confusion_matrix
+    
+    def find_threshold(group_true, group_prob, target_fpr):
+        thresholds = np.arange(0, 1, 0.01)
+        best_thresh = 0.5
+        min_diff = float('inf')
+        
+        for t in thresholds:
+            pred = (group_prob >= t).astype(int)
+            tn, fp, fn, tp = confusion_matrix(group_true, pred).ravel()
+            fpr = fp / (fp + tn) if (fp + tn) > 0 else 0
+            diff = abs(fpr - target_fpr)
+            if diff < min_diff:
+                min_diff = diff
+                best_thresh = t
+        
+        return best_thresh
+    
+    # Calculate reference group's false positive rate
+    reference_mask = protected_attributes == protected_attributes.mode()[0]
+    reference_pred = (y_prob[reference_mask] >= 0.5).astype(int)
+    tn, fp, fn, tp = confusion_matrix(y_true[reference_mask], reference_pred).ravel()
+    reference_fpr = fp / (fp + tn)
+    
+    # Find group-specific thresholds
+    thresholds = {}
+    for group in protected_attributes.unique():
+        group_mask = protected_attributes == group
+        thresholds[group] = find_threshold(
+            y_true[group_mask],
+            y_prob[group_mask],
+            reference_fpr
+        )
+    
+    return thresholds

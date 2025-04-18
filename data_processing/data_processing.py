@@ -3,98 +3,32 @@ import pandas as pd
 import numpy as np
 from typing import Dict, List, Optional
 
-def load_raw_datasets(data_path: str) -> Dict[str, pd.DataFrame]:
-    """Loads all csv files from OULAD dataset with optimized memory usage."""
-
-    # define column types to reduce memory
-    dtype_dict = {
-        'id_student': 'int32',
-        'code_module': 'category',
-        'code_presentation': 'category',
-        'gender': 'category',
-        'region': 'category',
-        'highest_education': 'category',
-        'imd_band': 'category',
-        'age_band': 'category',
-        'num_of_prev_attempts': 'int8',
-        'disability': 'category',
-        'date': 'int16',
-        'sum_click': 'int16',
-        'module_presentation_length': 'int16'
-    }
-
-    # define which columns needed from each file
-    dataset_files = {
-        'student_info': {
-            'file': 'studentInfo.csv',
-            'columns': [
-                'id_student', 'code_module', 'code_presentation',
-                'gender', 'region', 'highest_education', 'imd_band', 'age_band',
-                'num_of_prev_attempts', 'studied_credits', 'disability', 'final_result'
-            ]
-        },
-        'vle_interactions': {
-            'file': 'studentVle.csv',
-            'columns': [
-                'id_student', 'code_module', 'code_presentation',
-                'date', 'sum_click', 'id_site'
-            ]
-        },
-        'vle_materials': {
-            'file': 'vle.csv',
-            'columns': None  # load all columns
-        },
-        'assessments': {
-            'file': 'assessments.csv',
-            'columns': None  # load all columns
-        },
-        'student_assessments': {
-            'file': 'studentAssessment.csv',
-            'columns': None  # load all columns
-        },
-        'courses': {
-            'file': 'courses.csv',
-            'columns': [
-                'code_module',
-                'code_presentation',
-                'module_presentation_length'
-            ]
-        }
-    }
-
+def load_raw_datasets(dataset_paths):
+    """Load all raw datasets from specified paths."""
+    required_files = [
+        'studentInfo.csv',
+        'vle.csv',
+        'studentVle.csv',
+        'assessments.csv',
+        'studentAssessment.csv'
+    ]
+    
     datasets = {}
-    total_rows = 0
-
-    for key, file_info in dataset_files.items():
-        try:
-            # load csv with specified columns and optimized dtypes
-            df = pd.read_csv(
-                    os.path.join(data_path, file_info['file']),
-                    usecols=file_info['columns'],
-                    dtype={col: dtype_dict.get(col) for col in (file_info['columns'] or [])
-                           if col in dtype_dict}
-            )
-            
-            total_rows += len(df)
-            print(f"Loaded {file_info['file']}: {len(df)} rows, {len(df.columns)} columns")
-            datasets[key] = df
-
-        except FileNotFoundError:
-            print(f"Error: {file_info['file']} not found")
-            datasets[key] = None
-
-        except ValueError as e:
-            print(f"Error loading {file_info['file']}: {str(e)}")
-            print("Loading all columns instead...")
-            # fallback: load all columns if unmatched specified columns
-            df = pd.read_csv(os.path.join(data_path, file_info['file']))
-            total_rows += len(df)
-            print(f"Loaded {file_info['file']}: {len(df)} rows, {len(df.columns)} columns")
-            datasets[key] = df
-
-    print(f"\nTotal rows loaded across all files: {total_rows:,}")
-    return datasets
-
+    for file in required_files:
+        file_path = os.path.join(dataset_paths, file)
+        if not os.path.exists(file_path):
+            raise FileNotFoundError(f"Required file {file} not found in {dataset_paths}")
+        
+        name = file.split('.')[0]
+        datasets[name] = pd.read_csv(file_path)
+    
+    return {
+        'student_info': datasets['studentInfo'],
+        'vle_materials': datasets['vle'],
+        'vle_interactions': datasets['studentVle'],
+        'assessments': datasets['assessments'],
+        'student_assessments': datasets['studentAssessment']
+    }
 
 def clean_demographic_data(student_info: pd.DataFrame) -> pd.DataFrame:
     """Performs initial cleaning of demographic data and handles missing values."""
@@ -162,30 +96,29 @@ def clean_assessment_data(assessments: pd.DataFrame,
     return cleaned_data
 
 
-def validate_data_consistency(datasets: Dict[str, pd.DataFrame]) -> bool:
-    """Validates consistency across datasets."""
-
-    try:
-        # check student IDs consistency across files
-        student_ids = set(datasets['student_info']['id_student'])
-        vle_ids = set(datasets['vle_interactions']['id_student'])
-        assessment_ids = set(datasets['student_assessments']['id_student'])
-
-        # ensure all students in VLE and assessments exist in student_info
-        if not (vle_ids.issubset(student_ids) and assessment_ids.issubset(student_ids)):
-            print("Warning: Some VLE or assessment records have unknown student IDs")
-
-        # check module-presentation pairs consistency
-        modules_presentations = set(zip(datasets['courses']['code_module'],
-                                     datasets['courses']['code_presentation']))
-        student_modules = set(zip(datasets['student_info']['code_module'],
-                                datasets['student_info']['code_presentation']))
-
-        if not student_modules.issubset(modules_presentations):
-            print("Warning: Invalid module-presentation combinations found")
-
-        return True
-
-    except Exception as e:
-        print(f"Validation failed: {str(e)}")
-        return False
+def validate_data_consistency(datasets):
+    """Validate consistency across different datasets."""
+    # Check student IDs consistency
+    student_ids = set(datasets['student_info']['id_student'])
+    vle_student_ids = set(datasets['vle_interactions']['id_student'])
+    assessment_student_ids = set(datasets['student_assessments']['id_student'])
+    
+    # All students in interactions should be in student_info
+    if not vle_student_ids.issubset(student_ids):
+        raise ValueError("VLE interactions contain unknown student IDs")
+    if not assessment_student_ids.issubset(student_ids):
+        raise ValueError("Assessment data contain unknown student IDs")
+    
+    # Check assessment IDs consistency
+    assessment_ids = set(datasets['assessments']['id_assessment'])
+    student_assessment_ids = set(datasets['student_assessments']['id_assessment'])
+    if not student_assessment_ids.issubset(assessment_ids):
+        raise ValueError("Student assessment data contain unknown assessment IDs")
+    
+    # Check VLE activity IDs consistency
+    vle_ids = set(datasets['vle_materials']['id_site'])
+    interaction_vle_ids = set(datasets['vle_interactions']['id_site'])
+    if not interaction_vle_ids.issubset(vle_ids):
+        raise ValueError("VLE interactions contain unknown activity IDs")
+    
+    return True

@@ -5,53 +5,39 @@ import json
 from typing import Dict, List, Tuple, Optional, Any
 import matplotlib.pyplot as plt
 import seaborn as sns
+from datetime import datetime
 
 
 def prepare_student_risk_data(
-    student_data: pd.DataFrame,
-    risk_predictions: np.ndarray,
-    risk_probabilities: np.ndarray,
+    student_info: pd.DataFrame,
+    predictions: np.ndarray,
+    probabilities: np.ndarray,
     student_ids: np.ndarray,
-    demographic_cols: List[str] = ['gender', 'age_band', 'imd_band', 'region']
+    demographic_cols: List[str]
 ) -> pd.DataFrame:
-    """Prepares student risk prediction data for tableau export."""
+    """Prepare student risk predictions with demographic information."""
     
-    # validate inputs
-    if len(risk_predictions) != len(student_ids):
-        raise ValueError("Length of predictions must match length of student_ids")
-    
-    # create dataframe with predictions
-    risk_df = pd.DataFrame({
-        'id_student': student_ids,
-        'risk_prediction': risk_predictions,
-        'risk_probability': risk_probabilities
+    risk_data = pd.DataFrame({
+        'student_id': student_ids,
+        'risk_prediction': predictions,
+        'risk_probability': probabilities
     })
     
-    # merge with student demographic data
-    cols_to_use = ['id_student', 'code_module', 'code_presentation'] + demographic_cols
-    available_cols = [col for col in cols_to_use if col in student_data.columns]
-    
-    result_df = student_data[available_cols].merge(
-        risk_df,
-        on='id_student',
-        how='inner'
+    # Merge with demographic information
+    risk_data = risk_data.merge(
+        student_info[['id_student'] + demographic_cols],
+        left_on='student_id',
+        right_on='id_student',
+        how='left'
     )
     
-    # convert risk probabilities to percentage
-    result_df['risk_percentage'] = (result_df['risk_probability'] * 100).round(1)
+    # Create binary risk category
+    risk_data['risk_category'] = risk_data['risk_prediction'].map({
+        0: 'No Risk',    # Pass/Distinction
+        1: 'At Risk'     # Fail/Withdraw
+    })
     
-    # add risk category
-    risk_bins = [0, 0.3, 0.6, 0.85, 1.0]
-    risk_labels = ['Low', 'Moderate', 'High', 'Very High']
-    
-    result_df['risk_category'] = pd.cut(
-        result_df['risk_probability'],
-        bins=risk_bins,
-        labels=risk_labels,
-        include_lowest=True
-    )
-    
-    return result_df
+    return risk_data
 
 
 def prepare_temporal_engagement_data(
@@ -59,44 +45,30 @@ def prepare_temporal_engagement_data(
     risk_data: pd.DataFrame,
     time_window: int = 7
 ) -> pd.DataFrame:
-    """Prepares temporal engagement data for time-series visualization."""
+    """Prepare temporal engagement data for visualization."""
     
-    # group vle data by student and time window
-    vle_data['time_window'] = vle_data['date'] // time_window
-    
-    # aggregate interactions
-    engagement_df = vle_data.groupby(
-        ['id_student', 'code_module', 'code_presentation', 'time_window']
+    # Calculate engagement metrics per time window
+    engagement = vle_data.groupby(
+        ['id_student', pd.Grouper(key='date', freq=f'{time_window}D')]
     ).agg({
-        'sum_click': 'sum',
-        'id_site': 'nunique'
+        'sum_click': ['sum', 'mean', 'count'],
+        'activity_type': 'nunique'
     }).reset_index()
     
-    # rename columns for clarity
-    engagement_df = engagement_df.rename(columns={
-        'sum_click': 'total_interactions',
-        'id_site': 'unique_materials'
-    })
+    # Flatten column names
+    engagement.columns = [
+        'student_id', 'date', 'total_clicks', 
+        'avg_clicks', 'activities', 'unique_activities'
+    ]
     
-    # convert time_window to actual days (start of window)
-    engagement_df['day'] = engagement_df['time_window'] * time_window
+    # Merge with risk predictions
+    engagement = engagement.merge(
+        risk_data[['student_id', 'risk_category']],
+        on='student_id',
+        how='left'
+    )
     
-    # merge with risk data to include predictions
-    risk_cols = ['id_student', 'risk_prediction', 'risk_probability', 'risk_category']
-    
-    # check if all columns exist
-    available_cols = [col for col in risk_cols if col in risk_data.columns]
-    
-    if available_cols:
-        result_df = engagement_df.merge(
-            risk_data[available_cols],
-            on='id_student',
-            how='left'
-        )
-    else:
-        result_df = engagement_df
-    
-    return result_df
+    return engagement
 
 
 def prepare_assessment_performance_data(
@@ -104,230 +76,173 @@ def prepare_assessment_performance_data(
     student_info: pd.DataFrame,
     risk_data: pd.DataFrame
 ) -> pd.DataFrame:
-    """Prepares assessment performance data for visualization."""
+    """Prepare assessment performance data for visualization."""
     
-    # merge assessment data with student info
-    assessment_df = assessment_data.merge(
-        student_info[['id_student', 'code_module', 'code_presentation', 'final_result']],
-        on=['id_student', 'code_module', 'code_presentation'],
-        how='inner'
+    # Calculate assessment metrics
+    performance = assessment_data.groupby('id_student').agg({
+        'score': ['mean', 'min', 'max', 'std'],
+        'weight': 'mean',
+        'date_submitted': lambda x: (x - assessment_data['date']).mean()
+    }).reset_index()
+    
+    # Flatten column names
+    performance.columns = [
+        'student_id', 'avg_score', 'min_score', 
+        'max_score', 'score_std', 'avg_weight', 'avg_submission_delay'
+    ]
+    
+    # Merge with risk and demographic data
+    performance = performance.merge(
+        risk_data[['student_id', 'risk_category']],
+        on='student_id',
+        how='left'
     )
     
-    # add assessment submission status
-    assessment_df['submission_status'] = np.where(
-        assessment_df['date_submitted'].notna(),
-        'Submitted',
-        'Not Submitted'
-    )
-    
-    # add assessment outcome
-    assessment_df['assessment_outcome'] = np.where(
-        assessment_df['score'] >= 40,
-        'Pass',
-        'Fail'
-    )
-    
-    # calculate submission delay
-    assessment_df['submission_delay'] = (
-        assessment_df['date_submitted'] - assessment_df['date']
-    )
-    
-    # add submission timing category
-    def categorize_timing(delay):
-        if pd.isna(delay):
-            return 'Not Submitted'
-        elif delay < -7:
-            return 'Very Early (>1 week)'
-        elif delay < -1:
-            return 'Early (1-7 days)'
-        elif delay < 0:
-            return 'Day Before'
-        elif delay == 0:
-            return 'On Due Date'
-        elif delay <= 1:
-            return 'Late (1 day)'
-        else:
-            return 'Very Late (>1 day)'
-    
-    assessment_df['submission_timing'] = assessment_df['submission_delay'].apply(categorize_timing)
-    
-    # merge with risk data
-    risk_cols = ['id_student', 'risk_prediction', 'risk_probability', 'risk_category']
-    available_cols = [col for col in risk_cols if col in risk_data.columns]
-    
-    if available_cols:
-        result_df = assessment_df.merge(
-            risk_data[available_cols],
-            on='id_student',
-            how='left'
-        )
-    else:
-        result_df = assessment_df
-    
-    return result_df
+    return performance
 
 
 def prepare_demographic_fairness_data(
     fairness_results: Dict,
     risk_data: pd.DataFrame,
-    demographic_cols: List[str] = ['gender', 'age_band', 'imd_band']
+    demographic_cols: List[str]
 ) -> pd.DataFrame:
-    """Prepares demographic fairness metrics for visualization."""
+    """Prepare demographic fairness metrics for visualization."""
     
+    fairness_data = []
+    
+    for attr in demographic_cols:
+        if attr in fairness_results:
+            metrics = fairness_results[attr]['fairness_metrics']
+            group_metrics = fairness_results[attr]['group_metrics']
+            
+            # Calculate group-level statistics
+            for group in group_metrics['group'].unique():
+                group_data = {
+                    'demographic_attribute': attr,
+                    'group': group,
+                    'sample_size': group_metrics[group_metrics['group'] == group]['count'].iloc[0],
+                    'prediction_rate': group_metrics[group_metrics['group'] == group]['positive_rate_pred'].iloc[0],
+                    'actual_rate': group_metrics[group_metrics['group'] == group]['positive_rate_true'].iloc[0],
+                    'accuracy': group_metrics[group_metrics['group'] == group]['accuracy'].iloc[0],
+                    'demographic_parity_diff': metrics['demographic_parity_difference'],
+                    'equal_opportunity_diff': metrics['equal_opportunity_difference']
+                }
+                fairness_data.append(group_data)
+    
+    return pd.DataFrame(fairness_data)
+
+
+def prepare_model_performance_data(
+    metrics: Dict,
+    model_name: str,
+    risk_data: pd.DataFrame
+) -> pd.DataFrame:
+    """Prepare model performance metrics for visualization."""
+    
+    # Extract overall metrics
+    performance_data = {
+        'model_name': model_name,
+        'accuracy': metrics.get('accuracy', None),
+        'f1_score': metrics.get('f1_score', None),
+        'auc_roc': metrics.get('auc_roc', None),
+        'threshold': metrics.get('threshold', 0.5)
+    }
+    
+    # Calculate risk distribution
+    risk_dist = risk_data['risk_category'].value_counts(normalize=True).to_dict()
+    performance_data.update({
+        f'pct_{k.lower().replace(" ", "_")}': v 
+        for k, v in risk_dist.items()
+    })
+    
+    return pd.DataFrame([performance_data])
+
+
+def export_for_tableau(
+    export_data: Dict[str, pd.DataFrame],
+    export_dir: str,
+    format: str = 'csv'
+) -> Dict[str, str]:
+    """Export prepared data for Tableau visualization."""
+    
+    os.makedirs(export_dir, exist_ok=True)
+    exported_paths = {}
+    
+    for name, data in export_data.items():
+        filename = f"{name}_{datetime.now().strftime('%Y%m%d')}.{format}"
+        filepath = os.path.join(export_dir, filename)
+        
+        if format == 'csv':
+            data.to_csv(filepath, index=False)
+        elif format == 'excel':
+            data.to_excel(filepath, index=False)
+        
+        exported_paths[name] = filepath
+    
+    return exported_paths
+
+
+def prepare_fairness_visualization_data(
+    fairness_results: Dict[str, Dict],
+    demographic_data: pd.DataFrame,
+    risk_predictions: pd.DataFrame
+) -> pd.DataFrame:
+    """Prepares fairness metrics and demographic data for visualization.
+    
+    Args:
+        fairness_results: Dictionary containing fairness analysis results
+        demographic_data: DataFrame with demographic information
+        risk_predictions: DataFrame with model predictions
+    
+    Returns:
+        DataFrame with combined fairness metrics and demographic information
+    """
     fairness_rows = []
     
-    # extract fairness metrics for each demographic attribute
+    # Process each protected attribute's results
     for attr_name, results in fairness_results.items():
-        if attr_name not in demographic_cols:
-            continue
-            
-        # get group metrics
-        if 'group_metrics' in results:
-            group_metrics = results['group_metrics']
-            
-            # convert to dataframe if not already
-            if not isinstance(group_metrics, pd.DataFrame):
-                if isinstance(group_metrics, dict):
-                    group_df = pd.DataFrame.from_dict(group_metrics, orient='index')
-                    group_df['group'] = group_df.index
-                else:
-                    continue
+        # Extract group metrics if available
+        group_metrics = results.get('group_metrics', None)
+        if not isinstance(group_metrics, pd.DataFrame):
+            if isinstance(group_metrics, dict):
+                group_df = pd.DataFrame.from_dict(group_metrics, orient='index')
+                group_df['group'] = group_df.index
             else:
-                group_df = group_metrics.copy()
-                
-            # add demographic attribute column
-            group_df['demographic_attribute'] = attr_name
+                continue
+        else:
+            group_df = group_metrics.copy()
             
-            # select relevant columns
-            metric_cols = ['group', 'demographic_attribute', 'count', 'accuracy', 
-                          'f1', 'precision', 'recall', 'positive_rate', 'auc']
-            
-            available_cols = [col for col in metric_cols if col in group_df.columns]
-            fairness_rows.append(group_df[available_cols])
+        # Add demographic attribute column
+        group_df['demographic_attribute'] = attr_name
         
-        # add overall metrics
-        if 'fairness_metrics' in results:
-            metrics = results['fairness_metrics']
-            if isinstance(metrics, dict):
-                overall_df = pd.DataFrame({
-                    'demographic_attribute': [attr_name],
-                    'metric_type': ['overall'],
-                    'demographic_parity_difference': [metrics.get('demographic_parity_difference', np.nan)],
-                    'disparate_impact_ratio': [metrics.get('disparate_impact_ratio', np.nan)],
-                    'equal_opportunity_difference': [metrics.get('equal_opportunity_difference', np.nan)]
-                })
-                fairness_rows.append(overall_df)
+        # Select relevant columns
+        metric_cols = ['group', 'demographic_attribute', 'count', 'accuracy', 
+                      'f1', 'precision', 'recall', 'positive_rate', 'auc']
+        
+        available_cols = [col for col in metric_cols if col in group_df.columns]
+        fairness_rows.append(group_df[available_cols])
     
-    # combine all fairness metrics
+    # Combine group metrics
     if fairness_rows:
         fairness_df = pd.concat(fairness_rows, ignore_index=True)
         
-        # calculate additional metrics for visualization
-        if 'positive_rate' in fairness_df.columns and 'demographic_attribute' in fairness_df.columns:
-            # calculate relative positive rate compared to max for each demographic
+        # Calculate relative metrics
+        if 'positive_rate' in fairness_df.columns:
             for attr in fairness_df['demographic_attribute'].unique():
-                attr_mask = (fairness_df['demographic_attribute'] == attr)
-                max_rate = fairness_df.loc[attr_mask, 'positive_rate'].max()
-                
+                mask = (fairness_df['demographic_attribute'] == attr)
+                max_rate = fairness_df.loc[mask, 'positive_rate'].max()
                 if max_rate > 0:
-                    fairness_df.loc[attr_mask, 'relative_positive_rate'] = (
-                        fairness_df.loc[attr_mask, 'positive_rate'] / max_rate
+                    fairness_df.loc[mask, 'relative_positive_rate'] = (
+                        fairness_df.loc[mask, 'positive_rate'] / max_rate
                     )
     else:
-        # create empty dataframe with expected columns
+        # Create empty DataFrame with expected columns
         fairness_df = pd.DataFrame(columns=[
             'demographic_attribute', 'group', 'count', 'accuracy', 'f1', 
             'positive_rate', 'relative_positive_rate'
         ])
     
     return fairness_df
-
-
-def prepare_model_performance_data(
-    model_results: Dict,
-    model_name: str,
-    demographic_data: Optional[pd.DataFrame] = None
-) -> pd.DataFrame:
-    """Prepares model performance metrics for visualization."""
-    
-    # extract basic performance metrics
-    performance_metrics = {
-        'model_name': model_name,
-        'accuracy': model_results.get('accuracy', np.nan),
-        'f1_score': model_results.get('f1_score', np.nan),
-        'auc_roc': model_results.get('auc_roc', np.nan),
-        'threshold': model_results.get('threshold', 0.5)
-    }
-    
-    # create base dataframe
-    performance_df = pd.DataFrame([performance_metrics])
-    
-    # add confusion matrix data if available
-    if 'confusion_matrix' in model_results:
-        cm = model_results['confusion_matrix']
-        if isinstance(cm, np.ndarray) and cm.shape == (2, 2):
-            tn, fp, fn, tp = cm.ravel()
-            
-            performance_df['true_positives'] = tp
-            performance_df['false_positives'] = fp
-            performance_df['true_negatives'] = tn
-            performance_df['false_negatives'] = fn
-            
-            # calculate additional metrics
-            performance_df['precision'] = tp / (tp + fp) if (tp + fp) > 0 else np.nan
-            performance_df['recall'] = tp / (tp + fn) if (tp + fn) > 0 else np.nan
-            performance_df['specificity'] = tn / (tn + fp) if (tn + fp) > 0 else np.nan
-    
-    return performance_df
-
-
-def export_for_tableau(
-    data_dict: Dict[str, pd.DataFrame],
-    export_dir: str = '../tableau_data',
-    format: str = 'csv'
-) -> Dict[str, str]:
-    """Exports prepared dataframes for tableau visualization."""
-    
-    # create export directory if not exists
-    os.makedirs(export_dir, exist_ok=True)
-    
-    export_paths = {}
-    
-    # export each dataframe
-    for name, df in data_dict.items():
-        if format.lower() == 'csv':
-            file_path = os.path.join(export_dir, f"{name}.csv")
-            df.to_csv(file_path, index=False)
-            export_paths[name] = file_path
-            
-        elif format.lower() == 'excel':
-            file_path = os.path.join(export_dir, f"{name}.xlsx")
-            df.to_excel(file_path, index=False)
-            export_paths[name] = file_path
-            
-        elif format.lower() == 'json':
-            file_path = os.path.join(export_dir, f"{name}.json")
-            df.to_json(file_path, orient='records')
-            export_paths[name] = file_path
-            
-        else:
-            raise ValueError(f"Unsupported export format: {format}")
-    
-    # create metadata file with column descriptions
-    metadata = {
-        'export_date': pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S'),
-        'datasets': {name: {'rows': len(df), 'columns': list(df.columns)} 
-                   for name, df in data_dict.items()}
-    }
-    
-    metadata_path = os.path.join(export_dir, 'metadata.json')
-    with open(metadata_path, 'w') as f:
-        json.dump(metadata, f, indent=2)
-    
-    export_paths['metadata'] = metadata_path
-    
-    print(f"Exported {len(data_dict)} datasets to {export_dir}")
-    return export_paths
 
 
 def generate_summary_visualizations(
@@ -351,8 +266,9 @@ def generate_summary_visualizations(
     # 1. risk distribution by category
     plt.figure(figsize=(10, 6))
     if 'risk_category' in risk_data.columns:
-        risk_counts = risk_data['risk_category'].value_counts().sort_index()
-        ax = risk_counts.plot(kind='bar', color=sns.color_palette("YlOrRd", len(risk_counts)))
+        risk_counts = risk_data['risk_category'].value_counts()
+        colors = ['green' if cat == 'No Risk' else 'red' for cat in risk_counts.index]
+        ax = risk_counts.plot(kind='bar', color=colors)
         plt.title('Student Risk Distribution', fontsize=14)
         plt.xlabel('Risk Category', fontsize=12)
         plt.ylabel('Number of Students', fontsize=12)
@@ -369,7 +285,7 @@ def generate_summary_visualizations(
         plt.close()
         export_paths['risk_distribution'] = file_path
     
-    # 2. risk distribution by demographic groups (for each available demographic)
+    # 2. risk distribution by demographic groups
     for demo_col in ['gender', 'age_band', 'imd_band']:
         if demo_col in risk_data.columns and 'risk_category' in risk_data.columns:
             plt.figure(figsize=(12, 7))
@@ -379,7 +295,10 @@ def generate_summary_visualizations(
                 normalize='index'
             )
             
-            ax = demo_risk.plot(kind='bar', stacked=True, colormap='YlOrRd')
+            # Use specific colors for binary risk
+            colors = ['green', 'red']
+            ax = demo_risk.plot(kind='bar', stacked=True, color=colors)
+            
             plt.title(f'Risk Distribution by {demo_col.replace("_", " ").title()}', fontsize=14)
             plt.xlabel(demo_col.replace("_", " ").title(), fontsize=12)
             plt.ylabel('Percentage of Students', fontsize=12)

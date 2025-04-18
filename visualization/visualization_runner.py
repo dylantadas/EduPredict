@@ -1,149 +1,146 @@
 import os
+import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from typing import Dict, List, Optional, Any
-import pandas as pd
-import numpy as np
+from typing import Dict, List, Optional
 
 class VisualizationRunner:
-    """Centralized runner for all visualizations in EduPredict."""
+    """Handles generation and management of visualizations."""
     
-    def __init__(self, 
-                 output_dir: str,
-                 style: str = 'whitegrid',
-                 fig_size: tuple = (12, 8),
-                 dpi: int = 300,
-                 format: str = 'png'):
+    def __init__(self, output_dir: str):
+        """Initialize visualization runner with output directory."""
         self.output_dir = output_dir
-        self.style = style
-        self.fig_size = fig_size
-        self.dpi = dpi
-        self.format = format
+        os.makedirs(output_dir, exist_ok=True)
         
-        # Setup style
-        sns.set_style(style)
-        plt.rcParams['figure.figsize'] = fig_size
-        
-        # Create output directories
-        self.viz_paths = {
-            'demographics': os.path.join(output_dir, 'demographics'),
-            'performance': os.path.join(output_dir, 'performance'),
-            'fairness': os.path.join(output_dir, 'fairness'),
-            'engagement': os.path.join(output_dir, 'engagement'),
-            'model': os.path.join(output_dir, 'model')
-        }
-        
-        for path in self.viz_paths.values():
-            os.makedirs(path, exist_ok=True)
-
-    def run_demographic_visualizations(self, 
-                                    student_data: pd.DataFrame,
-                                    demo_cols: Optional[List[str]] = None) -> Dict[str, str]:
-        """Run all demographic visualizations."""
-        if demo_cols is None:
-            demo_cols = ['gender', 'age_band', 'imd_band', 'region', 'highest_education']
-        
-        paths = {}
-        
-        # Distribution plots
-        dist_path = os.path.join(self.viz_paths['demographics'], 'distributions.png')
-        self._plot_demographic_distributions(student_data, demo_cols, dist_path)
-        paths['distributions'] = dist_path
-        
-        return paths
-
-    def run_performance_visualizations(self,
-                                     data: Dict[str, pd.DataFrame],
-                                     metrics: Dict[str, Any]) -> Dict[str, str]:
-        """Run all performance-related visualizations."""
-        paths = {}
-        
-        # Performance by demographics
-        perf_demo_path = os.path.join(self.viz_paths['performance'], 'performance_by_demographics.png')
-        self._plot_performance_by_demographics(
-            data['demographics'],
-            ['gender', 'age_band', 'imd_band'],
-            perf_demo_path
-        )
-        paths['performance_demographics'] = perf_demo_path
-        
-        # ROC curves
-        roc_path = os.path.join(self.viz_paths['performance'], 'roc_curves.png')
-        if 'y_test' in data and 'y_prob' in data:
-            self._plot_roc_curves(
-                data['y_test'],
-                data['y_prob'],
-                protected_attributes=data.get('protected_attributes'),
-                save_path=roc_path
-            )
-            paths['roc'] = roc_path
-        
-        return paths
-
-    def run_fairness_visualizations(self,
-                                  fairness_results: Dict,
-                                  demographic_data: pd.DataFrame) -> Dict[str, str]:
-        """Run all fairness-related visualizations."""
-        paths = {}
-        
-        # Overall fairness metrics
-        metrics_path = os.path.join(self.viz_paths['fairness'], 'fairness_metrics.png')
-        self._plot_fairness_metrics(fairness_results, metrics_path)
-        paths['metrics'] = metrics_path
-        
-        # Group comparisons
-        for attr in ['gender', 'age_band', 'imd_band']:
-            if attr in demographic_data.columns:
-                group_path = os.join.path(self.viz_paths['fairness'], f'group_comparison_{attr}.png')
-                self._plot_group_comparison(fairness_results, attr, group_path)
-                paths[f'group_{attr}'] = group_path
-        
-        return paths
-
-    def run_engagement_visualizations(self,
-                                    vle_data: pd.DataFrame,
-                                    final_results: Optional[pd.DataFrame] = None) -> Dict[str, str]:
-        """Run all engagement-related visualizations."""
-        paths = {}
-        
-        # Temporal patterns
-        temporal_path = os.path.join(self.viz_paths['engagement'], 'temporal_patterns.png')
-        self._plot_engagement_patterns(vle_data, final_results, temporal_path)
-        paths['temporal'] = temporal_path
-        
-        return paths
-
-    def run_model_visualizations(self, 
-                               model_data: Dict[str, Any]) -> Dict[str, str]:
-        """Run all model-related visualizations."""
-        paths = {}
-        
-        # Feature importance
-        if 'feature_importance' in model_data:
-            imp_path = os.path.join(self.viz_paths['model'], 'feature_importance.png')
-            self._plot_feature_importance(model_data['feature_importance'], imp_path)
-            paths['importance'] = imp_path
-        
-        # Training history for neural networks
-        if 'history' in model_data:
-            hist_path = os.path.join(self.viz_paths['model'], 'training_history.png')
-            self._plot_training_history(model_data['history'], hist_path)
-            paths['history'] = hist_path
-        
-        return paths
+        # Set default style
+        plt.style.use('seaborn')
+        plt.rcParams['figure.figsize'] = (12, 8)
     
-    def _plot_demographic_distributions(self, data, cols, save_path):
-        """Internal method for demographic distribution plots."""
-        # Implementation moved from data_analysis.eda
-        # ...existing visualization code...
-        plt.savefig(save_path, dpi=self.dpi, bbox_inches='tight')
+    def _save_plot(self, name: str) -> str:
+        """Save current plot to file and return path."""
+        filepath = os.path.join(self.output_dir, f"{name}.png")
+        plt.savefig(filepath, bbox_inches='tight', dpi=300)
         plt.close()
-
-    def _plot_performance_by_demographics(self, data, cols, save_path):
-        """Internal method for performance by demographics plots."""
-        # Implementation moved from evaluation.performance_metrics
-        # ...existing visualization code...
-        plt.savefig(save_path, dpi=self.dpi, bbox_inches='tight')
-        plt.close()
-
-    # Add other internal plotting methods as needed
+        return filepath
+    
+    def run_demographic_visualizations(self, demographics_data: pd.DataFrame) -> List[str]:
+        """Generate demographic distribution visualizations."""
+        viz_paths = []
+        
+        # Distribution of students by gender
+        plt.figure()
+        sns.countplot(data=demographics_data, x='gender')
+        plt.title('Student Distribution by Gender')
+        viz_paths.append(self._save_plot('gender_distribution'))
+        
+        # Distribution by age band
+        plt.figure()
+        sns.countplot(data=demographics_data, x='age_band')
+        plt.xticks(rotation=45)
+        plt.title('Student Distribution by Age Band')
+        viz_paths.append(self._save_plot('age_distribution'))
+        
+        # Distribution by IMD band
+        plt.figure()
+        sns.countplot(data=demographics_data, x='imd_band')
+        plt.xticks(rotation=45)
+        plt.title('Student Distribution by IMD Band')
+        viz_paths.append(self._save_plot('imd_distribution'))
+        
+        # Region distribution
+        plt.figure()
+        demographics_data['region'].value_counts().plot(kind='bar')
+        plt.title('Student Distribution by Region')
+        plt.xticks(rotation=45)
+        viz_paths.append(self._save_plot('region_distribution'))
+        
+        return viz_paths
+    
+    def run_engagement_visualizations(self, 
+                                   vle_data: pd.DataFrame, 
+                                   demographics: pd.DataFrame) -> List[str]:
+        """Generate engagement pattern visualizations."""
+        viz_paths = []
+        
+        # Activity type distribution
+        plt.figure()
+        vle_data['activity_type'].value_counts().plot(kind='bar')
+        plt.title('Distribution of VLE Activity Types')
+        plt.xticks(rotation=45)
+        viz_paths.append(self._save_plot('activity_type_distribution'))
+        
+        # Daily engagement patterns
+        daily_engagement = vle_data.groupby('date')['sum_click'].mean()
+        plt.figure()
+        daily_engagement.plot(kind='line')
+        plt.title('Average Daily Engagement')
+        plt.xlabel('Date')
+        plt.ylabel('Average Clicks')
+        viz_paths.append(self._save_plot('daily_engagement'))
+        
+        # Engagement by gender
+        if 'gender' in demographics.columns:
+            merged_data = vle_data.merge(
+                demographics[['id_student', 'gender']], 
+                on='id_student'
+            )
+            plt.figure()
+            sns.boxplot(data=merged_data, x='gender', y='sum_click')
+            plt.title('Engagement Distribution by Gender')
+            viz_paths.append(self._save_plot('engagement_by_gender'))
+        
+        # Engagement by age band
+        if 'age_band' in demographics.columns:
+            merged_data = vle_data.merge(
+                demographics[['id_student', 'age_band']], 
+                on='id_student'
+            )
+            plt.figure()
+            sns.boxplot(data=merged_data, x='age_band', y='sum_click')
+            plt.title('Engagement Distribution by Age Band')
+            plt.xticks(rotation=45)
+            viz_paths.append(self._save_plot('engagement_by_age'))
+        
+        return viz_paths
+    
+    def visualize_model_performance(self, 
+                                  metrics: Dict, 
+                                  model_name: str) -> List[str]:
+        """Generate model performance visualizations."""
+        viz_paths = []
+        
+        # Confusion matrix heatmap
+        if 'confusion_matrix' in metrics:
+            plt.figure()
+            sns.heatmap(metrics['confusion_matrix'], 
+                       annot=True, 
+                       fmt='d',
+                       cmap='Blues')
+            plt.title(f'{model_name} Confusion Matrix')
+            viz_paths.append(self._save_plot(f'{model_name.lower()}_confusion_matrix'))
+        
+        # ROC curve
+        if all(k in metrics for k in ['fpr', 'tpr']):
+            plt.figure()
+            plt.plot(metrics['fpr'], metrics['tpr'])
+            plt.plot([0, 1], [0, 1], 'r--')
+            plt.xlabel('False Positive Rate')
+            plt.ylabel('True Positive Rate')
+            plt.title(f'{model_name} ROC Curve (AUC = {metrics.get("auc_roc", 0):.3f})')
+            viz_paths.append(self._save_plot(f'{model_name.lower()}_roc_curve'))
+        
+        return viz_paths
+    
+    def visualize_feature_importance(self, 
+                                   importance_df: pd.DataFrame, 
+                                   top_n: int = 20) -> str:
+        """Generate feature importance visualization."""
+        plt.figure(figsize=(12, 8))
+        sns.barplot(
+            data=importance_df.head(top_n),
+            x='Importance',
+            y='Feature'
+        )
+        plt.title(f'Top {top_n} Feature Importances')
+        plt.tight_layout()
+        return self._save_plot('feature_importance')

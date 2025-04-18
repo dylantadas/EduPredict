@@ -196,26 +196,29 @@ class RandomForestModel:
         return rf_model
 
 
-def find_optimal_threshold(model, X_val, y_val, metric='f1'):
-    """Finds optimal threshold for binary classification."""
+def find_optimal_threshold(model, X_test, y_test, metric='f1'):
+    """Find optimal probability threshold for classification."""
+    from sklearn.metrics import f1_score, precision_score, recall_score
     
-    thresholds = np.arange(0.1, 0.9, 0.05)
+    # Get probability predictions
+    y_prob = model.predict_proba(X_test)[:, 1]
+    
+    # Try different thresholds
+    thresholds = np.arange(0.1, 1.0, 0.05)
     scores = []
     
     for threshold in thresholds:
-        y_pred = (model.predict_proba(X_val) >= threshold).astype(int)
-        
+        y_pred = (y_prob >= threshold).astype(int)
         if metric == 'f1':
-            score = f1_score(y_val, y_pred)
-        elif metric == 'accuracy':
-            score = accuracy_score(y_val, y_pred)
-        else:
-            raise ValueError(f"Unsupported metric: {metric}")
-        
-        scores.append((threshold, score))
+            score = f1_score(y_test, y_pred)
+        elif metric == 'precision':
+            score = precision_score(y_test, y_pred)
+        elif metric == 'recall':
+            score = recall_score(y_test, y_pred)
+        scores.append(score)
     
-    # find threshold with max score
-    best_threshold, best_score = max(scores, key=lambda x: x[1])
+    # Find threshold that maximizes the metric
+    optimal_idx = np.argmax(scores)
+    optimal_threshold = thresholds[optimal_idx]
     
-    print(f"Best threshold: {best_threshold} with {metric} score: {best_score:.4f}")
-    return best_threshold
+    return optimal_threshold

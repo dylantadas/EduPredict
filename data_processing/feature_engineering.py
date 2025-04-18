@@ -187,78 +187,38 @@ def prepare_dual_path_features(demographic_features, temporal_features,
     }
 
 
-def create_stratified_splits(dual_path_features, test_size=0.2, random_state=0):
-    """Creates stratified train/test splits preserving demographic distributions."""
+def prepare_target_variable(data):
+    """Prepare binary target variable from final_result."""
+    # Convert final_result to binary (Pass/Fail)
+    # Distinction and Pass are considered positive outcomes (1)
+    # Fail and Withdrawn are considered negative outcomes (0)
+    return (data['final_result'].isin(['Pass', 'Distinction'])).astype(int)
+
+
+def create_stratified_splits(data, test_size=0.2, random_state=42):
+    """Create stratified train/test splits maintaining demographic balance."""
+    from sklearn.model_selection import train_test_split
     
-    # extract static path features for stratification
-    static_features = dual_path_features['static_path']
+    # Define stratification columns (from config)
+    strat_cols = ['gender', 'age_band', 'imd_band', 'final_result']
     
-    # create stratification columns
-    static_features['strat_gender'] = static_features['gender']
-    static_features['strat_age'] = static_features['age_band']
-    static_features['strat_imd'] = static_features['imd_band'].apply(
-        lambda x: x if pd.notna(x) else 'unknown'
-    )
+    # Create a combined stratification column
+    strat = data[strat_cols].apply(lambda x: '_'.join(x.astype(str)), axis=1)
     
-    # create combined stratification column
-    static_features['stratify_col'] = static_features['strat_gender'] + '_' + \
-                                     static_features['strat_age'] + '_' + \
-                                     static_features['strat_imd'].astype(str)
-    
-    # get unique student ids
-    all_student_ids = static_features['id_student'].unique()
-    
-    # create student-level stratified split
-    student_df = static_features[['id_student', 'stratify_col']].drop_duplicates()
-    
-    # perform stratified split
-    train_ids, test_ids = train_test_split(
-        student_df['id_student'],
+    # Split the data
+    train_idx, test_idx = train_test_split(
+        np.arange(len(data)),
         test_size=test_size,
         random_state=random_state,
-        stratify=student_df['stratify_col']
+        stratify=strat
     )
     
-    # split static and sequential features
-    static_train = static_features[static_features['id_student'].isin(train_ids)]
-    static_test = static_features[static_features['id_student'].isin(test_ids)]
-    
-    sequential_train = dual_path_features['sequential_path'][
-        dual_path_features['sequential_path']['id_student'].isin(train_ids)
-    ]
-    sequential_test = dual_path_features['sequential_path'][
-        dual_path_features['sequential_path']['id_student'].isin(test_ids)
-    ]
-    
-    # print verification of split distribution
-    print("\nVerifying demographic distribution in train/test splits:")
-    for col in ['gender', 'age_band', 'imd_band']:
-        print(f"\nDistribution of {col} in training set:")
-        print(static_train[col].value_counts(normalize=True))
-        
-        print(f"\nDistribution of {col} in test set:")
-        print(static_test[col].value_counts(normalize=True))
-    
-    return {
-        'static_train': static_train,
-        'static_test': static_test,
-        'sequential_train': sequential_train,
-        'sequential_test': sequential_test,
-        'train_ids': train_ids,
-        'test_ids': test_ids
-    }
-
-
-def prepare_target_variable(data):
-    """Creates binary target variable from final_result column."""
-    
-    # final result mapping (0: not at risk, 1: at risk)
-    risk_mapping = {
-        'pass': 0,
-        'distinction': 0,
-        'fail': 1,
-        'withdrawn': 1
+    # Create the splits
+    split_data = {
+        'static_train': data.iloc[train_idx],
+        'static_test': data.iloc[test_idx],
+        'train_ids': data.iloc[train_idx]['id_student'].values,
+        'test_ids': data.iloc[test_idx]['id_student'].values
     }
     
-    # convert to lowercase and map to binary target
-    return data['final_result'].str.lower().map(risk_mapping)
+    return split_data
