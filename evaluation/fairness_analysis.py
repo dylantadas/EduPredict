@@ -114,6 +114,37 @@ def calculate_fairness_metrics(group_metrics: pd.DataFrame) -> Dict:
     return fairness_metrics
 
 
+def calculate_composite_fairness_score(
+    metrics: List[Dict[str, float]],
+    weights: Optional[Dict[str, float]] = None
+) -> float:
+    """Calculate weighted composite fairness score."""
+    if weights is None:
+        weights = {
+            'demographic_parity_difference': 1/3,
+            'equalized_odds': 1/3,
+            'disparate_impact_ratio': 1/3
+        }
+    
+    scores = []
+    
+    for metric in metrics:
+        if metric['metric'] == 'demographic_parity_difference':
+            score = 1.0 - min(1.0, metric['value'] / 0.1)
+            scores.append(weights['demographic_parity_difference'] * score)
+            
+        elif metric['metric'] == 'equalized_odds':
+            avg_diff = (metric['tpr_difference'] + metric['fpr_difference']) / 2
+            score = 1.0 - min(1.0, avg_diff / 0.1)
+            scores.append(weights['equalized_odds'] * score)
+            
+        elif metric['metric'] == 'disparate_impact_ratio':
+            score = 1.0 - min(1.0, abs(1.0 - metric['value']))
+            scores.append(weights['disparate_impact_ratio'] * score)
+    
+    return sum(scores)
+
+
 def evaluate_model_fairness(
     y_true: np.ndarray,
     y_pred: np.ndarray,

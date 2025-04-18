@@ -7,6 +7,127 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import joblib
 import os
+from ..evaluation.fairness_analysis import (
+    calculate_fairness_metrics,
+    evaluate_model_fairness
+)
+
+
+class FairnessScoringFunction:
+    """Custom scoring function that combines performance and fairness metrics."""
+    
+    def __init__(self,
+                 fairness_weight: float = 0.3,
+                 fairness_metrics: List[str] = ['demographic_parity_difference',
+                                              'equal_opportunity_difference'],
+                 performance_metric: str = 'f1',
+                 fairness_threshold: float = 0.05):
+        self.fairness_weight = fairness_weight
+        self.fairness_metrics = fairness_metrics
+        self.performance_metric = performance_metric
+        self.fairness_threshold = fairness_threshold
+    
+    def __call__(self,
+                 y_true: np.ndarray,
+                 y_pred: np.ndarray,
+                 protected_attributes: Dict[str, np.ndarray]) -> float:
+        """Calculate combined score from performance and fairness metrics."""
+        
+        # Calculate performance metric
+        if self.performance_metric == 'f1':
+            performance_score = f1_score(y_true, y_pred)
+        # Add other performance metrics as needed
+        
+        # Calculate fairness metrics
+        fairness_results = evaluate_model_fairness(
+            y_true=y_true,
+            y_pred=y_pred,
+            y_prob=y_pred,  # Using predictions as probabilities for now
+            protected_attributes=protected_attributes,
+            thresholds={'threshold': self.fairness_threshold}
+        )
+        
+        # Calculate average fairness violation (lower is better)
+        fairness_violations = []
+        for attr_name, attr_results in fairness_results.items():
+            for metric in self.fairness_metrics:
+                if metric in attr_results['fairness_metrics']:
+                    # Convert to penalty score (0 = fair, 1 = maximally unfair)
+                    violation = min(1.0, 
+                                 abs(attr_results['fairness_metrics'][metric]) / self.fairness_threshold)
+                    fairness_violations.append(violation)
+        
+        fairness_score = 1.0 - (np.mean(fairness_violations) if fairness_violations else 0.0)
+        
+        # Combine scores with weighting
+        combined_score = ((1 - self.fairness_weight) * performance_score + 
+                         self.fairness_weight * fairness_score)
+        
+        return combined_score
+
+
+def create_fair_cv_splitter(X, y, protected_attributes: Dict[str, np.ndarray],
+                           n_splits: int = 5, test_size: float = 0.2):
+    """Creates CV splits ensuring fair representation of protected groups."""
+    from sklearn.model_selection import StratifiedKFold
+    
+    # Create combined stratification labels incorporating protected attributes
+    strat_labels = np.zeros(len(y), dtype=str)
+    for attr_name, attr_values in protected_attributes.items():
+        strat_labels = strat_labels + '_' + attr_values.astype(str)
+    strat_labels = strat_labels + '_' + y.astype(str)
+    
+    # Create stratified k-fold splits
+    cv = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=42)
+    return cv.split(X, strat_labels)
+
+
+def tune_model_with_fairness(
+    model: Any,
+    X: np.ndarray,
+    y: np.ndarray,
+    protected_attributes: Dict[str, np.ndarray],
+    param_grid: Dict[str, List[Any]],
+    fairness_weight: float = 0.3,
+    fairness_threshold: float = 0.05,
+    n_iter: int = 20,
+    cv: int = 5,
+    verbose: int = 1
+) -> Tuple[Dict[str, Any], Any]:
+    """Tune hyperparameters considering both performance and fairness."""
+    
+    # Create fair CV splitter
+    cv_splitter = create_fair_cv_splitter(
+        X, y, protected_attributes, n_splits=cv
+    )
+    
+    # Create scoring function
+    scoring_function = FairnessScoringFunction(
+        fairness_weight=fairness_weight,
+        fairness_threshold=fairness_threshold
+    )
+    
+    # Create scorer that includes protected attributes
+    def fair_scorer(estimator, X, y):
+        y_pred = estimator.predict(X)
+        return scoring_function(y, y_pred, protected_attributes)
+    
+    scorer = make_scorer(fair_scorer)
+    
+    # Run randomized search with fair scoring
+    search = RandomizedSearchCV(
+        model,
+        param_grid,
+        n_iter=n_iter,
+        scoring=scorer,
+        cv=cv_splitter,
+        verbose=verbose,
+        random_state=42
+    )
+    
+    search.fit(X, y)
+    
+    return search.best_params_, search.best_estimator_
 
 
 def tune_random_forest(X_train, y_train, 
