@@ -433,14 +433,22 @@ def train_random_forest(feature_data, output_paths, args):
         'class_weight': ['balanced', 'balanced_subsample', None]
     }
     
-    # tune random forest hyperparameters
+    # Extract protected attributes defined in config
+    protected_attributes = {
+        attr_name: feature_data['dual_path_features']['static_train'][attr_config['name']]
+        for attr_name, attr_config in PROTECTED_ATTRIBUTES.items()
+    }
+    
+    # tune random forest hyperparameters with demographic awareness
     best_params, best_model = tune_random_forest(
         X_train_selected, 
         y_train,
+        protected_attributes=protected_attributes,
         param_grid=param_grid,
         scoring='f1',
         random_search=True,
         n_iter=20,
+        intersectional=True,  # Enable intersectional stratification
         verbose=1 if args.verbose else 0
     )
     

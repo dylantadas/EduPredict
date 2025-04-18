@@ -83,16 +83,31 @@ GRU_EPOCHS = 30
 GRU_BATCH_SIZE = 32
 EARLY_STOPPING_PATIENCE = 5
 
-# fairness parameters
-FAIRNESS_THRESHOLD = 0.05
-FAIRNESS_THRESHOLDS = {
-    'demographic_parity_difference': FAIRNESS_THRESHOLD,
-    'disparate_impact_ratio': 0.8,
-    'equal_opportunity_difference': FAIRNESS_THRESHOLD
+# Protected attributes for fairness analysis
+PROTECTED_ATTRIBUTES = {
+    'gender': {
+        'name': 'gender',
+        'values': ['f', 'm'],
+        'sensitive': True
+    },
+    'age_band': {
+        'name': 'age_band',
+        'values': ['0-35', '35-55', '55<='],
+        'sensitive': True
+    },
+    'imd_band': {
+        'name': 'imd_band',
+        'values': ['0-10%', '10-20%', '20-30%', '30-40%', '40-50%', '50-60%', '60-70%', '70-80%', '80-90%', '90-100%'],
+        'sensitive': True
+    }
 }
 
-# protected attributes for fairness evaluation
-PROTECTED_ATTRIBUTES = ['gender', 'age_band', 'imd_band']
+# Fairness thresholds for model evaluation
+FAIRNESS_THRESHOLDS = {
+    'demographic_parity_difference': 0.05,
+    'disparate_impact_ratio': 0.8,
+    'equal_opportunity_difference': 0.05
+}
 
 # demographic columns for visualization
 DEMOGRAPHIC_COLS = ['gender', 'age_band', 'imd_band', 'region', 'highest_education']

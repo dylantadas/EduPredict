@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
-from typing import Dict, List, Tuple, Optional, Any, Callable
-from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
+from typing import Dict, List, Tuple, Optional, Any, Callable, Iterator
+from sklearn.model_selection import GridSearchCV, RandomizedSearchCV, BaseCrossValidator
 from sklearn.metrics import make_scorer, f1_score, accuracy_score, roc_auc_score
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -66,39 +66,102 @@ class FairnessScoringFunction:
         return combined_score
 
 
-def create_fair_cv_splitter(X, y, protected_attributes: Dict[str, np.ndarray],
-                           n_splits: int = 5, test_size: float = 0.2):
-    """Creates CV splits ensuring fair representation of protected groups."""
-    from sklearn.model_selection import StratifiedKFold
+class DemographicStratifiedKFold(BaseCrossValidator):
+    """Cross-validator that preserves demographic distributions."""
     
-    # Create combined stratification labels incorporating protected attributes
-    strat_labels = np.zeros(len(y), dtype=str)
-    for attr_name, attr_values in protected_attributes.items():
-        strat_labels = strat_labels + '_' + attr_values.astype(str)
-    strat_labels = strat_labels + '_' + y.astype(str)
+    def __init__(self, 
+                 demographic_cols: List[str],
+                 n_splits: int = 5,
+                 shuffle: bool = True,
+                 random_state: Optional[int] = None,
+                 intersectional: bool = False):
+        self.demographic_cols = demographic_cols
+        self.n_splits = n_splits
+        self.shuffle = shuffle
+        self.random_state = random_state
+        self.intersectional = intersectional
+        
+    def _combine_demographics(self, X: pd.DataFrame) -> np.ndarray:
+        """Creates combined stratification labels."""
+        if self.intersectional:
+            # Create intersectional groups
+            return X[self.demographic_cols].apply(
+                lambda x: '_'.join(x.astype(str)), axis=1
+            ).values
+        else:
+            # Concatenate individual demographic values
+            return np.array([
+                f"{col}_{val}" for col in self.demographic_cols
+                for val in X[col].astype(str)
+            ])
     
-    # Create stratified k-fold splits
-    cv = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=42)
-    return cv.split(X, strat_labels)
+    def split(self, X: pd.DataFrame, y: np.ndarray = None, groups: np.ndarray = None) -> Iterator:
+        """Generate indices to split data into training and validation."""
+        from sklearn.model_selection import StratifiedKFold
+        
+        # Create stratification labels combining demographics and target
+        demo_labels = self._combine_demographics(X)
+        if y is not None:
+            strat_labels = np.array([f"{d}_{y}" for d, y in zip(demo_labels, y)])
+        else:
+            strat_labels = demo_labels
+            
+        # Use scikit-learn's StratifiedKFold
+        cv = StratifiedKFold(
+            n_splits=self.n_splits,
+            shuffle=self.shuffle,
+            random_state=self.random_state
+        )
+        
+        return cv.split(X, strat_labels)
+    
+    def get_n_splits(self, X=None, y=None, groups=None) -> int:
+        """Returns the number of splitting iterations."""
+        return self.n_splits
+
+
+def create_fair_cv_splitter(
+    X: pd.DataFrame,
+    y: np.ndarray,
+    protected_attributes: Dict[str, str],
+    n_splits: int = 5,
+    random_state: Optional[int] = None,
+    intersectional: bool = False
+) -> DemographicStratifiedKFold:
+    """Creates CV splitter ensuring fair representation of demographic groups."""
+    
+    return DemographicStratifiedKFold(
+        demographic_cols=list(protected_attributes.keys()),
+        n_splits=n_splits,
+        shuffle=True,
+        random_state=random_state,
+        intersectional=intersectional
+    )
 
 
 def tune_model_with_fairness(
     model: Any,
-    X: np.ndarray,
+    X: pd.DataFrame,
     y: np.ndarray,
-    protected_attributes: Dict[str, np.ndarray],
+    protected_attributes: Dict[str, str],
     param_grid: Dict[str, List[Any]],
     fairness_weight: float = 0.3,
     fairness_threshold: float = 0.05,
     n_iter: int = 20,
-    cv: int = 5,
+    n_splits: int = 5,
+    intersectional: bool = False,
     verbose: int = 1
 ) -> Tuple[Dict[str, Any], Any]:
-    """Tune hyperparameters considering both performance and fairness."""
+    """Tune hyperparameters using demographic-aware CV and fairness metrics."""
     
-    # Create fair CV splitter
+    # Create demographic-aware CV splitter
     cv_splitter = create_fair_cv_splitter(
-        X, y, protected_attributes, n_splits=cv
+        X=X,
+        y=y,
+        protected_attributes=protected_attributes,
+        n_splits=n_splits,
+        random_state=42,
+        intersectional=intersectional
     )
     
     # Create scoring function
@@ -130,17 +193,35 @@ def tune_model_with_fairness(
     return search.best_params_, search.best_estimator_
 
 
-def tune_random_forest(X_train, y_train, 
-                      param_grid: Optional[Dict] = None,
-                      cv: int = 5,
-                      scoring: str = 'f1',
-                      n_jobs: int = -1,
-                      random_search: bool = True,
-                      n_iter: int = 20,
-                      verbose: int = 1) -> Tuple[Dict, Any]:
-    """Tunes random forest hyperparameters using grid or random search."""
+def tune_random_forest(
+    X_train: pd.DataFrame,
+    y_train: np.ndarray,
+    protected_attributes: Optional[Dict[str, str]] = None,
+    param_grid: Optional[Dict] = None,
+    n_splits: int = 5,
+    scoring: str = 'f1',
+    n_jobs: int = -1,
+    random_search: bool = True,
+    n_iter: int = 20,
+    intersectional: bool = False,
+    verbose: int = 1
+) -> Tuple[Dict, Any]:
+    """Tunes random forest with demographic-aware CV if protected attributes provided."""
     
     from sklearn.ensemble import RandomForestClassifier
+    
+    # Create CV splitter
+    if protected_attributes:
+        cv = create_fair_cv_splitter(
+            X=X_train,
+            y=y_train,
+            protected_attributes=protected_attributes,
+            n_splits=n_splits,
+            intersectional=intersectional
+        )
+    else:
+        # Fall back to regular StratifiedKFold if no demographics provided
+        cv = n_splits
     
     # default param grid if none provided
     if param_grid is None:

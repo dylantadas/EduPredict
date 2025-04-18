@@ -7,6 +7,7 @@ from sklearn.metrics import (
     accuracy_score, precision_score, recall_score, f1_score,
     roc_auc_score, confusion_matrix
 )
+from ..config import FAIRNESS_THRESHOLDS
 
 
 def calculate_group_metrics(
@@ -155,11 +156,7 @@ def evaluate_model_fairness(
     """Evaluates model fairness across multiple protected attributes."""
     
     if thresholds is None:
-        thresholds = {
-            'demographic_parity_difference': 0.05,
-            'disparate_impact_ratio': 0.8,
-            'equal_opportunity_difference': 0.05
-        }
+        thresholds = FAIRNESS_THRESHOLDS
     
     fairness_results = {}
     
