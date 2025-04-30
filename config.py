@@ -56,6 +56,7 @@ RF_DEFAULT_PARAMS = {
     'max_depth': None,
     'min_samples_split': 2,
     'min_samples_leaf': 1,
+    'max_features': 'sqrt',
     'class_weight': 'balanced',
     'random_state': RANDOM_SEED,
     'n_jobs': -1

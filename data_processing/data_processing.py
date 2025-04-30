@@ -1,7 +1,10 @@
 import os
-import pandas as pd
-import numpy as np
+import pandas as pd # type: ignore
+import numpy as np # type: ignore
+import logging
 from typing import Dict, List, Optional
+
+logger = logging.getLogger('edupredict')
 
 def load_raw_datasets(dataset_paths):
     """Load all raw datasets from specified paths."""
@@ -56,24 +59,36 @@ def clean_demographic_data(student_info: pd.DataFrame) -> pd.DataFrame:
     return cleaned_data
 
 
-def clean_vle_data(vle_interactions: pd.DataFrame, 
-                  vle_materials: pd.DataFrame) -> pd.DataFrame:
-    """Cleans and merges vle interaction data, removes outliers/invalid entries."""
-
-    # remove interactions with invalid click counts
-    cleaned_interactions = vle_interactions[vle_interactions['sum_click'] > 0]
-
-    # merge with materials data
-    merged_data = cleaned_interactions.merge(
-        vle_materials,
-        on=['id_site', 'code_module', 'code_presentation'],
-        how='left'
-    )
-
-    # remove entries with missing material types
-    merged_data = merged_data.dropna(subset=['activity_type'])
-
-    return merged_data
+def clean_vle_data(vle_interactions, vle_materials, chunk_size=100000):
+    """Clean and merge VLE interaction data with chunked processing."""
+    logger.info("Cleaning VLE data...")
+    
+    # First, clean materials data (usually smaller)
+    clean_materials = vle_materials.copy()
+    clean_materials['activity_type'] = clean_materials['activity_type'].fillna('unknown')
+    
+    # Process interactions in chunks
+    cleaned_chunks = []
+    for chunk_start in range(0, len(vle_interactions), chunk_size):
+        chunk = vle_interactions.iloc[chunk_start:chunk_start + chunk_size].copy()
+        
+        # Basic cleaning
+        chunk = chunk[chunk['sum_click'] > 0]  # Filter invalid clicks
+        
+        # Merge with materials (using merge_asof if temporal data)
+        chunk = pd.merge(
+            chunk,
+            clean_materials[['id_site', 'activity_type']],
+            on='id_site',
+            how='left'
+        )
+        
+        cleaned_chunks.append(chunk)
+        
+    # Combine chunks
+    cleaned_data = pd.concat(cleaned_chunks, ignore_index=True)
+    
+    return cleaned_data
 
 
 def clean_assessment_data(assessments: pd.DataFrame,

@@ -1,18 +1,19 @@
-import numpy as np
-import pandas as pd
-from typing import Dict, List, Tuple, Optional, Any, Callable, Iterator
-from sklearn.model_selection import GridSearchCV, RandomizedSearchCV, BaseCrossValidator
-from sklearn.metrics import make_scorer, f1_score, accuracy_score, roc_auc_score
-import matplotlib.pyplot as plt
-import seaborn as sns
-import joblib
+import numpy as np # type: ignore
+import pandas as pd # type: ignore
+import time
+from itertools import product # type: ignore
+from typing import Dict, List, Tuple, Optional, Any, Iterator # type: ignore
+from sklearn.model_selection import GridSearchCV, RandomizedSearchCV, BaseCrossValidator # type: ignore
+from sklearn.metrics import make_scorer, f1_score, accuracy_score, roc_auc_score, make_scorer # type: ignore
+import matplotlib.pyplot as plt # type: ignore
+import seaborn as sns # type: ignore
+import joblib # type: ignore
+from tensorflow.keras.callbacks import EarlyStopping # type: ignore
 import os
-from ..evaluation.fairness_analysis import (
-    calculate_fairness_metrics,
-    evaluate_model_fairness,
-    resample_training_data
-)
-from ..config import BIAS_MITIGATION
+from evaluation.fairness_analysis import evaluate_model_fairness, resample_training_data
+from sklearn.ensemble import RandomForestClassifier # type: ignore
+from sklearn.model_selection import StratifiedKFold # type: ignore
+from config import BIAS_MITIGATION
 
 
 class FairnessScoringFunction:
@@ -99,7 +100,7 @@ class DemographicStratifiedKFold(BaseCrossValidator):
     
     def split(self, X: pd.DataFrame, y: np.ndarray = None, groups: np.ndarray = None) -> Iterator:
         """Generate indices to split data into training and validation."""
-        from sklearn.model_selection import StratifiedKFold
+        from sklearn.model_selection import StratifiedKFold # type: ignore
         
         # Create stratification labels combining demographics and target
         demo_labels = self._combine_demographics(X)
@@ -465,9 +466,9 @@ def build_gru_model(categorical_dim=None, numerical_dim=None,
                    dropout_rate=0.3, learning_rate=0.001):
     """Builds GRU model with specified architecture."""
     
-    import tensorflow as tf
-    from tensorflow.keras.layers import GRU, Dense, Input, Dropout, Concatenate
-    from tensorflow.keras.models import Model
+    import tensorflow as tf  # type: ignore
+    from tensorflow.keras.layers import GRU, Dense, Input, Dropout, Concatenate  # type: ignore
+    from tensorflow.keras.models import Model  # type: ignore
     
     # validate inputs
     if categorical_dim is None and numerical_dim is None:

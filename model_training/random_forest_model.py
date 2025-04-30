@@ -5,7 +5,7 @@ from typing import Dict, List, Tuple, Optional
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, f1_score, roc_auc_score, confusion_matrix
 import matplotlib.pyplot as plt
-import seaborn as sns
+import seaborn as sns 
 
 class RandomForestModel:
     """Random forest model for static feature path."""
@@ -15,6 +15,7 @@ class RandomForestModel:
                 max_depth: Optional[int] = None,
                 min_samples_split: int = 2,
                 min_samples_leaf: int = 1,
+                max_features: Optional[str] = 'sqrt',
                 class_weight: Optional[str] = 'balanced',
                 random_state: int = 42,
                 n_jobs: int = -1):
@@ -25,6 +26,7 @@ class RandomForestModel:
             max_depth=max_depth,
             min_samples_split=min_samples_split,
             min_samples_leaf=min_samples_leaf,
+            max_features=max_features,
             class_weight=class_weight,
             random_state=random_state,
             n_jobs=n_jobs
@@ -195,30 +197,26 @@ class RandomForestModel:
         
         return rf_model
 
-
-def find_optimal_threshold(model, X_test, y_test, metric='f1'):
-    """Find optimal probability threshold for classification."""
-    from sklearn.metrics import f1_score, precision_score, recall_score
-    
-    # Get probability predictions
-    y_prob = model.predict_proba(X_test)[:, 1]
-    
-    # Try different thresholds
-    thresholds = np.arange(0.1, 1.0, 0.05)
+def find_optimal_threshold(y_true: np.ndarray,
+                         y_pred_proba: np.ndarray,
+                         metric: str = 'f1') -> float:
+    """Find optimal probability threshold for binary classification."""
+    thresholds = np.arange(0.1, 0.9, 0.01)
     scores = []
     
     for threshold in thresholds:
-        y_pred = (y_prob >= threshold).astype(int)
+        y_pred = (y_pred_proba >= threshold).astype(int)
+        
         if metric == 'f1':
-            score = f1_score(y_test, y_pred)
+            score = f1_score(y_true, y_pred)
         elif metric == 'precision':
-            score = precision_score(y_test, y_pred)
+            score = precision_score(y_true, y_pred)
         elif metric == 'recall':
-            score = recall_score(y_test, y_pred)
+            score = recall_score(y_true, y_pred)
+        else:
+            raise ValueError(f"Unsupported metric: {metric}")
+            
         scores.append(score)
     
-    # Find threshold that maximizes the metric
-    optimal_idx = np.argmax(scores)
-    optimal_threshold = thresholds[optimal_idx]
-    
+    optimal_threshold = thresholds[np.argmax(scores)]
     return optimal_threshold

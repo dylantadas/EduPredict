@@ -1,13 +1,16 @@
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
+import pandas as pd # type: ignore
+import numpy as np # type: ignore
+import matplotlib.pyplot as plt # type: ignore
+import seaborn as sns # type: ignore # type: ignore
+import logging
 from typing import Dict, List, Tuple, Optional
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import (
+import os
+from sklearn.ensemble import RandomForestClassifier # type: ignore
+from sklearn.metrics import ( # type: ignore
     accuracy_score, precision_score, recall_score, f1_score,
     roc_auc_score, confusion_matrix, roc_curve, precision_recall_curve
 )
+logger = logging.getLogger('edupredict')
 
 def analyze_feature_importance(X: pd.DataFrame, y: pd.Series, 
                               n_estimators: int = 100, 
@@ -54,8 +57,9 @@ def analyze_feature_importance(X: pd.DataFrame, y: pd.Series,
 
 
 def analyze_feature_correlations(X: pd.DataFrame, 
-                                threshold: float = 0.85, 
-                                plot: bool = True) -> pd.DataFrame:
+                               threshold: float = 0.85, 
+                               output_dir: str = None,
+                               plot: bool = True) -> pd.DataFrame:
     """Analyzes correlation between numeric features."""
     
     # select numeric columns
@@ -80,7 +84,13 @@ def analyze_feature_correlations(X: pd.DataFrame,
         )
         plt.title('Feature Correlation Matrix')
         plt.tight_layout()
-        plt.show()
+        
+        # Save plot if output directory is provided
+        if output_dir:
+            plt.savefig(os.path.join(output_dir, 'feature_correlations.png'), dpi=300, bbox_inches='tight')
+        plt.close()
+        
+        logger.info("Correlation heatmap plotted and saved.")
     
     # find highly correlated pairs
     correlated_pairs = []

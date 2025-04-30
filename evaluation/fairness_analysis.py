@@ -1,16 +1,15 @@
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
+import pandas as pd # type: ignore
+import numpy as np # type: ignore
+import matplotlib.pyplot as plt # type: ignore
+import seaborn as sns # type: ignore
 from typing import Dict, List, Tuple, Optional, Any, Union
-from sklearn.metrics import (
+from sklearn.metrics import (  # type: ignore
     accuracy_score, precision_score, recall_score, f1_score,
     roc_auc_score, confusion_matrix
 )
-from imblearn.over_sampling import SMOTE
-from imblearn.under_sampling import RandomUnderSampler
-from ..config import FAIRNESS_THRESHOLDS, BIAS_MITIGATION
-
+from imblearn.over_sampling import SMOTE # type: ignore
+from imblearn.under_sampling import RandomUnderSampler # type: ignore
+from config import FAIRNESS_THRESHOLDS, BIAS_MITIGATION
 
 def calculate_group_metrics(
     y_true: np.ndarray,
@@ -251,55 +250,99 @@ def create_sample_weights(
 def resample_training_data(
     X: Union[pd.DataFrame, np.ndarray],
     y: np.ndarray,
-    protected_attributes: Dict[str, str],
+    protected_attributes: Dict[str, pd.Series],
     method: str = 'reweight',
     random_state: int = 42
 ) -> Tuple[Union[pd.DataFrame, np.ndarray], np.ndarray, Optional[np.ndarray]]:
-    """Resamples or reweights training data to mitigate bias."""
+    """Resamples or reweights training data to mitigate bias while handling encoded features.
     
+    Args:
+        X: Feature matrix (DataFrame or ndarray)
+        y: Target labels
+        protected_attributes: Dict of protected attribute series
+        method: Resampling method ('reweight', 'oversample', 'undersample')
+        random_state: Random seed
+    """
     if method == 'none':
         return X, y, None
     
+    # Convert X to DataFrame if it's numpy array
+    X_df = pd.DataFrame(X) if isinstance(X, np.ndarray) else X.copy()
+    
     # Create intersectional groups for stratification
-    if isinstance(X, pd.DataFrame):
-        groups = X[protected_attributes.keys()].apply(
-            lambda x: '_'.join(x.astype(str)), axis=1
-        )
-    else:
-        # Assume protected attributes are provided in X
-        groups = np.array(['_'.join(map(str, row)) 
-                         for row in X[:, :len(protected_attributes)]])
+    groups = pd.DataFrame(protected_attributes).apply(
+        lambda x: '_'.join(x.astype(str)), axis=1
+    )
     
     if method == 'reweight':
-        # Calculate sample weights
-        weights = create_sample_weights(
-            pd.DataFrame({'group': groups}),
-            {'group': 'group'},
-            strategy='group_balanced'
-        )
+        # Calculate sample weights based on protected groups
+        group_counts = groups.value_counts()
+        weights = np.ones(len(y))
+        for group in group_counts.index:
+            mask = (groups == group)
+            weights[mask] = 1.0 / group_counts[group]
+        # Normalize weights
+        weights = weights * (len(y) / weights.sum())
         return X, y, weights
-    
+        
     elif method == 'oversample':
-        # Use SMOTE with group-based stratification
-        sampler = SMOTE(
-            sampling_strategy='not majority',
-            random_state=random_state,
-            k_neighbors=min(5, min(np.bincount(groups.astype('category').codes)) - 1)
-        )
-        X_resampled, y_resampled = sampler.fit_resample(X, y)
+        # Determine target size for each group
+        max_size = groups.value_counts().max()
+        resampled_X = []
+        resampled_y = []
+        
+        for group in groups.unique():
+            mask = (groups == group)
+            X_group = X_df[mask]
+            y_group = y[mask]
+            
+            if len(X_group) < max_size:
+                # Oversample minority group
+                indices = np.random.choice(
+                    len(X_group),
+                    size=max_size - len(X_group),
+                    replace=True
+                )
+                resampled_X.append(pd.concat([X_group, X_group.iloc[indices]], axis=0))
+                resampled_y.append(np.concatenate([y_group, y_group[indices]]))
+            else:
+                resampled_X.append(X_group)
+                resampled_y.append(y_group)
+        
+        X_resampled = pd.concat(resampled_X, axis=0)
+        y_resampled = np.concatenate(resampled_y)
         return X_resampled, y_resampled, None
-    
+        
     elif method == 'undersample':
-        # Use random undersampling
-        sampler = RandomUnderSampler(
-            sampling_strategy='majority',
-            random_state=random_state
-        )
-        X_resampled, y_resampled = sampler.fit_resample(X, y)
+        # Determine target size for each group
+        min_size = groups.value_counts().min()
+        resampled_X = []
+        resampled_y = []
+        
+        for group in groups.unique():
+            mask = (groups == group)
+            X_group = X_df[mask]
+            y_group = y[mask]
+            
+            if len(X_group) > min_size:
+                # Undersample majority group
+                indices = np.random.choice(
+                    len(X_group),
+                    size=min_size,
+                    replace=False
+                )
+                resampled_X.append(X_group.iloc[indices])
+                resampled_y.append(y_group[indices])
+            else:
+                resampled_X.append(X_group)
+                resampled_y.append(y_group)
+        
+        X_resampled = pd.concat(resampled_X, axis=0)
+        y_resampled = np.concatenate(resampled_y)
         return X_resampled, y_resampled, None
-    
+        
     else:
-        raise ValueError(f"Unsupported resampling method: {method}")
+        raise ValueError(f"Unknown resampling method: {method}")
 
 
 def evaluate_bias_mitigation(
@@ -350,39 +393,36 @@ def evaluate_bias_mitigation(
     return comparison
 
 
-def generate_fairness_report(fairness_results, fairness_thresholds, save_path=None):
-    """Generate a comprehensive fairness analysis report."""
+def generate_fairness_report(fairness_metrics: Dict,
+                           protected_attributes: List[str],
+                           output_path: str) -> None:
+    """Generate detailed fairness analysis report."""
     report = []
-    report.append("# Fairness Analysis Report\n")
+    report.append("# Model Fairness Analysis Report\n")
     
-    for attribute, metrics in fairness_results.items():
-        report.append(f"## {attribute} Analysis\n")
+    for attr in protected_attributes:
+        report.append(f"## {attr} Analysis\n")
+        metrics = fairness_metrics[attr]
         
-        # Demographic parity
-        dpd = metrics['demographic_parity_difference']
-        report.append(f"- Demographic Parity Difference: {dpd:.3f}")
-        if abs(dpd) > fairness_thresholds['demographic_parity_difference']:
-            report.append("  * ALERT: Exceeds fairness threshold")
+        report.append("### Demographic Parity")
+        report.append(f"- Difference: {metrics['demographic_parity_difference']:.3f}")
+        report.append(f"- Ratio: {metrics['demographic_parity_ratio']:.3f}\n")
         
-        # Equal opportunity
-        eod = metrics['equal_opportunity_difference']
-        report.append(f"- Equal Opportunity Difference: {eod:.3f}")
-        if abs(eod) > fairness_thresholds['equal_opportunity_difference']:
-            report.append("  * ALERT: Exceeds fairness threshold")
+        report.append("### Equal Opportunity")
+        report.append(f"- Difference: {metrics['equal_opportunity_difference']:.3f}")
+        report.append(f"- Ratio: {metrics['equal_opportunity_ratio']:.3f}\n")
         
-        report.append("\n")
+        report.append("### Equalized Odds")
+        report.append(f"- TPR Difference: {metrics['equalized_odds_tpr_diff']:.3f}")
+        report.append(f"- FPR Difference: {metrics['equalized_odds_fpr_diff']:.3f}\n")
     
-    report = '\n'.join(report)
-    if save_path:
-        with open(save_path, 'w') as f:
-            f.write(report)
-    
-    return report
+    with open(output_path, 'w') as f:
+        f.write('\n'.join(report))
 
 
 def mitigate_bias_with_thresholds(y_true, y_prob, protected_attributes, tolerance=0.05):
     """Find group-specific thresholds to mitigate prediction bias."""
-    from sklearn.metrics import confusion_matrix
+    from sklearn.metrics import confusion_matrix # type: ignore
     
     def find_threshold(group_true, group_prob, target_fpr):
         thresholds = np.arange(0, 1, 0.01)

@@ -13,7 +13,10 @@ class VisualizationRunner:
         os.makedirs(output_dir, exist_ok=True)
         
         # Set default style
-        plt.style.use('seaborn')
+        plt.style.use('default')
+        
+        # Configure plot settings using seaborn
+        sns.set_theme()
         plt.rcParams['figure.figsize'] = (12, 8)
     
     def _save_plot(self, name: str) -> str:
@@ -103,6 +106,56 @@ class VisualizationRunner:
         
         return viz_paths
     
+    def run_performance_visualizations(self, 
+                                     clean_data: Dict[str, pd.DataFrame],
+                                     config: Dict[str, bool]) -> List[str]:
+        """Generate performance-related visualizations."""
+
+        viz_paths = []
+        
+        # Get demographic data if requested
+        demographics = None
+        if config.get('demographics', False) and 'demographics' in clean_data:
+            demographics = clean_data['demographics']
+        
+        # Performance distribution
+        if 'assessments' in clean_data:
+            plt.figure(figsize=(10, 6))
+            sns.histplot(data=clean_data['assessments'], x='score', bins=20)
+            plt.title('Distribution of Assessment Scores')
+            plt.xlabel('Score')
+            plt.ylabel('Count')
+            viz_paths.append(self._save_plot('score_distribution'))
+            
+            # Performance by demographic groups if available
+            if demographics is not None:
+                merged_data = clean_data['assessments'].merge(
+                    demographics[['id_student', 'gender', 'age_band', 'region']],
+                    on='id_student'
+                )
+                
+                # Score by gender
+                plt.figure(figsize=(8, 6))
+                sns.boxplot(data=merged_data, x='gender', y='score')
+                plt.title('Score Distribution by Gender')
+                viz_paths.append(self._save_plot('score_by_gender'))
+                
+                # Score by age band
+                plt.figure(figsize=(10, 6))
+                sns.boxplot(data=merged_data, x='age_band', y='score')
+                plt.title('Score Distribution by Age Band')
+                plt.xticks(rotation=45)
+                viz_paths.append(self._save_plot('score_by_age'))
+                
+                # Score by region
+                plt.figure(figsize=(12, 6))
+                sns.boxplot(data=merged_data, x='region', y='score')
+                plt.title('Score Distribution by Region')
+                plt.xticks(rotation=45)
+                viz_paths.append(self._save_plot('score_by_region'))
+        
+        return viz_paths
+
     def visualize_model_performance(self, 
                                   metrics: Dict, 
                                   model_name: str) -> List[str]:

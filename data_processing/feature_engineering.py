@@ -1,7 +1,12 @@
-import pandas as pd
-import numpy as np
+import pandas as pd # type: ignore
+import numpy as np # type: ignore
 from typing import Dict, List, Optional
-from sklearn.model_selection import train_test_split
+import logging
+from config import PROTECTED_ATTRIBUTES
+from config import RANDOM_SEED
+from sklearn.model_selection import train_test_split # type: ignore
+
+logger = logging.getLogger('edupredict')
 
 def create_demographic_features(cleaned_demographics: pd.DataFrame) -> pd.DataFrame:
     """Transforms cleaned demographic data into model features."""
@@ -136,51 +141,108 @@ def create_assessment_features(cleaned_assessment_data: pd.DataFrame) -> pd.Data
     return performance_metrics
 
 
-def create_sequential_features(cleaned_vle_data: pd.DataFrame) -> pd.DataFrame:
-    """Creates sequential features for the gru/lstm path, maintaining temporal ordering."""
-
-    # sort by student and time
-    sequential_data = cleaned_vle_data.sort_values(['id_student', 'date'])
-
-    # create time-based features
-    sequential_data['time_since_last'] = sequential_data.groupby('id_student')['date'].diff()
-    sequential_data['cumulative_clicks'] = sequential_data.groupby('id_student')['sum_click'].cumsum()
-
-    # create activity transition features
-    sequential_data['prev_activity'] = sequential_data.groupby('id_student')['activity_type'].shift()
-
-    return sequential_data
+def create_sequential_features(cleaned_vle_data, chunk_size=50000):
+    """Creates sequential features with optimized chunked processing."""
+    logger.info("Creating sequential features...")
+    
+    # Pre-sort the entire dataset
+    cleaned_vle_data = cleaned_vle_data.sort_values(['id_student', 'date'])
+    
+    # Get unique students
+    unique_students = cleaned_vle_data['id_student'].unique()
+    
+    # Process in chunks of students rather than individual students
+    for i in range(0, len(unique_students), chunk_size):
+        chunk_students = unique_students[i:i + chunk_size]
+        chunk_data = cleaned_vle_data[cleaned_vle_data['id_student'].isin(chunk_students)]
+        
+        # Create features for this chunk of students
+        features = pd.DataFrame({
+            'id_student': chunk_data['id_student'],
+            'code_module': chunk_data['code_module'],
+            'code_presentation': chunk_data['code_presentation'],
+            'time_since_last': chunk_data.groupby('id_student')['date'].diff(),
+            'cumulative_clicks': chunk_data.groupby('id_student')['sum_click'].cumsum(),
+            'activity_type': chunk_data['activity_type'],
+            'sum_click': chunk_data['sum_click'],
+            'date': chunk_data['date'],
+            'prev_activity': chunk_data.groupby('id_student')['activity_type'].shift()
+        })
+        
+        yield features.fillna(0)
 
 
 def prepare_dual_path_features(demographic_features, temporal_features,
                              assessment_features, sequential_features,
                              chunk_size: int = 50000):
-    """Prepares dual-path features with chunked processing."""
-
-    # process static path in chunks
+    """Prepares dual-path features with chunked processing and categorical encoding."""
+    
+    # Define categorical columns for encoding
+    categorical_cols = ['code_module', 'code_presentation', 'gender', 
+                       'region', 'highest_education', 'imd_band', 'age_band']
+    
+    # Process static path in chunks
     static_chunks = []
     for chunk_start in range(0, len(demographic_features), chunk_size):
         chunk_end = chunk_start + chunk_size
         demo_chunk = demographic_features.iloc[chunk_start:chunk_end]
-
-        # merge chunk with assessment features
-        static_chunk = demo_chunk.merge(
+        
+        # Encode categorical variables for each chunk
+        encoded_chunk = demo_chunk.copy()
+        for col in categorical_cols:
+            if col in encoded_chunk.columns:
+                # Label encoding
+                encoded_chunk[f"{col}_encoded"] = pd.Categorical(encoded_chunk[col]).codes
+                
+                # One-hot encoding
+                one_hot = pd.get_dummies(encoded_chunk[col], 
+                                       prefix=col,
+                                       drop_first=True)
+                encoded_chunk = pd.concat([encoded_chunk, one_hot], axis=1)
+        
+        # Merge chunk with assessment features
+        static_chunk = encoded_chunk.merge(
             assessment_features,
             on=['id_student', 'code_module', 'code_presentation'],
             how='inner'
         )
         static_chunks.append(static_chunk)
-
-    # combine static path chunks
+    
+    # Combine static path chunks
     static_path = pd.concat(static_chunks, ignore_index=True)
-
-    # process sequential path similarly
+    
+    # Process sequential path
+    # Add window column first
+    window_size = 7  # Using 7-day window as specified
+    sequential_features['window'] = sequential_features['date'] // window_size
+    
+    # Encode categorical variables in sequential features
+    seq_categorical_cols = ['code_module', 'code_presentation', 'activity_type']
+    for col in seq_categorical_cols:
+        if col in sequential_features.columns:
+            # Label encoding
+            sequential_features[f"{col}_encoded"] = pd.Categorical(sequential_features[col]).codes
+            
+            # One-hot encoding
+            one_hot = pd.get_dummies(sequential_features[col],
+                                   prefix=col,
+                                   drop_first=True)
+            sequential_features = pd.concat([sequential_features, one_hot], axis=1)
+    
+    # Merge with temporal features
     sequential_path = sequential_features.merge(
         temporal_features['window_7'],
         on=['id_student', 'code_module', 'code_presentation', 'window'],
         how='inner'
     )
-
+    
+    # Log feature encoding info
+    logger.info("Feature encoding summary:")
+    logger.info(f"Static path categorical columns encoded: {categorical_cols}")
+    logger.info(f"Sequential path categorical columns encoded: {seq_categorical_cols}")
+    logger.info(f"Final static path shape: {static_path.shape}")
+    logger.info(f"Final sequential path shape: {sequential_path.shape}")
+    
     return {
         'static_path': static_path,
         'sequential_path': sequential_path
@@ -189,36 +251,72 @@ def prepare_dual_path_features(demographic_features, temporal_features,
 
 def prepare_target_variable(data):
     """Prepare binary target variable from final_result."""
-    # Convert final_result to binary (Pass/Fail)
-    # Distinction and Pass are considered positive outcomes (1)
-    # Fail and Withdrawn are considered negative outcomes (0)
-    return (data['final_result'].isin(['Pass', 'Distinction'])).astype(int)
-
-
-def create_stratified_splits(data, test_size=0.2, random_state=42):
-    """Create stratified train/test splits maintaining demographic balance."""
-    from sklearn.model_selection import train_test_split
-    
-    # Define stratification columns (from config)
-    strat_cols = ['gender', 'age_band', 'imd_band', 'final_result']
-    
-    # Create a combined stratification column
-    strat = data[strat_cols].apply(lambda x: '_'.join(x.astype(str)), axis=1)
-    
-    # Split the data
-    train_idx, test_idx = train_test_split(
-        np.arange(len(data)),
-        test_size=test_size,
-        random_state=random_state,
-        stratify=strat
-    )
-    
-    # Create the splits
-    split_data = {
-        'static_train': data.iloc[train_idx],
-        'static_test': data.iloc[test_idx],
-        'train_ids': data.iloc[train_idx]['id_student'].values,
-        'test_ids': data.iloc[test_idx]['id_student'].values
+    # 0: Pass/Distinction (not at-risk)
+    # 1: Fail/Withdrawn (at-risk)
+    target_map = {
+        'pass': 0,
+        'distinction': 0,
+        'fail': 1,
+        'withdrawn': 1
     }
     
-    return split_data
+    return data['final_result'].str.lower().map(target_map)
+
+
+def create_stratified_splits(dual_path_features, test_size=0.2, random_state=0):
+    """Creates stratified train/test splits preserving demographic distributions."""
+    
+    # Extract static path features for stratification
+    static_features = dual_path_features['static_path']
+    
+    # Create stratification columns
+    static_features['strat_gender'] = static_features['gender']
+    static_features['strat_age'] = static_features['age_band']
+    static_features['strat_imd'] = static_features['imd_band'].apply(
+        lambda x: x if pd.notna(x) else 'unknown'
+    )
+    
+    # Create combined stratification column
+    static_features['stratify_col'] = static_features['strat_gender'] + '_' + \
+                                     static_features['strat_age'] + '_' + \
+                                     static_features['strat_imd'].astype(str)
+    
+    # Get student-level data for stratification
+    student_df = static_features[['id_student', 'stratify_col']].drop_duplicates()
+    
+    try:
+        # Attempt stratified split
+        train_ids, test_ids = train_test_split(
+            student_df['id_student'],
+            test_size=test_size,
+            random_state=random_state,
+            stratify=student_df['stratify_col']
+        )
+    except ValueError as e:
+        logger.warning("Stratification failed due to insufficient samples. Falling back to random split.")
+        # Fallback to random split if stratification fails
+        train_ids, test_ids = train_test_split(
+            student_df['id_student'],
+            test_size=test_size,
+            random_state=random_state
+        )
+    
+    # Split static and sequential features
+    static_train = static_features[static_features['id_student'].isin(train_ids)]
+    static_test = static_features[static_features['id_student'].isin(test_ids)]
+    
+    # Print verification of split distribution
+    logger.info("\nVerifying demographic distribution in train/test splits:")
+    for col in ['gender', 'age_band', 'imd_band']:
+        logger.info(f"\nDistribution of {col} in training set:")
+        logger.info(static_train[col].value_counts(normalize=True))
+        
+        logger.info(f"\nDistribution of {col} in test set:")
+        logger.info(static_test[col].value_counts(normalize=True))
+    
+    return {
+        'static_train': static_train,
+        'static_test': static_test,
+        'train_ids': train_ids,
+        'test_ids': test_ids
+    }

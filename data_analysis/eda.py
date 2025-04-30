@@ -7,78 +7,6 @@ import seaborn as sns
 from typing import Dict, List, Optional
 from visualization.visualization_runner import VisualizationRunner
 
-def perform_automated_eda(clean_data: Dict[str, pd.DataFrame], 
-                         viz_dir: str,
-                         report_dir: str):
-    """Perform automated exploratory data analysis."""
-    
-    # Get documented findings
-    eda_findings = document_eda_findings(clean_data)
-    
-    # Save findings
-    with open(os.path.join(report_dir, 'eda_findings.json'), 'w') as f:
-        json.dump(eda_findings, f, indent=2)
-    
-    # Use visualization runner for all visualizations
-    viz_runner = VisualizationRunner(viz_dir)
-    
-    # Run all relevant visualizations
-    demo_paths = viz_runner.run_demographic_visualizations(clean_data['demographics'])
-    perf_paths = viz_runner.run_performance_visualizations(
-        clean_data,
-        {'demographics': True}
-    )
-    engagement_paths = viz_runner.run_engagement_visualizations(
-        clean_data['vle'],
-        clean_data['demographics']
-    )
-    
-    return {
-        'findings': eda_findings,
-        'visualization_paths': {
-            'demographics': demo_paths,
-            'performance': perf_paths,
-            'engagement': engagement_paths
-        }
-    }
-
-def perform_automated_eda(datasets):
-    """Performs automated eda and displays results identifying potential data quality issues."""
-
-    for name, df in datasets.items():
-        print(f"\n{'='*50}")
-        print(f"Analysis of {name}")
-        print(f"{'='*50}")
-
-        # dataset overview
-        print("\nDataset Overview:")
-        print(f"Number of rows: {len(df)}")
-        print(f"Number of columns: {len(df.columns)}")
-        print("\nColumns and their data types:")
-        print(df.dtypes)
-
-        # missing values
-        print("\nMissing Values Analysis:")
-        missing = df.isnull().sum()
-        if missing.any():
-            print(missing[missing > 0])
-        else:
-            print("No missing values found")
-
-        # numerical analysis
-        numerical_cols = df.select_dtypes(include=['int64', 'float64']).columns
-        if len(numerical_cols) > 0:
-            print("\nNumerical Columns Summary:")
-            print(df[numerical_cols].describe())
-
-        # categorical analysis
-        categorical_cols = df.select_dtypes(include=['object']).columns
-        if len(categorical_cols) > 0:
-            print("\nCategorical Columns Summary:")
-            for col in categorical_cols:
-                print(f"\nDistribution of {col}:")
-                print(df[col].value_counts(normalize=True).head())
-
 
 def analyze_student_performance(datasets):
     """Analyzes student performance patterns, displays demographic-related assessment score insights."""
@@ -230,12 +158,44 @@ def document_eda_findings(datasets):
     return findings
 
 
-def run_eda_pipeline(datasets):
-    """Executes complete eda pipeline, displaying insights about data quality, student performance, and engagement patterns."""
-
-    print("\nStarting EDA...")
-    perform_automated_eda(datasets)
-    analyze_student_performance(datasets)
-    analyze_engagement_patterns(datasets)
-
-    print("\nEDA Complete.")
+def perform_automated_eda(clean_data: Dict[str, pd.DataFrame], 
+                         viz_dir: str,
+                         report_dir: str):
+    """Perform automated exploratory data analysis."""
+    
+    # Map clean_data keys to expected dataset keys
+    datasets = {
+        'student_info': clean_data['demographics'],
+        'vle_interactions': clean_data['vle'],
+        'student_assessments': clean_data['assessments']
+    }
+    
+    # Get documented findings
+    eda_findings = document_eda_findings(datasets)
+    
+    # Save findings
+    with open(os.path.join(report_dir, 'eda_findings.json'), 'w') as f:
+        json.dump(eda_findings, f, indent=2)
+    
+    # Use visualization runner for all visualizations
+    viz_runner = VisualizationRunner(viz_dir)
+    
+    # Run all relevant visualizations with correct keys
+    demo_paths = viz_runner.run_demographic_visualizations(clean_data['demographics'])
+    perf_paths = viz_runner.run_performance_visualizations(
+        clean_data,
+        {'demographics': True}
+    )
+    engagement_paths = viz_runner.run_engagement_visualizations(
+        clean_data['vle'],
+        clean_data['demographics']
+    )
+    
+    return {
+        'findings': eda_findings,
+        'visualization_paths': {
+            'demographics': demo_paths,
+            'performance': perf_paths,
+            'engagement': engagement_paths
+        }
+    }

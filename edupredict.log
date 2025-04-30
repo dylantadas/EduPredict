@@ -1,0 +1,2216 @@
+2025-04-24 20:18:18,736 - edupredict - INFO - Starting EduPredict in full mode
+2025-04-24 20:18:18,761 - edupredict - INFO - Data path: ./data/OULAD
+2025-04-24 20:18:18,762 - edupredict - INFO - Output directory: ./output
+2025-04-24 20:18:18,765 - edupredict - INFO - Starting data loading and processing
+2025-04-24 20:18:36,751 - edupredict - INFO - Clean demographics shape: (32593, 12)
+2025-04-24 20:18:36,751 - edupredict - INFO - Clean vle shape: (10655280, 9)
+2025-04-24 20:18:36,752 - edupredict - INFO - Clean assessments shape: (173739, 10)
+2025-04-24 20:19:08,565 - edupredict - INFO - Completed step: Data Loading
+2025-04-24 20:19:08,567 - edupredict - INFO - Memory usage after Data Loading: 1053.58 MB
+2025-04-24 20:19:08,567 - edupredict - INFO - Starting feature engineering
+2025-04-24 20:19:08,663 - edupredict - INFO - Demographic features shape: (32593, 48)
+2025-04-24 20:19:35,038 - edupredict - INFO - window_7 features shape: (627031, 28)
+2025-04-24 20:19:35,039 - edupredict - INFO - window_14 features shape: (376919, 28)
+2025-04-24 20:19:35,039 - edupredict - INFO - window_30 features shape: (204359, 28)
+2025-04-24 20:19:35,113 - edupredict - INFO - Assessment features shape: (25820, 13)
+2025-04-24 20:19:38,014 - edupredict - INFO - Sequential features shape: (10655280, 13)
+2025-04-24 20:19:58,249 - edupredict - INFO - static_path shape: (25820, 58)
+2025-04-24 20:19:58,271 - edupredict - INFO - sequential_path shape: (9975445, 37)
+2025-04-24 20:23:32,027 - edupredict - INFO - Completed step: Feature Engineering
+2025-04-24 20:23:32,033 - edupredict - INFO - Memory usage after Feature Engineering: 3612.80 MB
+2025-04-24 20:23:32,036 - edupredict - ERROR - Error in EduPredict: name 'train_random_forest' is not defined
+Traceback (most recent call last):
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 455, in main
+    model_results = train_and_evaluate_models(feature_data, output_paths, args)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 358, in train_and_evaluate_models
+    model_results['rf'] = train_random_forest(feature_data, output_paths, args)
+NameError: name 'train_random_forest' is not defined. Did you mean: 'tune_random_forest'?
+2025-04-24 22:33:34,730 - edupredict - INFO - Starting EduPredict in full mode
+2025-04-24 22:33:34,756 - edupredict - INFO - Data path: ./data/OULAD
+2025-04-24 22:33:34,758 - edupredict - INFO - Output directory: ./output
+2025-04-24 22:33:34,761 - edupredict - INFO - Starting data loading and processing
+2025-04-24 22:33:50,938 - edupredict - INFO - Clean demographics shape: (32593, 12)
+2025-04-24 22:33:50,939 - edupredict - INFO - Clean vle shape: (10655280, 9)
+2025-04-24 22:33:50,940 - edupredict - INFO - Clean assessments shape: (173739, 10)
+2025-04-24 22:34:31,446 - edupredict - ERROR - Error in EduPredict: 'seaborn' is not a valid package style, path of style file, URL of style file, or library style name (library styles are listed in `style.available`)
+Traceback (most recent call last):
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/matplotlib/style/core.py", line 129, in use
+    style = _rc_params_in_file(style)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/matplotlib/__init__.py", line 903, in _rc_params_in_file
+    with _open_file_or_url(fname) as fd:
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/contextlib.py", line 135, in __enter__
+    return next(self.gen)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/matplotlib/__init__.py", line 880, in _open_file_or_url
+    with open(fname, encoding='utf-8') as f:
+FileNotFoundError: [Errno 2] No such file or directory: 'seaborn'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 441, in main
+    clean_data = load_and_process_data(args.data_path, output_paths, args.visualize)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 282, in load_and_process_data
+    viz_runner = VisualizationRunner(output_paths['viz_dir'])
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/visualization/visualization_runner.py", line 16, in __init__
+    plt.style.use('seaborn')
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/matplotlib/style/core.py", line 131, in use
+    raise OSError(
+OSError: 'seaborn' is not a valid package style, path of style file, URL of style file, or library style name (library styles are listed in `style.available`)
+2025-04-24 22:40:28,218 - edupredict - INFO - Starting EduPredict in full mode
+2025-04-24 22:40:28,237 - edupredict - INFO - Data path: ./data/OULAD
+2025-04-24 22:40:28,238 - edupredict - INFO - Output directory: ./output
+2025-04-24 22:40:28,240 - edupredict - INFO - Starting data loading and processing
+2025-04-24 22:40:42,012 - edupredict - INFO - Clean demographics shape: (32593, 12)
+2025-04-24 22:40:42,014 - edupredict - INFO - Clean vle shape: (10655280, 9)
+2025-04-24 22:40:42,015 - edupredict - INFO - Clean assessments shape: (173739, 10)
+2025-04-24 22:41:16,945 - edupredict - INFO - Generated demographic visualizations: ['./output/visualizations/gender_distribution.png', './output/visualizations/age_distribution.png', './output/visualizations/imd_distribution.png', './output/visualizations/region_distribution.png']
+2025-04-24 22:42:23,707 - edupredict - INFO - Generated engagement visualizations: ['./output/visualizations/activity_type_distribution.png', './output/visualizations/daily_engagement.png', './output/visualizations/engagement_by_gender.png', './output/visualizations/engagement_by_age.png']
+2025-04-24 22:42:23,923 - edupredict - INFO - Completed step: Data Loading
+2025-04-24 22:42:23,924 - edupredict - INFO - Memory usage after Data Loading: 2179.50 MB
+2025-04-24 22:42:23,925 - edupredict - INFO - Starting feature engineering
+2025-04-24 22:42:24,009 - edupredict - INFO - Demographic features shape: (32593, 48)
+2025-04-24 22:42:48,797 - edupredict - INFO - window_7 features shape: (627031, 28)
+2025-04-24 22:42:48,797 - edupredict - INFO - window_14 features shape: (376919, 28)
+2025-04-24 22:42:48,798 - edupredict - INFO - window_30 features shape: (204359, 28)
+2025-04-24 22:42:48,875 - edupredict - INFO - Assessment features shape: (25820, 13)
+2025-04-24 22:42:51,722 - edupredict - INFO - Sequential features shape: (10655280, 13)
+2025-04-24 22:43:13,506 - edupredict - INFO - static_path shape: (25820, 58)
+2025-04-24 22:43:13,514 - edupredict - INFO - sequential_path shape: (9975445, 37)
+2025-04-24 22:46:06,357 - edupredict - INFO - Completed step: Feature Engineering
+2025-04-24 22:46:06,374 - edupredict - INFO - Memory usage after Feature Engineering: 4303.71 MB
+2025-04-24 22:46:06,378 - edupredict - ERROR - Error in EduPredict: name 'train_random_forest' is not defined
+Traceback (most recent call last):
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 455, in main
+    model_results = train_and_evaluate_models(feature_data, output_paths, args)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 358, in train_and_evaluate_models
+    model_results['rf'] = train_random_forest(feature_data, output_paths, args)
+NameError: name 'train_random_forest' is not defined. Did you mean: 'tune_random_forest'?
+2025-04-24 22:48:17,975 - edupredict - INFO - Starting EduPredict in full mode
+2025-04-24 22:48:17,993 - edupredict - INFO - Data path: ./data/OULAD
+2025-04-24 22:48:17,994 - edupredict - INFO - Output directory: ./output
+2025-04-24 22:48:17,996 - edupredict - INFO - Starting data loading and processing
+2025-04-24 22:48:31,558 - edupredict - INFO - Clean demographics shape: (32593, 12)
+2025-04-24 22:48:31,558 - edupredict - INFO - Clean vle shape: (10655280, 9)
+2025-04-24 22:48:31,558 - edupredict - INFO - Clean assessments shape: (173739, 10)
+2025-04-24 22:49:06,518 - edupredict - INFO - Generated demographic visualizations: ['./output/visualizations/gender_distribution.png', './output/visualizations/age_distribution.png', './output/visualizations/imd_distribution.png', './output/visualizations/region_distribution.png']
+2025-04-24 22:50:11,231 - edupredict - INFO - Generated engagement visualizations: ['./output/visualizations/activity_type_distribution.png', './output/visualizations/daily_engagement.png', './output/visualizations/engagement_by_gender.png', './output/visualizations/engagement_by_age.png']
+2025-04-24 22:50:11,573 - edupredict - INFO - Completed step: Data Loading
+2025-04-24 22:50:11,574 - edupredict - INFO - Memory usage after Data Loading: 2207.22 MB
+2025-04-24 22:50:11,574 - edupredict - INFO - Starting feature engineering
+2025-04-24 22:50:11,657 - edupredict - INFO - Demographic features shape: (32593, 48)
+2025-04-24 22:50:39,408 - edupredict - INFO - Window window_7 features shape: (627031, 28)
+2025-04-24 22:50:39,408 - edupredict - INFO - Window window_14 features shape: (376919, 28)
+2025-04-24 22:50:39,409 - edupredict - INFO - Window window_30 features shape: (204359, 28)
+2025-04-24 22:50:39,520 - edupredict - INFO - Assessment features shape: (25820, 13)
+2025-04-24 22:50:43,124 - edupredict - INFO - Sequential features shape: (10655280, 13)
+2025-04-24 22:50:43,136 - edupredict - ERROR - Error in EduPredict: 7
+Traceback (most recent call last):
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 752, in main
+    feature_data = engineer_features(clean_data, output_paths)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 324, in engineer_features
+    X = pd.concat([demographic_features, temporal_features[WINDOW_SIZES[0]]], axis=1)
+KeyError: 7
+2025-04-24 22:58:28,325 - edupredict - INFO - Starting EduPredict in full mode
+2025-04-24 22:58:28,345 - edupredict - INFO - Data path: ./data/OULAD
+2025-04-24 22:58:28,346 - edupredict - INFO - Output directory: ./output
+2025-04-24 22:58:28,348 - edupredict - INFO - Starting data loading and processing
+2025-04-24 22:58:44,445 - edupredict - INFO - Clean demographics shape: (32593, 12)
+2025-04-24 22:58:44,446 - edupredict - INFO - Clean vle shape: (10655280, 9)
+2025-04-24 22:58:44,446 - edupredict - INFO - Clean assessments shape: (173739, 10)
+2025-04-24 22:59:26,361 - edupredict - INFO - Generated demographic visualizations: ['./output/visualizations/gender_distribution.png', './output/visualizations/age_distribution.png', './output/visualizations/imd_distribution.png', './output/visualizations/region_distribution.png']
+2025-04-24 23:00:31,637 - edupredict - INFO - Generated engagement visualizations: ['./output/visualizations/activity_type_distribution.png', './output/visualizations/daily_engagement.png', './output/visualizations/engagement_by_gender.png', './output/visualizations/engagement_by_age.png']
+2025-04-24 23:00:31,934 - edupredict - INFO - Completed step: Data Loading
+2025-04-24 23:00:31,935 - edupredict - INFO - Memory usage after Data Loading: 2292.79 MB
+2025-04-24 23:00:31,935 - edupredict - INFO - Starting feature engineering
+2025-04-24 23:00:32,015 - edupredict - INFO - Demographic features shape: (32593, 48)
+2025-04-24 23:00:57,698 - edupredict - INFO - Window window_7 features shape: (627031, 28)
+2025-04-24 23:00:57,699 - edupredict - INFO - Window window_14 features shape: (376919, 28)
+2025-04-24 23:00:57,699 - edupredict - INFO - Window window_30 features shape: (204359, 28)
+2025-04-24 23:00:57,777 - edupredict - INFO - Assessment features shape: (25820, 13)
+2025-04-24 23:01:00,636 - edupredict - INFO - Sequential features shape: (10655280, 13)
+2025-04-24 23:01:16,121 - edupredict - ERROR - Error in EduPredict: Found input variables with inconsistent numbers of samples: [627031, 32593]
+Traceback (most recent call last):
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 755, in main
+    feature_data = engineer_features(clean_data, output_paths)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 331, in engineer_features
+    importance_df = analyze_feature_importance(X, y, plot=False)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/evaluation/performance_metrics.py", line 27, in analyze_feature_importance
+    model.fit(X_numeric, y)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/base.py", line 1389, in wrapper
+    return fit_method(estimator, *args, **kwargs)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/ensemble/_forest.py", line 360, in fit
+    X, y = validate_data(
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/utils/validation.py", line 2961, in validate_data
+    X, y = check_X_y(X, y, **check_params)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/utils/validation.py", line 1389, in check_X_y
+    check_consistent_length(X, y)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/utils/validation.py", line 475, in check_consistent_length
+    raise ValueError(
+ValueError: Found input variables with inconsistent numbers of samples: [627031, 32593]
+2025-04-25 15:03:07,091 - edupredict - INFO - Starting EduPredict in full mode
+2025-04-25 15:03:07,123 - edupredict - INFO - Data path: ./output/feature_data
+2025-04-25 15:03:07,124 - edupredict - INFO - Output directory: ./output
+2025-04-25 15:03:07,127 - edupredict - INFO - Starting data loading and processing
+2025-04-25 15:03:07,127 - edupredict - ERROR - Error in EduPredict: Required file studentInfo.csv not found in ./output/feature_data
+Traceback (most recent call last):
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 769, in main
+    clean_data = load_and_process_data(args.data_path, output_paths, args.visualize)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 264, in load_and_process_data
+    datasets = load_raw_datasets(data_path)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/data_processing/data_processing.py", line 20, in load_raw_datasets
+    raise FileNotFoundError(f"Required file {file} not found in {dataset_paths}")
+FileNotFoundError: Required file studentInfo.csv not found in ./output/feature_data
+2025-04-25 15:04:11,591 - edupredict - INFO - Starting EduPredict in full mode
+2025-04-25 15:04:11,610 - edupredict - INFO - Data path: ./data/OULAD
+2025-04-25 15:04:11,611 - edupredict - INFO - Output directory: ./output
+2025-04-25 15:04:11,613 - edupredict - INFO - Starting data loading and processing
+2025-04-25 15:04:27,543 - edupredict - INFO - Clean demographics shape: (32593, 12)
+2025-04-25 15:04:27,546 - edupredict - INFO - Clean vle shape: (10655280, 9)
+2025-04-25 15:04:27,547 - edupredict - INFO - Clean assessments shape: (173739, 10)
+2025-04-25 15:05:02,078 - edupredict - INFO - Generated demographic visualizations: ['./output/visualizations/gender_distribution.png', './output/visualizations/age_distribution.png', './output/visualizations/imd_distribution.png', './output/visualizations/region_distribution.png']
+2025-04-25 15:06:12,607 - edupredict - INFO - Generated engagement visualizations: ['./output/visualizations/activity_type_distribution.png', './output/visualizations/daily_engagement.png', './output/visualizations/engagement_by_gender.png', './output/visualizations/engagement_by_age.png']
+2025-04-25 15:06:12,752 - edupredict - INFO - Completed step: Data Loading
+2025-04-25 15:06:12,753 - edupredict - INFO - Memory usage after Data Loading: 2182.66 MB
+2025-04-25 15:06:12,754 - edupredict - INFO - Starting feature engineering
+2025-04-25 15:06:12,853 - edupredict - INFO - Demographic features shape: (32593, 48)
+2025-04-25 15:06:38,407 - edupredict - INFO - Window window_7 features shape: (627031, 28)
+2025-04-25 15:06:38,408 - edupredict - INFO - Window window_14 features shape: (376919, 28)
+2025-04-25 15:06:38,408 - edupredict - INFO - Window window_30 features shape: (204359, 28)
+2025-04-25 15:06:38,497 - edupredict - INFO - Assessment features shape: (25820, 13)
+2025-04-25 15:06:41,441 - edupredict - INFO - Sequential features shape: (10655280, 13)
+2025-04-25 15:06:42,446 - edupredict - ERROR - Error in EduPredict: 'id_student'
+Traceback (most recent call last):
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 774, in main
+    feature_data = engineer_features(clean_data, output_paths)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 340, in engineer_features
+    X = pd.merge(
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/pandas/core/reshape/merge.py", line 170, in merge
+    op = _MergeOperation(
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/pandas/core/reshape/merge.py", line 794, in __init__
+    ) = self._get_merge_keys()
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/pandas/core/reshape/merge.py", line 1297, in _get_merge_keys
+    right_keys.append(right._get_label_or_level_values(rk))
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/pandas/core/generic.py", line 1911, in _get_label_or_level_values
+    raise KeyError(key)
+KeyError: 'id_student'
+2025-04-25 20:49:04,881 - edupredict - INFO - Starting EduPredict in full mode
+2025-04-25 20:49:04,906 - edupredict - INFO - Data path: ./data/OULAD
+2025-04-25 20:49:04,907 - edupredict - INFO - Output directory: ./output
+2025-04-25 20:49:04,910 - edupredict - INFO - Starting data loading and processing
+2025-04-25 20:49:35,472 - edupredict - INFO - Clean demographics shape: (32593, 12)
+2025-04-25 20:49:35,492 - edupredict - INFO - Clean vle shape: (10655280, 9)
+2025-04-25 20:49:35,493 - edupredict - INFO - Clean assessments shape: (173739, 10)
+2025-04-25 20:50:19,379 - edupredict - INFO - Generated demographic visualizations: ['./output/visualizations/gender_distribution.png', './output/visualizations/age_distribution.png', './output/visualizations/imd_distribution.png', './output/visualizations/region_distribution.png']
+2025-04-25 20:51:42,618 - edupredict - INFO - Generated engagement visualizations: ['./output/visualizations/activity_type_distribution.png', './output/visualizations/daily_engagement.png', './output/visualizations/engagement_by_gender.png', './output/visualizations/engagement_by_age.png']
+2025-04-25 20:51:43,600 - edupredict - INFO - Completed step: Data Loading
+2025-04-25 20:51:43,602 - edupredict - INFO - Memory usage after Data Loading: 2189.61 MB
+2025-04-25 20:51:43,602 - edupredict - INFO - Starting feature engineering
+2025-04-25 20:51:43,822 - edupredict - INFO - Demographic features shape: (32593, 48)
+2025-04-25 20:52:36,319 - edupredict - INFO - Window window_7 features shape: (627031, 28)
+2025-04-25 20:52:36,322 - edupredict - INFO - Window window_14 features shape: (376919, 28)
+2025-04-25 20:52:36,323 - edupredict - INFO - Window window_30 features shape: (204359, 28)
+2025-04-25 20:52:36,584 - edupredict - INFO - Assessment features shape: (25820, 13)
+2025-04-25 20:52:46,516 - edupredict - INFO - Sequential features shape: (10655280, 13)
+2025-04-25 20:52:49,430 - edupredict - INFO - Temporal aggregation columns: ['id_student', 'code_module', 'code_presentation', 'window_mean', 'window_std', 'window_max', 'sum_click_sum_mean', 'sum_click_sum_std', 'sum_click_sum_max', 'sum_click_mean_mean', 'sum_click_mean_std', 'sum_click_mean_max', 'sum_click_std_mean', 'sum_click_std_std', 'sum_click_std_max', 'id_site_nunique_mean', 'id_site_nunique_std', 'id_site_nunique_max', 'activity_dataplus_mean', 'activity_dataplus_std', 'activity_dataplus_max', 'activity_dualpane_mean', 'activity_dualpane_std', 'activity_dualpane_max', 'activity_externalquiz_mean', 'activity_externalquiz_std', 'activity_externalquiz_max', 'activity_folder_mean', 'activity_folder_std', 'activity_folder_max', 'activity_forumng_mean', 'activity_forumng_std', 'activity_forumng_max', 'activity_glossary_mean', 'activity_glossary_std', 'activity_glossary_max', 'activity_homepage_mean', 'activity_homepage_std', 'activity_homepage_max', 'activity_htmlactivity_mean', 'activity_htmlactivity_std', 'activity_htmlactivity_max', 'activity_oucollaborate_mean', 'activity_oucollaborate_std', 'activity_oucollaborate_max', 'activity_oucontent_mean', 'activity_oucontent_std', 'activity_oucontent_max', 'activity_ouelluminate_mean', 'activity_ouelluminate_std', 'activity_ouelluminate_max', 'activity_ouwiki_mean', 'activity_ouwiki_std', 'activity_ouwiki_max', 'activity_page_mean', 'activity_page_std', 'activity_page_max', 'activity_questionnaire_mean', 'activity_questionnaire_std', 'activity_questionnaire_max', 'activity_quiz_mean', 'activity_quiz_std', 'activity_quiz_max', 'activity_repeatactivity_mean', 'activity_repeatactivity_std', 'activity_repeatactivity_max', 'activity_resource_mean', 'activity_resource_std', 'activity_resource_max', 'activity_sharedsubpage_mean', 'activity_sharedsubpage_std', 'activity_sharedsubpage_max', 'activity_subpage_mean', 'activity_subpage_std', 'activity_subpage_max', 'activity_url_mean', 'activity_url_std', 'activity_url_max']
+2025-04-25 20:52:49,431 - edupredict - INFO - Demographic features columns: ['code_module', 'code_presentation', 'id_student', 'gender', 'region', 'highest_education', 'imd_band', 'age_band', 'num_of_prev_attempts', 'studied_credits', 'disability', 'final_result', 'gender_encoded', 'gender_m', 'region_encoded', 'region_east midlands region', 'region_ireland', 'region_london region', 'region_north region', 'region_north western region', 'region_scotland', 'region_south east region', 'region_south region', 'region_south west region', 'region_wales', 'region_west midlands region', 'region_yorkshire region', 'highest_education_encoded', 'highest_education_he qualification', 'highest_education_lower than a level', 'highest_education_no formal quals', 'highest_education_post graduate qualification', 'imd_band_encoded', 'imd_band_10-20', 'imd_band_20-30%', 'imd_band_30-40%', 'imd_band_40-50%', 'imd_band_50-60%', 'imd_band_60-70%', 'imd_band_70-80%', 'imd_band_80-90%', 'imd_band_90-100%', 'imd_band_unknown', 'age_band_encoded', 'age_band_35-55', 'age_band_55<=', 'is_first_attempt', 'credit_density']
+2025-04-25 20:54:51,370 - edupredict - INFO - static_path shape: (25820, 58)
+2025-04-25 20:54:51,395 - edupredict - INFO - sequential_path shape: (9975445, 37)
+2025-04-27 00:07:43,260 - edupredict - INFO - Completed step: Feature Engineering
+2025-04-27 00:07:43,294 - edupredict - INFO - Memory usage after Feature Engineering: 1721.73 MB
+2025-04-27 00:07:43,312 - edupredict - INFO - Training Random Forest model...
+2025-04-27 00:07:43,320 - edupredict - ERROR - Error in EduPredict: 'static'
+Traceback (most recent call last):
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 792, in main
+    model_results = train_and_evaluate_models(feature_data, output_paths, args)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 600, in train_and_evaluate_models
+    model_results['rf'] = train_random_forest(feature_data, output_paths, args)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 400, in train_random_forest
+    X = feature_data['dual_path_features']['static']
+KeyError: 'static'
+2025-04-28 00:48:34,580 - edupredict - INFO - Starting EduPredict in full mode
+2025-04-28 00:48:34,615 - edupredict - INFO - Data path: ./data/OULAD
+2025-04-28 00:48:34,616 - edupredict - INFO - Output directory: ./output
+2025-04-28 00:48:34,620 - edupredict - INFO - Starting data loading and processing
+2025-04-28 00:48:56,526 - edupredict - INFO - Clean demographics shape: (32593, 12)
+2025-04-28 00:48:56,527 - edupredict - INFO - Clean vle shape: (10655280, 9)
+2025-04-28 00:48:56,527 - edupredict - INFO - Clean assessments shape: (173739, 10)
+2025-04-28 00:49:41,242 - edupredict - INFO - Starting EduPredict in full mode
+2025-04-28 00:49:41,260 - edupredict - INFO - Data path: ./data/OULAD
+2025-04-28 00:49:41,261 - edupredict - INFO - Output directory: ./output
+2025-04-28 00:49:41,264 - edupredict - INFO - Starting data loading and processing
+2025-04-28 00:49:56,523 - edupredict - INFO - Clean demographics shape: (32593, 12)
+2025-04-28 00:49:56,524 - edupredict - INFO - Clean vle shape: (10655280, 9)
+2025-04-28 00:49:56,524 - edupredict - INFO - Clean assessments shape: (173739, 10)
+2025-04-28 00:50:33,728 - edupredict - INFO - Generated demographic visualizations: ['./output/visualizations/gender_distribution.png', './output/visualizations/age_distribution.png', './output/visualizations/imd_distribution.png', './output/visualizations/region_distribution.png']
+2025-04-28 00:51:39,642 - edupredict - INFO - Generated engagement visualizations: ['./output/visualizations/activity_type_distribution.png', './output/visualizations/daily_engagement.png', './output/visualizations/engagement_by_gender.png', './output/visualizations/engagement_by_age.png']
+2025-04-28 00:51:40,025 - edupredict - INFO - Completed step: Data Loading
+2025-04-28 00:51:40,026 - edupredict - INFO - Memory usage after Data Loading: 2251.14 MB
+2025-04-28 00:51:40,026 - edupredict - INFO - Starting feature engineering
+2025-04-28 00:51:40,117 - edupredict - INFO - Demographic features shape: (32593, 48)
+2025-04-28 00:52:05,489 - edupredict - INFO - Window window_7 features shape: (627031, 28)
+2025-04-28 00:52:05,489 - edupredict - INFO - Window window_14 features shape: (376919, 28)
+2025-04-28 00:52:05,489 - edupredict - INFO - Window window_30 features shape: (204359, 28)
+2025-04-28 00:52:05,557 - edupredict - INFO - Assessment features shape: (25820, 13)
+2025-04-28 00:52:08,425 - edupredict - INFO - Sequential features shape: (10655280, 13)
+2025-04-28 00:56:22,481 - edupredict - INFO - static_path shape: (25820, 58)
+2025-04-28 00:56:22,503 - edupredict - INFO - sequential_path shape: (9975445, 37)
+2025-04-28 00:59:09,933 - edupredict - INFO - Starting EduPredict in full mode
+2025-04-28 00:59:09,952 - edupredict - INFO - Data path: ./data/OULAD
+2025-04-28 00:59:09,953 - edupredict - INFO - Output directory: ./output
+2025-04-28 00:59:09,956 - edupredict - INFO - Starting data loading and processing
+2025-04-28 00:59:25,482 - edupredict - INFO - Clean demographics shape: (32593, 12)
+2025-04-28 00:59:25,484 - edupredict - INFO - Clean vle shape: (10655280, 9)
+2025-04-28 00:59:25,484 - edupredict - INFO - Clean assessments shape: (173739, 10)
+2025-04-28 00:59:58,909 - edupredict - INFO - Generated demographic visualizations: ['./output/visualizations/gender_distribution.png', './output/visualizations/age_distribution.png', './output/visualizations/imd_distribution.png', './output/visualizations/region_distribution.png']
+2025-04-28 01:01:03,940 - edupredict - INFO - Generated engagement visualizations: ['./output/visualizations/activity_type_distribution.png', './output/visualizations/daily_engagement.png', './output/visualizations/engagement_by_gender.png', './output/visualizations/engagement_by_age.png']
+2025-04-28 01:01:04,051 - edupredict - INFO - Completed step: Data Loading
+2025-04-28 01:01:04,051 - edupredict - INFO - Memory usage after Data Loading: 2166.62 MB
+2025-04-28 01:01:04,051 - edupredict - INFO - Starting feature engineering
+2025-04-28 01:01:04,136 - edupredict - INFO - Demographic features shape: (32593, 48)
+2025-04-28 01:01:29,530 - edupredict - INFO - Window window_7 features shape: (627031, 28)
+2025-04-28 01:01:29,530 - edupredict - INFO - Window window_14 features shape: (376919, 28)
+2025-04-28 01:01:29,531 - edupredict - INFO - Window window_30 features shape: (204359, 28)
+2025-04-28 01:01:29,697 - edupredict - INFO - Assessment features shape: (25820, 13)
+2025-04-28 01:01:33,141 - edupredict - INFO - Sequential features shape: (10655280, 13)
+2025-04-28 01:05:08,457 - edupredict - INFO - static_path shape: (25820, 58)
+2025-04-28 01:05:08,469 - edupredict - INFO - sequential_path shape: (9975445, 37)
+2025-04-28 01:08:01,056 - edupredict - INFO - Completed step: Feature Engineering
+2025-04-28 01:08:01,071 - edupredict - INFO - Memory usage after Feature Engineering: 4366.73 MB
+2025-04-28 01:08:01,074 - edupredict - INFO - Training Random Forest model...
+2025-04-28 01:08:01,075 - edupredict - ERROR - Error in EduPredict: create_stratified_splits() got multiple values for argument 'test_size'
+Traceback (most recent call last):
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 789, in main
+    model_results = train_and_evaluate_models(feature_data, output_paths, args)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 597, in train_and_evaluate_models
+    model_results['rf'] = train_random_forest(feature_data, output_paths, args)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 401, in train_random_forest
+    X_train, X_test, y_train, y_test = create_stratified_splits(
+TypeError: create_stratified_splits() got multiple values for argument 'test_size'
+2025-04-28 01:42:28,131 - edupredict - INFO - Starting EduPredict in full mode
+2025-04-28 01:42:28,151 - edupredict - INFO - Data path: ./data/OULAD
+2025-04-28 01:42:28,153 - edupredict - INFO - Output directory: ./output
+2025-04-28 01:42:28,155 - edupredict - INFO - Starting data loading and processing
+2025-04-28 01:42:42,939 - edupredict - INFO - Clean demographics shape: (32593, 12)
+2025-04-28 01:42:42,940 - edupredict - INFO - Clean vle shape: (10655280, 9)
+2025-04-28 01:42:42,940 - edupredict - INFO - Clean assessments shape: (173739, 10)
+2025-04-28 01:43:16,370 - edupredict - INFO - Generated demographic visualizations: ['./output/visualizations/gender_distribution.png', './output/visualizations/age_distribution.png', './output/visualizations/imd_distribution.png', './output/visualizations/region_distribution.png']
+2025-04-28 01:44:22,748 - edupredict - INFO - Generated engagement visualizations: ['./output/visualizations/activity_type_distribution.png', './output/visualizations/daily_engagement.png', './output/visualizations/engagement_by_gender.png', './output/visualizations/engagement_by_age.png']
+2025-04-28 01:44:23,121 - edupredict - INFO - Completed step: Data Loading
+2025-04-28 01:44:23,121 - edupredict - INFO - Memory usage after Data Loading: 2253.88 MB
+2025-04-28 01:44:23,122 - edupredict - INFO - Starting feature engineering
+2025-04-28 01:44:23,209 - edupredict - INFO - Demographic features shape: (32593, 48)
+2025-04-28 01:44:48,399 - edupredict - INFO - Window window_7 features shape: (627031, 28)
+2025-04-28 01:44:48,400 - edupredict - INFO - Window window_14 features shape: (376919, 28)
+2025-04-28 01:44:48,400 - edupredict - INFO - Window window_30 features shape: (204359, 28)
+2025-04-28 01:44:48,481 - edupredict - INFO - Assessment features shape: (25820, 13)
+2025-04-28 01:44:51,364 - edupredict - INFO - Sequential features shape: (10655280, 13)
+2025-04-28 02:13:39,389 - edupredict - INFO - Starting EduPredict in data_only mode
+2025-04-28 02:13:39,411 - edupredict - INFO - Data path: ./data/OULAD
+2025-04-28 02:13:39,412 - edupredict - INFO - Output directory: ./output
+2025-04-28 02:13:39,415 - edupredict - INFO - Starting data loading and processing
+2025-04-28 02:13:55,094 - edupredict - INFO - Clean demographics shape: (32593, 12)
+2025-04-28 02:13:55,101 - edupredict - INFO - Clean vle shape: (10655280, 9)
+2025-04-28 02:13:55,103 - edupredict - INFO - Clean assessments shape: (173739, 10)
+2025-04-28 02:14:52,597 - edupredict - INFO - Generated demographic visualizations: ['./output/visualizations/gender_distribution.png', './output/visualizations/age_distribution.png', './output/visualizations/imd_distribution.png', './output/visualizations/region_distribution.png']
+2025-04-28 02:16:49,041 - edupredict - INFO - Generated engagement visualizations: ['./output/visualizations/activity_type_distribution.png', './output/visualizations/daily_engagement.png', './output/visualizations/engagement_by_gender.png', './output/visualizations/engagement_by_age.png']
+2025-04-28 02:16:49,797 - edupredict - INFO - Completed step: Data Loading
+2025-04-28 02:16:49,810 - edupredict - INFO - Memory usage after Data Loading: 1969.59 MB
+2025-04-28 02:16:49,811 - edupredict - INFO - Starting feature engineering
+2025-04-28 02:16:50,126 - edupredict - INFO - Demographic features shape: (32593, 48)
+2025-04-28 02:17:36,274 - edupredict - INFO - Window window_7 features shape: (627031, 28)
+2025-04-28 02:17:36,277 - edupredict - INFO - Window window_14 features shape: (376919, 28)
+2025-04-28 02:17:36,280 - edupredict - INFO - Window window_30 features shape: (204359, 28)
+2025-04-28 02:17:36,464 - edupredict - INFO - Assessment features shape: (25820, 13)
+2025-04-28 02:17:42,240 - edupredict - INFO - Sequential features shape: (10655280, 13)
+2025-04-28 02:50:27,876 - edupredict - INFO - Starting EduPredict in full mode
+2025-04-28 02:50:27,896 - edupredict - INFO - Data path: ./data/OULAD
+2025-04-28 02:50:27,897 - edupredict - INFO - Output directory: ./output
+2025-04-28 02:50:27,899 - edupredict - INFO - Starting data loading and processing
+2025-04-28 02:50:40,995 - edupredict - ERROR - Error in EduPredict: name 'logger' is not defined
+Traceback (most recent call last):
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 800, in main
+    clean_data = load_and_process_data(args.data_path, output_paths, args.visualize)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 271, in load_and_process_data
+    'vle': clean_vle_data(datasets['vle_interactions'], datasets['vle_materials'], chunk_size=100000),
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/data_processing/data_processing.py", line 61, in clean_vle_data
+    logger.info("Cleaning VLE data...")
+NameError: name 'logger' is not defined
+2025-04-28 02:58:09,379 - edupredict - INFO - Starting EduPredict in full mode
+2025-04-28 02:58:09,410 - edupredict - INFO - Data path: ./data/OULAD
+2025-04-28 02:58:09,411 - edupredict - INFO - Output directory: ./output
+2025-04-28 02:58:09,416 - edupredict - INFO - Starting data loading and processing
+2025-04-28 02:58:24,333 - edupredict - INFO - Cleaning VLE data...
+2025-04-28 02:58:28,516 - edupredict - INFO - Clean demographics shape: (32593, 12)
+2025-04-28 02:58:28,517 - edupredict - INFO - Clean vle shape: (10655280, 7)
+2025-04-28 02:58:28,517 - edupredict - INFO - Clean assessments shape: (173739, 10)
+2025-04-28 02:59:01,544 - edupredict - INFO - Completed step: Data Loading
+2025-04-28 02:59:01,545 - edupredict - INFO - Memory usage after Data Loading: 891.09 MB
+2025-04-28 02:59:01,546 - edupredict - INFO - Starting feature engineering
+2025-04-28 02:59:01,722 - edupredict - INFO - Demographic features shape: (32593, 48)
+2025-04-28 02:59:57,780 - edupredict - INFO - Window window_7 features shape: (627031, 28)
+2025-04-28 02:59:57,781 - edupredict - INFO - Window window_14 features shape: (376919, 28)
+2025-04-28 02:59:57,782 - edupredict - INFO - Window window_30 features shape: (204359, 28)
+2025-04-28 02:59:57,891 - edupredict - INFO - Assessment features shape: (25820, 13)
+2025-04-28 02:59:57,892 - edupredict - ERROR - Error in EduPredict: 'generator' object has no attribute 'shape'
+Traceback (most recent call last):
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 805, in main
+    feature_data = engineer_features(clean_data, output_paths)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 338, in engineer_features
+    logger.info(f"Sequential features shape: {sequential_features.shape}")
+AttributeError: 'generator' object has no attribute 'shape'
+2025-04-28 03:02:56,395 - edupredict - INFO - Starting EduPredict in full mode
+2025-04-28 03:02:56,416 - edupredict - INFO - Data path: ./data/OULAD
+2025-04-28 03:02:56,417 - edupredict - INFO - Output directory: ./output
+2025-04-28 03:02:56,420 - edupredict - INFO - Starting data loading and processing
+2025-04-28 03:03:04,821 - edupredict - INFO - Cleaning VLE data...
+2025-04-28 03:03:10,771 - edupredict - INFO - Clean demographics shape: (32593, 12)
+2025-04-28 03:03:10,772 - edupredict - INFO - Clean vle shape: (10655280, 7)
+2025-04-28 03:03:10,777 - edupredict - INFO - Clean assessments shape: (173739, 10)
+2025-04-28 03:03:53,336 - edupredict - INFO - Completed step: Data Loading
+2025-04-28 03:03:53,345 - edupredict - INFO - Memory usage after Data Loading: 926.20 MB
+2025-04-28 03:03:53,347 - edupredict - INFO - Starting feature engineering
+2025-04-28 03:03:53,525 - edupredict - INFO - Demographic features shape: (32593, 48)
+2025-04-28 03:04:32,312 - edupredict - INFO - Window window_7 features shape: (627031, 28)
+2025-04-28 03:04:32,313 - edupredict - INFO - Window window_14 features shape: (376919, 28)
+2025-04-28 03:04:32,313 - edupredict - INFO - Window window_30 features shape: (204359, 28)
+2025-04-28 03:04:32,401 - edupredict - INFO - Assessment features shape: (25820, 13)
+2025-04-28 03:04:32,402 - edupredict - ERROR - Error in EduPredict: name 'logger' is not defined
+Traceback (most recent call last):
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 808, in main
+    feature_data = engineer_features(clean_data, output_paths)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 337, in engineer_features
+    sequential_features = pd.DataFrame(create_sequential_features(clean_data['vle']))
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/pandas/core/frame.py", line 843, in __init__
+    data = list(data)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/data_processing/feature_engineering.py", line 141, in create_sequential_features
+    logger.info("Creating sequential features...")
+NameError: name 'logger' is not defined
+2025-04-28 03:06:40,977 - edupredict - INFO - Starting EduPredict in full mode
+2025-04-28 03:06:40,998 - edupredict - INFO - Data path: ./data/OULAD
+2025-04-28 03:06:40,999 - edupredict - INFO - Output directory: ./output
+2025-04-28 03:06:41,001 - edupredict - INFO - Starting data loading and processing
+2025-04-28 03:06:48,356 - edupredict - INFO - Cleaning VLE data...
+2025-04-28 03:06:53,072 - edupredict - INFO - Clean demographics shape: (32593, 12)
+2025-04-28 03:06:53,073 - edupredict - INFO - Clean vle shape: (10655280, 7)
+2025-04-28 03:06:53,073 - edupredict - INFO - Clean assessments shape: (173739, 10)
+2025-04-28 03:07:27,226 - edupredict - INFO - Completed step: Data Loading
+2025-04-28 03:07:27,228 - edupredict - INFO - Memory usage after Data Loading: 822.55 MB
+2025-04-28 03:07:27,228 - edupredict - INFO - Starting feature engineering
+2025-04-28 03:07:27,326 - edupredict - INFO - Demographic features shape: (32593, 48)
+2025-04-28 03:08:18,981 - edupredict - INFO - Window window_7 features shape: (627031, 28)
+2025-04-28 03:08:18,988 - edupredict - INFO - Window window_14 features shape: (376919, 28)
+2025-04-28 03:08:18,990 - edupredict - INFO - Window window_30 features shape: (204359, 28)
+2025-04-28 03:08:19,176 - edupredict - INFO - Assessment features shape: (25820, 13)
+2025-04-28 03:08:19,179 - edupredict - INFO - Creating sequential features...
+2025-04-28 03:10:30,831 - edupredict - ERROR - Error in EduPredict: Must pass 2-d input. shape=(1, 10655280, 9)
+Traceback (most recent call last):
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 808, in main
+    feature_data = engineer_features(clean_data, output_paths)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 337, in engineer_features
+    sequential_features = pd.DataFrame(create_sequential_features(clean_data['vle']))
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/pandas/core/frame.py", line 867, in __init__
+    mgr = ndarray_to_mgr(
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/pandas/core/internals/construction.py", line 319, in ndarray_to_mgr
+    values = _prep_ndarraylike(values, copy=copy_on_sanitize)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/pandas/core/internals/construction.py", line 582, in _prep_ndarraylike
+    return _ensure_2d(values)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/pandas/core/internals/construction.py", line 592, in _ensure_2d
+    raise ValueError(f"Must pass 2-d input. shape={values.shape}")
+ValueError: Must pass 2-d input. shape=(1, 10655280, 9)
+2025-04-28 03:14:26,249 - edupredict - INFO - Starting EduPredict in full mode
+2025-04-28 03:14:26,279 - edupredict - INFO - Data path: ./data/OULAD
+2025-04-28 03:14:26,281 - edupredict - INFO - Output directory: ./output
+2025-04-28 03:14:26,283 - edupredict - INFO - Starting data loading and processing
+2025-04-28 03:14:34,651 - edupredict - INFO - Cleaning VLE data...
+2025-04-28 03:14:38,102 - edupredict - INFO - Clean demographics shape: (32593, 12)
+2025-04-28 03:14:38,102 - edupredict - INFO - Clean vle shape: (10655280, 7)
+2025-04-28 03:14:38,103 - edupredict - INFO - Clean assessments shape: (173739, 10)
+2025-04-28 03:15:05,113 - edupredict - INFO - Completed step: Data Loading
+2025-04-28 03:15:05,122 - edupredict - INFO - Memory usage after Data Loading: 919.05 MB
+2025-04-28 03:15:05,123 - edupredict - INFO - Starting feature engineering
+2025-04-28 03:15:05,600 - edupredict - INFO - Demographic features shape: (32593, 48)
+2025-04-28 03:15:58,122 - edupredict - INFO - Window window_7 features shape: (627031, 28)
+2025-04-28 03:15:58,123 - edupredict - INFO - Window window_14 features shape: (376919, 28)
+2025-04-28 03:15:58,124 - edupredict - INFO - Window window_30 features shape: (204359, 28)
+2025-04-28 03:15:58,224 - edupredict - INFO - Assessment features shape: (25820, 13)
+2025-04-28 03:15:58,224 - edupredict - INFO - Creating sequential features...
+2025-04-28 03:17:42,074 - edupredict - INFO - Sequential features shape: (10655280, 9)
+2025-04-28 05:00:38,711 - edupredict - INFO - Starting EduPredict in full mode
+2025-04-28 05:00:38,732 - edupredict - INFO - Data path: ./data/OULAD
+2025-04-28 05:00:38,733 - edupredict - INFO - Output directory: ./output
+2025-04-28 05:00:38,736 - edupredict - INFO - Starting data loading and processing
+2025-04-28 05:00:46,808 - edupredict - INFO - Cleaning VLE data...
+2025-04-28 05:00:50,120 - edupredict - INFO - Clean demographics shape: (32593, 12)
+2025-04-28 05:00:50,121 - edupredict - INFO - Clean vle shape: (10655280, 7)
+2025-04-28 05:00:50,121 - edupredict - INFO - Clean assessments shape: (173739, 10)
+2025-04-28 05:01:15,760 - edupredict - WARNING - Error during EDA: perform_automated_eda() takes 1 positional argument but 3 were given. Continuing with processing...
+2025-04-28 05:01:15,868 - edupredict - INFO - Completed step: Data Loading
+2025-04-28 05:01:15,870 - edupredict - INFO - Memory usage after Data Loading: 882.61 MB
+2025-04-28 05:01:15,870 - edupredict - INFO - Starting feature engineering
+2025-04-28 05:01:15,945 - edupredict - INFO - Demographic features shape: (32593, 48)
+2025-04-28 05:01:42,599 - edupredict - INFO - Window window_7 features shape: (627031, 28)
+2025-04-28 05:01:42,600 - edupredict - INFO - Window window_14 features shape: (376919, 28)
+2025-04-28 05:01:42,602 - edupredict - INFO - Window window_30 features shape: (204359, 28)
+2025-04-28 05:01:42,716 - edupredict - INFO - Assessment features shape: (25820, 13)
+2025-04-28 05:01:42,726 - edupredict - INFO - Creating sequential features...
+2025-04-28 05:02:09,966 - edupredict - INFO - Sequential features shape: (10655280, 9)
+2025-04-28 05:24:32,734 - edupredict - INFO - Starting EduPredict in full mode
+2025-04-28 05:24:32,754 - edupredict - INFO - Data path: ./data/OULAD
+2025-04-28 05:24:32,755 - edupredict - INFO - Output directory: ./output
+2025-04-28 05:24:32,757 - edupredict - INFO - Starting data loading and processing
+2025-04-28 05:24:43,425 - edupredict - INFO - Cleaning VLE data...
+2025-04-28 05:24:50,174 - edupredict - INFO - Clean demographics shape: (32593, 12)
+2025-04-28 05:24:50,175 - edupredict - INFO - Clean vle shape: (10655280, 7)
+2025-04-28 05:24:50,176 - edupredict - INFO - Clean assessments shape: (173739, 10)
+2025-04-28 05:25:42,222 - edupredict - WARNING - Error during EDA: 'student_info'. Continuing with processing...
+2025-04-28 05:25:42,368 - edupredict - INFO - Completed step: Data Loading
+2025-04-28 05:25:42,372 - edupredict - INFO - Memory usage after Data Loading: 855.57 MB
+2025-04-28 05:25:42,373 - edupredict - INFO - Starting feature engineering
+2025-04-28 05:25:42,495 - edupredict - INFO - Demographic features shape: (32593, 48)
+2025-04-28 05:26:21,330 - edupredict - INFO - Window window_7 features shape: (627031, 28)
+2025-04-28 05:26:21,331 - edupredict - INFO - Window window_14 features shape: (376919, 28)
+2025-04-28 05:26:21,331 - edupredict - INFO - Window window_30 features shape: (204359, 28)
+2025-04-28 05:26:21,417 - edupredict - INFO - Assessment features shape: (25820, 13)
+2025-04-28 05:26:21,417 - edupredict - INFO - Creating sequential features...
+2025-04-28 05:26:36,667 - edupredict - INFO - Sequential features shape: (10655280, 9)
+2025-04-28 05:30:24,695 - edupredict - INFO - Starting EduPredict in full mode
+2025-04-28 05:30:24,715 - edupredict - INFO - Data path: ./data/OULAD
+2025-04-28 05:30:24,716 - edupredict - INFO - Output directory: ./output
+2025-04-28 05:30:24,718 - edupredict - INFO - Starting data loading and processing
+2025-04-28 05:30:31,944 - edupredict - INFO - Cleaning VLE data...
+2025-04-28 05:30:34,565 - edupredict - INFO - Clean demographics shape: (32593, 12)
+2025-04-28 05:30:34,566 - edupredict - INFO - Clean vle shape: (10655280, 7)
+2025-04-28 05:30:34,566 - edupredict - INFO - Clean assessments shape: (173739, 10)
+2025-04-28 05:30:57,294 - edupredict - WARNING - Error during EDA: 'student_info'. Continuing with processing...
+2025-04-28 05:30:57,394 - edupredict - INFO - Completed step: Data Loading
+2025-04-28 05:30:57,394 - edupredict - INFO - Memory usage after Data Loading: 970.84 MB
+2025-04-28 05:30:57,395 - edupredict - INFO - Starting feature engineering
+2025-04-28 05:30:57,468 - edupredict - INFO - Demographic features shape: (32593, 48)
+2025-04-28 05:31:28,210 - edupredict - INFO - Window window_7 features shape: (627031, 28)
+2025-04-28 05:31:28,212 - edupredict - INFO - Window window_14 features shape: (376919, 28)
+2025-04-28 05:31:28,214 - edupredict - INFO - Window window_30 features shape: (204359, 28)
+2025-04-28 05:31:28,302 - edupredict - INFO - Assessment features shape: (25820, 13)
+2025-04-28 05:31:28,302 - edupredict - INFO - Creating sequential features...
+2025-04-28 05:31:40,744 - edupredict - INFO - Sequential features shape: (10655280, 9)
+2025-04-28 05:34:34,282 - edupredict - INFO - Starting EduPredict in full mode
+2025-04-28 05:34:34,301 - edupredict - INFO - Data path: ./data/OULAD
+2025-04-28 05:34:34,302 - edupredict - INFO - Output directory: ./output
+2025-04-28 05:34:34,305 - edupredict - INFO - Starting data loading and processing
+2025-04-28 05:34:41,421 - edupredict - INFO - Cleaning VLE data...
+2025-04-28 05:34:44,726 - edupredict - INFO - Clean demographics shape: (32593, 12)
+2025-04-28 05:34:44,727 - edupredict - INFO - Clean vle shape: (10655280, 7)
+2025-04-28 05:34:44,727 - edupredict - INFO - Clean assessments shape: (173739, 10)
+2025-04-28 05:35:14,307 - edupredict - WARNING - Error during EDA: 'VisualizationRunner' object has no attribute 'run_performance_visualizations'. Continuing with processing...
+2025-04-28 05:35:14,471 - edupredict - INFO - Completed step: Data Loading
+2025-04-28 05:35:14,483 - edupredict - INFO - Memory usage after Data Loading: 1158.98 MB
+2025-04-28 05:35:14,484 - edupredict - INFO - Starting feature engineering
+2025-04-28 05:35:14,571 - edupredict - INFO - Demographic features shape: (32593, 48)
+2025-04-28 05:35:40,977 - edupredict - INFO - Window window_7 features shape: (627031, 28)
+2025-04-28 05:35:40,977 - edupredict - INFO - Window window_14 features shape: (376919, 28)
+2025-04-28 05:35:40,978 - edupredict - INFO - Window window_30 features shape: (204359, 28)
+2025-04-28 05:35:41,055 - edupredict - INFO - Assessment features shape: (25820, 13)
+2025-04-28 05:35:41,055 - edupredict - INFO - Creating sequential features...
+2025-04-28 05:35:53,377 - edupredict - INFO - Sequential features shape: (10655280, 9)
+2025-04-28 05:44:49,722 - edupredict - INFO - Starting EduPredict in full mode
+2025-04-28 05:44:49,742 - edupredict - INFO - Data path: ./data/OULAD
+2025-04-28 05:44:49,743 - edupredict - INFO - Output directory: ./output
+2025-04-28 05:44:49,745 - edupredict - INFO - Starting data loading and processing
+2025-04-28 05:44:57,375 - edupredict - INFO - Cleaning VLE data...
+2025-04-28 05:45:00,078 - edupredict - INFO - Clean demographics shape: (32593, 12)
+2025-04-28 05:45:00,079 - edupredict - INFO - Clean vle shape: (10655280, 7)
+2025-04-28 05:45:00,080 - edupredict - INFO - Clean assessments shape: (173739, 10)
+2025-04-28 05:46:40,735 - edupredict - INFO - Generated demographic visualizations: ['./output/visualizations/gender_distribution.png', './output/visualizations/age_distribution.png', './output/visualizations/imd_distribution.png', './output/visualizations/region_distribution.png']
+2025-04-28 05:47:45,408 - edupredict - INFO - Generated engagement visualizations: ['./output/visualizations/activity_type_distribution.png', './output/visualizations/daily_engagement.png', './output/visualizations/engagement_by_gender.png', './output/visualizations/engagement_by_age.png']
+2025-04-28 05:47:45,409 - edupredict - INFO - Completed exploratory data analysis
+2025-04-28 05:47:45,788 - edupredict - INFO - Completed step: Data Loading
+2025-04-28 05:47:45,792 - edupredict - INFO - Memory usage after Data Loading: 3044.39 MB
+2025-04-28 05:47:45,792 - edupredict - INFO - Starting feature engineering
+2025-04-28 05:47:45,893 - edupredict - INFO - Demographic features shape: (32593, 48)
+2025-04-28 05:48:12,530 - edupredict - INFO - Window window_7 features shape: (627031, 28)
+2025-04-28 05:48:12,531 - edupredict - INFO - Window window_14 features shape: (376919, 28)
+2025-04-28 05:48:12,531 - edupredict - INFO - Window window_30 features shape: (204359, 28)
+2025-04-28 05:48:12,634 - edupredict - INFO - Assessment features shape: (25820, 13)
+2025-04-28 05:48:12,635 - edupredict - INFO - Creating sequential features...
+2025-04-28 05:48:25,175 - edupredict - INFO - Sequential features shape: (10655280, 9)
+2025-04-28 06:41:07,222 - edupredict - INFO - Starting EduPredict in full mode
+2025-04-28 06:41:07,246 - edupredict - INFO - Data path: ./data/OULAD
+2025-04-28 06:41:07,248 - edupredict - INFO - Output directory: ./output
+2025-04-28 06:41:07,250 - edupredict - INFO - Starting data loading and processing
+2025-04-28 06:41:14,631 - edupredict - INFO - Cleaning VLE data...
+2025-04-28 06:41:17,218 - edupredict - INFO - Clean demographics shape: (32593, 12)
+2025-04-28 06:41:17,219 - edupredict - INFO - Clean vle shape: (10655280, 7)
+2025-04-28 06:41:17,219 - edupredict - INFO - Clean assessments shape: (173739, 10)
+2025-04-28 06:42:57,030 - edupredict - INFO - Generated demographic visualizations: ['./output/visualizations/gender_distribution.png', './output/visualizations/age_distribution.png', './output/visualizations/imd_distribution.png', './output/visualizations/region_distribution.png']
+2025-04-28 06:44:01,371 - edupredict - INFO - Generated engagement visualizations: ['./output/visualizations/activity_type_distribution.png', './output/visualizations/daily_engagement.png', './output/visualizations/engagement_by_gender.png', './output/visualizations/engagement_by_age.png']
+2025-04-28 06:44:01,371 - edupredict - INFO - Completed exploratory data analysis
+2025-04-28 06:44:01,777 - edupredict - INFO - Completed step: Data Loading
+2025-04-28 06:44:01,782 - edupredict - INFO - Memory usage after Data Loading: 2849.38 MB
+2025-04-28 06:44:01,783 - edupredict - INFO - Starting feature engineering
+2025-04-28 06:44:01,899 - edupredict - INFO - Demographic features shape: (32593, 48)
+2025-04-28 06:44:28,072 - edupredict - INFO - Window window_7 features shape: (627031, 28)
+2025-04-28 06:44:28,072 - edupredict - INFO - Window window_14 features shape: (376919, 28)
+2025-04-28 06:44:28,073 - edupredict - INFO - Window window_30 features shape: (204359, 28)
+2025-04-28 06:44:28,158 - edupredict - INFO - Assessment features shape: (25820, 13)
+2025-04-28 06:44:28,158 - edupredict - INFO - Creating sequential features...
+2025-04-28 06:44:39,357 - edupredict - INFO - Sequential features shape: (10655280, 9)
+2025-04-28 10:26:32,921 - edupredict - INFO - Starting EduPredict in full mode
+2025-04-28 10:26:32,942 - edupredict - INFO - Data path: ./data/OULAD
+2025-04-28 10:26:32,944 - edupredict - INFO - Output directory: ./output
+2025-04-28 10:26:32,946 - edupredict - INFO - Starting data loading and processing
+2025-04-28 10:26:40,939 - edupredict - INFO - Cleaning VLE data...
+2025-04-28 10:26:43,810 - edupredict - INFO - Clean demographics shape: (32593, 12)
+2025-04-28 10:26:43,810 - edupredict - INFO - Clean vle shape: (10655280, 7)
+2025-04-28 10:26:43,811 - edupredict - INFO - Clean assessments shape: (173739, 10)
+2025-04-28 10:28:26,597 - edupredict - INFO - Generated demographic visualizations: ['./output/visualizations/gender_distribution.png', './output/visualizations/age_distribution.png', './output/visualizations/imd_distribution.png', './output/visualizations/region_distribution.png']
+2025-04-28 10:29:31,142 - edupredict - INFO - Generated engagement visualizations: ['./output/visualizations/activity_type_distribution.png', './output/visualizations/daily_engagement.png', './output/visualizations/engagement_by_gender.png', './output/visualizations/engagement_by_age.png']
+2025-04-28 10:29:31,143 - edupredict - INFO - Completed exploratory data analysis
+2025-04-28 10:29:31,285 - edupredict - INFO - Completed step: Data Loading
+2025-04-28 10:29:31,286 - edupredict - INFO - Memory usage after Data Loading: 3376.14 MB
+2025-04-28 10:29:31,286 - edupredict - INFO - Starting feature engineering
+2025-04-28 10:29:31,376 - edupredict - INFO - Demographic features shape: (32593, 48)
+2025-04-28 10:29:57,113 - edupredict - INFO - Window window_7 features shape: (627031, 28)
+2025-04-28 10:29:57,114 - edupredict - INFO - Window window_14 features shape: (376919, 28)
+2025-04-28 10:29:57,114 - edupredict - INFO - Window window_30 features shape: (204359, 28)
+2025-04-28 10:29:57,185 - edupredict - INFO - Assessment features shape: (25820, 13)
+2025-04-28 10:29:57,186 - edupredict - INFO - Creating sequential features...
+2025-04-28 10:30:08,354 - edupredict - INFO - Sequential features shape: (10655280, 9)
+2025-04-28 10:41:47,786 - edupredict - INFO - Starting EduPredict in full mode
+2025-04-28 10:41:47,805 - edupredict - INFO - Data path: ./data/OULAD
+2025-04-28 10:41:47,807 - edupredict - INFO - Output directory: ./output
+2025-04-28 10:41:47,809 - edupredict - INFO - Starting data loading and processing
+2025-04-28 10:41:55,142 - edupredict - INFO - Cleaning VLE data...
+2025-04-28 10:41:58,126 - edupredict - INFO - Clean demographics shape: (32593, 12)
+2025-04-28 10:41:58,126 - edupredict - INFO - Clean vle shape: (10655280, 7)
+2025-04-28 10:41:58,126 - edupredict - INFO - Clean assessments shape: (173739, 10)
+2025-04-28 10:43:41,574 - edupredict - INFO - Generated demographic visualizations: ['./output/visualizations/gender_distribution.png', './output/visualizations/age_distribution.png', './output/visualizations/imd_distribution.png', './output/visualizations/region_distribution.png']
+2025-04-28 10:44:49,864 - edupredict - INFO - Generated engagement visualizations: ['./output/visualizations/activity_type_distribution.png', './output/visualizations/daily_engagement.png', './output/visualizations/engagement_by_gender.png', './output/visualizations/engagement_by_age.png']
+2025-04-28 10:44:49,865 - edupredict - INFO - Completed exploratory data analysis
+2025-04-28 10:44:50,312 - edupredict - INFO - Completed step: Data Loading
+2025-04-28 10:44:50,317 - edupredict - INFO - Memory usage after Data Loading: 2486.06 MB
+2025-04-28 10:44:50,317 - edupredict - INFO - Starting feature engineering
+2025-04-28 10:44:50,439 - edupredict - INFO - Demographic features shape: (32593, 48)
+2025-04-28 10:45:16,628 - edupredict - INFO - Window window_7 features shape: (627031, 28)
+2025-04-28 10:45:16,630 - edupredict - INFO - Window window_14 features shape: (376919, 28)
+2025-04-28 10:45:16,630 - edupredict - INFO - Window window_30 features shape: (204359, 28)
+2025-04-28 10:45:16,735 - edupredict - INFO - Assessment features shape: (25820, 13)
+2025-04-28 10:45:16,736 - edupredict - INFO - Creating sequential features...
+2025-04-28 10:45:27,932 - edupredict - INFO - Sequential features shape: (10655280, 9)
+2025-04-28 10:45:27,933 - edupredict - INFO - Preparing target variable
+2025-04-28 10:45:27,944 - edupredict - INFO - Target variable shape: (32593,)
+2025-04-28 10:45:29,115 - edupredict - INFO - Analyzing feature correlations and importance
+2025-04-28 10:59:40,293 - edupredict - INFO - Starting EduPredict in full mode
+2025-04-28 10:59:40,314 - edupredict - INFO - Data path: ./data/OULAD
+2025-04-28 10:59:40,315 - edupredict - INFO - Output directory: ./output
+2025-04-28 10:59:40,316 - edupredict - INFO - Starting data loading and processing
+2025-04-28 10:59:48,196 - edupredict - INFO - Cleaning VLE data...
+2025-04-28 10:59:51,402 - edupredict - INFO - Clean demographics shape: (32593, 12)
+2025-04-28 10:59:51,404 - edupredict - INFO - Clean vle shape: (10655280, 7)
+2025-04-28 10:59:51,404 - edupredict - INFO - Clean assessments shape: (173739, 10)
+2025-04-28 11:01:30,962 - edupredict - INFO - Generated demographic visualizations: ['./output/visualizations/gender_distribution.png', './output/visualizations/age_distribution.png', './output/visualizations/imd_distribution.png', './output/visualizations/region_distribution.png']
+2025-04-28 11:02:35,580 - edupredict - INFO - Generated engagement visualizations: ['./output/visualizations/activity_type_distribution.png', './output/visualizations/daily_engagement.png', './output/visualizations/engagement_by_gender.png', './output/visualizations/engagement_by_age.png']
+2025-04-28 11:02:35,581 - edupredict - INFO - Completed exploratory data analysis
+2025-04-28 11:02:35,958 - edupredict - INFO - Completed step: Data Loading
+2025-04-28 11:02:35,960 - edupredict - INFO - Memory usage after Data Loading: 2849.88 MB
+2025-04-28 11:02:35,960 - edupredict - INFO - Starting feature engineering
+2025-04-28 11:02:36,048 - edupredict - INFO - Demographic features shape: (32593, 48)
+2025-04-28 11:03:01,402 - edupredict - INFO - Window window_7 features shape: (627031, 28)
+2025-04-28 11:03:01,402 - edupredict - INFO - Window window_14 features shape: (376919, 28)
+2025-04-28 11:03:01,403 - edupredict - INFO - Window window_30 features shape: (204359, 28)
+2025-04-28 11:03:01,475 - edupredict - INFO - Assessment features shape: (25820, 13)
+2025-04-28 11:03:01,476 - edupredict - INFO - Creating sequential features...
+2025-04-28 11:03:12,788 - edupredict - INFO - Sequential features shape: (10655280, 9)
+2025-04-28 11:03:12,790 - edupredict - INFO - Preparing target variable
+2025-04-28 11:03:12,801 - edupredict - INFO - Target variable shape: (32593,)
+2025-04-28 11:03:13,996 - edupredict - INFO - Analyzing feature correlations and importance
+2025-04-28 11:03:17,020 - edupredict - ERROR - Error in EduPredict: name 'os' is not defined
+Traceback (most recent call last):
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 866, in main
+    feature_data = engineer_features(clean_data, output_paths)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 415, in engineer_features
+    correlations = analyze_feature_correlations(
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/evaluation/performance_metrics.py", line 89, in analyze_feature_correlations
+    plt.savefig(os.path.join(output_dir, 'feature_correlations.png'), dpi=300, bbox_inches='tight')
+NameError: name 'os' is not defined
+2025-04-28 11:05:05,520 - edupredict - INFO - Starting EduPredict in full mode
+2025-04-28 11:05:05,540 - edupredict - INFO - Data path: ./data/OULAD
+2025-04-28 11:05:05,542 - edupredict - INFO - Output directory: ./output
+2025-04-28 11:05:05,544 - edupredict - INFO - Starting data loading and processing
+2025-04-28 11:05:13,479 - edupredict - INFO - Cleaning VLE data...
+2025-04-28 11:05:16,086 - edupredict - INFO - Clean demographics shape: (32593, 12)
+2025-04-28 11:05:16,086 - edupredict - INFO - Clean vle shape: (10655280, 7)
+2025-04-28 11:05:16,087 - edupredict - INFO - Clean assessments shape: (173739, 10)
+2025-04-28 11:06:56,325 - edupredict - INFO - Generated demographic visualizations: ['./output/visualizations/gender_distribution.png', './output/visualizations/age_distribution.png', './output/visualizations/imd_distribution.png', './output/visualizations/region_distribution.png']
+2025-04-28 11:08:00,979 - edupredict - INFO - Generated engagement visualizations: ['./output/visualizations/activity_type_distribution.png', './output/visualizations/daily_engagement.png', './output/visualizations/engagement_by_gender.png', './output/visualizations/engagement_by_age.png']
+2025-04-28 11:08:00,980 - edupredict - INFO - Completed exploratory data analysis
+2025-04-28 11:08:01,403 - edupredict - INFO - Completed step: Data Loading
+2025-04-28 11:08:01,411 - edupredict - INFO - Memory usage after Data Loading: 2988.31 MB
+2025-04-28 11:08:01,412 - edupredict - INFO - Starting feature engineering
+2025-04-28 11:08:01,536 - edupredict - INFO - Demographic features shape: (32593, 48)
+2025-04-28 11:08:28,072 - edupredict - INFO - Window window_7 features shape: (627031, 28)
+2025-04-28 11:08:28,074 - edupredict - INFO - Window window_14 features shape: (376919, 28)
+2025-04-28 11:08:28,074 - edupredict - INFO - Window window_30 features shape: (204359, 28)
+2025-04-28 11:08:28,166 - edupredict - INFO - Assessment features shape: (25820, 13)
+2025-04-28 11:08:28,166 - edupredict - INFO - Creating sequential features...
+2025-04-28 11:08:39,676 - edupredict - INFO - Sequential features shape: (10655280, 9)
+2025-04-28 11:08:39,678 - edupredict - INFO - Preparing target variable
+2025-04-28 11:08:39,689 - edupredict - INFO - Target variable shape: (32593,)
+2025-04-28 11:08:40,993 - edupredict - INFO - Analyzing feature correlations and importance
+2025-04-28 11:08:45,490 - edupredict - INFO - Correlation heatmap plotted and saved.
+2025-04-28 11:09:01,702 - edupredict - INFO - Preparing dual path features
+2025-04-28 11:09:01,749 - edupredict - ERROR - Error in EduPredict: 'window'
+Traceback (most recent call last):
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 866, in main
+    feature_data = engineer_features(clean_data, output_paths)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 425, in engineer_features
+    dual_path_features = prepare_dual_path_features(
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/data_processing/feature_engineering.py", line 197, in prepare_dual_path_features
+    sequential_path = sequential_features.merge(
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/pandas/core/frame.py", line 10832, in merge
+    return merge(
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/pandas/core/reshape/merge.py", line 170, in merge
+    op = _MergeOperation(
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/pandas/core/reshape/merge.py", line 794, in __init__
+    ) = self._get_merge_keys()
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/pandas/core/reshape/merge.py", line 1310, in _get_merge_keys
+    left_keys.append(left._get_label_or_level_values(lk))
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/pandas/core/generic.py", line 1911, in _get_label_or_level_values
+    raise KeyError(key)
+KeyError: 'window'
+2025-04-28 11:17:18,019 - edupredict - INFO - Starting EduPredict in full mode
+2025-04-28 11:17:18,044 - edupredict - INFO - Data path: ./data/OULAD
+2025-04-28 11:17:18,045 - edupredict - INFO - Output directory: ./output
+2025-04-28 11:17:18,048 - edupredict - INFO - Starting data loading and processing
+2025-04-28 11:17:25,582 - edupredict - INFO - Cleaning VLE data...
+2025-04-28 11:17:28,312 - edupredict - INFO - Clean demographics shape: (32593, 12)
+2025-04-28 11:17:28,313 - edupredict - INFO - Clean vle shape: (10655280, 7)
+2025-04-28 11:17:28,313 - edupredict - INFO - Clean assessments shape: (173739, 10)
+2025-04-28 11:19:08,214 - edupredict - INFO - Generated demographic visualizations: ['./output/visualizations/gender_distribution.png', './output/visualizations/age_distribution.png', './output/visualizations/imd_distribution.png', './output/visualizations/region_distribution.png']
+2025-04-28 11:20:12,001 - edupredict - INFO - Generated engagement visualizations: ['./output/visualizations/activity_type_distribution.png', './output/visualizations/daily_engagement.png', './output/visualizations/engagement_by_gender.png', './output/visualizations/engagement_by_age.png']
+2025-04-28 11:20:12,003 - edupredict - INFO - Completed exploratory data analysis
+2025-04-28 11:20:12,380 - edupredict - INFO - Completed step: Data Loading
+2025-04-28 11:20:12,386 - edupredict - INFO - Memory usage after Data Loading: 3152.00 MB
+2025-04-28 11:20:12,386 - edupredict - INFO - Starting feature engineering
+2025-04-28 11:20:12,491 - edupredict - INFO - Demographic features shape: (32593, 48)
+2025-04-28 11:20:38,276 - edupredict - INFO - Window window_7 features shape: (627031, 28)
+2025-04-28 11:20:38,277 - edupredict - INFO - Window window_14 features shape: (376919, 28)
+2025-04-28 11:20:38,277 - edupredict - INFO - Window window_30 features shape: (204359, 28)
+2025-04-28 11:20:38,386 - edupredict - INFO - Assessment features shape: (25820, 13)
+2025-04-28 11:20:38,386 - edupredict - INFO - Creating sequential features...
+2025-04-28 11:20:49,909 - edupredict - INFO - Sequential features shape: (10655280, 9)
+2025-04-28 11:20:49,911 - edupredict - INFO - Preparing target variable
+2025-04-28 11:20:49,922 - edupredict - INFO - Target variable shape: (32593,)
+2025-04-28 11:20:51,216 - edupredict - INFO - Analyzing feature correlations and importance
+2025-04-28 11:20:55,775 - edupredict - INFO - Correlation heatmap plotted and saved.
+2025-04-28 11:21:12,917 - edupredict - INFO - Preparing dual path features
+2025-04-28 11:21:38,333 - edupredict - INFO - static_path shape: (25820, 58)
+2025-04-28 11:21:38,341 - edupredict - INFO - sequential_path shape: (10655280, 34)
+2025-04-28 11:22:14,784 - edupredict - INFO - Saved demographic and sequential features to ./output/feature_data
+2025-04-28 11:22:25,903 - edupredict - INFO - Saved temporal features to ./output/feature_data
+2025-04-28 11:24:18,333 - edupredict - INFO - Saved dual path features to ./output/feature_data
+2025-04-28 11:24:19,398 - edupredict - INFO - Completed step: Feature Engineering
+2025-04-28 11:24:19,405 - edupredict - INFO - Memory usage after Feature Engineering: 3716.61 MB
+2025-04-28 11:24:19,408 - edupredict - INFO - Training Random Forest model...
+2025-04-28 11:24:20,859 - edupredict - ERROR - Error in EduPredict: The least populated class in y has only 1 member, which is too few. The minimum number of groups for any class cannot be less than 2.
+Traceback (most recent call last):
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 875, in main
+    model_results = train_and_evaluate_models(feature_data, output_paths, args)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 683, in train_and_evaluate_models
+    model_results['rf'] = train_random_forest(feature_data, output_paths, args)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 469, in train_random_forest
+    split_data = create_stratified_splits(
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/data_processing/feature_engineering.py", line 239, in create_stratified_splits
+    train_idx, test_idx = train_test_split(
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/utils/_param_validation.py", line 216, in wrapper
+    return func(*args, **kwargs)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/model_selection/_split.py", line 2872, in train_test_split
+    train, test = next(cv.split(X=arrays[0], y=stratify))
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/model_selection/_split.py", line 1909, in split
+    for train, test in self._iter_indices(X, y, groups):
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/model_selection/_split.py", line 2318, in _iter_indices
+    raise ValueError(
+ValueError: The least populated class in y has only 1 member, which is too few. The minimum number of groups for any class cannot be less than 2.
+2025-04-28 11:30:53,344 - edupredict - INFO - Starting EduPredict in rf_only mode
+2025-04-28 11:30:53,366 - edupredict - INFO - Data path: ./data/OULAD
+2025-04-28 11:30:53,367 - edupredict - INFO - Output directory: ./output
+2025-04-28 11:30:53,370 - edupredict - INFO - Starting data loading and processing
+2025-04-28 11:31:00,634 - edupredict - INFO - Cleaning VLE data...
+2025-04-28 11:31:03,258 - edupredict - INFO - Clean demographics shape: (32593, 12)
+2025-04-28 11:31:03,259 - edupredict - INFO - Clean vle shape: (10655280, 7)
+2025-04-28 11:31:03,259 - edupredict - INFO - Clean assessments shape: (173739, 10)
+2025-04-28 11:31:27,224 - edupredict - INFO - Completed step: Data Loading
+2025-04-28 11:31:27,226 - edupredict - INFO - Memory usage after Data Loading: 970.06 MB
+2025-04-28 11:31:27,226 - edupredict - INFO - Starting feature engineering
+2025-04-28 11:31:27,301 - edupredict - INFO - Demographic features shape: (32593, 48)
+2025-04-28 11:31:53,560 - edupredict - INFO - Window window_7 features shape: (627031, 28)
+2025-04-28 11:31:53,563 - edupredict - INFO - Window window_14 features shape: (376919, 28)
+2025-04-28 11:31:53,563 - edupredict - INFO - Window window_30 features shape: (204359, 28)
+2025-04-28 11:31:53,669 - edupredict - INFO - Assessment features shape: (25820, 13)
+2025-04-28 11:31:53,670 - edupredict - INFO - Creating sequential features...
+2025-04-28 11:32:06,419 - edupredict - INFO - Sequential features shape: (10655280, 9)
+2025-04-28 11:32:06,421 - edupredict - INFO - Preparing target variable
+2025-04-28 11:32:06,444 - edupredict - INFO - Target variable shape: (32593,)
+2025-04-28 11:32:07,746 - edupredict - INFO - Analyzing feature correlations and importance
+2025-04-28 11:32:11,600 - edupredict - INFO - Correlation heatmap plotted and saved.
+2025-04-28 11:32:28,417 - edupredict - INFO - Preparing dual path features
+2025-04-28 11:32:50,664 - edupredict - INFO - static_path shape: (25820, 58)
+2025-04-28 11:32:50,677 - edupredict - INFO - sequential_path shape: (10655280, 34)
+2025-04-28 11:33:24,734 - edupredict - INFO - Saved demographic and sequential features to ./output/feature_data
+2025-04-28 11:33:34,907 - edupredict - INFO - Saved temporal features to ./output/feature_data
+2025-04-28 11:35:25,250 - edupredict - INFO - Saved dual path features to ./output/feature_data
+2025-04-28 11:35:25,502 - edupredict - INFO - Completed step: Feature Engineering
+2025-04-28 11:35:25,514 - edupredict - INFO - Memory usage after Feature Engineering: 4043.04 MB
+2025-04-28 11:35:25,517 - edupredict - INFO - Training Random Forest model...
+2025-04-28 11:35:25,521 - edupredict - ERROR - Error in EduPredict: create_stratified_splits() got an unexpected keyword argument 'data'
+Traceback (most recent call last):
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 875, in main
+    model_results = train_and_evaluate_models(feature_data, output_paths, args)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 683, in train_and_evaluate_models
+    model_results['rf'] = train_random_forest(feature_data, output_paths, args)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 469, in train_random_forest
+    split_data = create_stratified_splits(
+TypeError: create_stratified_splits() got an unexpected keyword argument 'data'
+2025-04-28 11:39:24,064 - edupredict - INFO - Starting EduPredict in rf_only mode
+2025-04-28 11:39:24,088 - edupredict - INFO - Data path: ./data/OULAD
+2025-04-28 11:39:24,089 - edupredict - INFO - Output directory: ./output
+2025-04-28 11:39:24,091 - edupredict - INFO - Starting data loading and processing
+2025-04-28 11:39:31,393 - edupredict - INFO - Cleaning VLE data...
+2025-04-28 11:39:34,131 - edupredict - INFO - Clean demographics shape: (32593, 12)
+2025-04-28 11:39:34,132 - edupredict - INFO - Clean vle shape: (10655280, 7)
+2025-04-28 11:39:34,132 - edupredict - INFO - Clean assessments shape: (173739, 10)
+2025-04-28 11:39:56,141 - edupredict - INFO - Completed step: Data Loading
+2025-04-28 11:39:56,142 - edupredict - INFO - Memory usage after Data Loading: 969.72 MB
+2025-04-28 11:39:56,142 - edupredict - INFO - Starting feature engineering
+2025-04-28 11:39:56,215 - edupredict - INFO - Demographic features shape: (32593, 48)
+2025-04-28 11:40:22,644 - edupredict - INFO - Window window_7 features shape: (627031, 28)
+2025-04-28 11:40:22,644 - edupredict - INFO - Window window_14 features shape: (376919, 28)
+2025-04-28 11:40:22,645 - edupredict - INFO - Window window_30 features shape: (204359, 28)
+2025-04-28 11:40:22,720 - edupredict - INFO - Assessment features shape: (25820, 13)
+2025-04-28 11:40:22,720 - edupredict - INFO - Creating sequential features...
+2025-04-28 11:40:34,898 - edupredict - INFO - Sequential features shape: (10655280, 9)
+2025-04-28 11:40:34,900 - edupredict - INFO - Preparing target variable
+2025-04-28 11:40:34,911 - edupredict - INFO - Target variable shape: (32593,)
+2025-04-28 11:40:36,242 - edupredict - INFO - Analyzing feature correlations and importance
+2025-04-28 11:40:39,165 - edupredict - INFO - Correlation heatmap plotted and saved.
+2025-04-28 11:40:55,277 - edupredict - INFO - Preparing dual path features
+2025-04-28 11:41:15,755 - edupredict - INFO - static_path shape: (25820, 58)
+2025-04-28 11:41:15,762 - edupredict - INFO - sequential_path shape: (10655280, 34)
+2025-04-28 11:41:49,092 - edupredict - INFO - Saved demographic and sequential features to ./output/feature_data
+2025-04-28 11:42:00,072 - edupredict - INFO - Saved temporal features to ./output/feature_data
+2025-04-28 11:43:52,788 - edupredict - INFO - Saved dual path features to ./output/feature_data
+2025-04-28 11:43:53,745 - edupredict - INFO - Completed step: Feature Engineering
+2025-04-28 11:43:53,750 - edupredict - INFO - Memory usage after Feature Engineering: 3773.43 MB
+2025-04-28 11:43:53,752 - edupredict - INFO - Training Random Forest model...
+2025-04-28 11:43:53,933 - edupredict - INFO - 
+Verifying demographic distribution in train/test splits:
+2025-04-28 11:43:53,934 - edupredict - INFO - 
+Distribution of gender in training set:
+2025-04-28 11:43:53,940 - edupredict - INFO - gender
+m    0.550413
+f    0.449587
+Name: proportion, dtype: float64
+2025-04-28 11:43:53,954 - edupredict - INFO - 
+Distribution of gender in test set:
+2025-04-28 11:43:53,957 - edupredict - INFO - gender
+m    0.5503
+f    0.4497
+Name: proportion, dtype: float64
+2025-04-28 11:43:53,962 - edupredict - INFO - 
+Distribution of age_band in training set:
+2025-04-28 11:43:53,966 - edupredict - INFO - age_band
+0-35     0.695058
+35-55    0.297599
+55<=     0.007343
+Name: proportion, dtype: float64
+2025-04-28 11:43:53,968 - edupredict - INFO - 
+Distribution of age_band in test set:
+2025-04-28 11:43:53,969 - edupredict - INFO - age_band
+0-35     0.691219
+35-55    0.301997
+55<=     0.006784
+Name: proportion, dtype: float64
+2025-04-28 11:43:53,971 - edupredict - INFO - 
+Distribution of imd_band in training set:
+2025-04-28 11:43:53,975 - edupredict - INFO - imd_band
+30-40%     0.107638
+20-30%     0.106285
+10-20      0.100971
+50-60%     0.098749
+40-50%     0.098700
+0-10%      0.094111
+60-70%     0.092565
+70-80%     0.091985
+80-90%     0.087830
+90-100%    0.082371
+unknown    0.038794
+Name: proportion, dtype: float64
+2025-04-28 11:43:53,978 - edupredict - INFO - 
+Distribution of imd_band in test set:
+2025-04-28 11:43:53,981 - edupredict - INFO - imd_band
+30-40%     0.107579
+20-30%     0.106416
+10-20      0.100213
+40-50%     0.099244
+50-60%     0.098469
+70-80%     0.093041
+60-70%     0.091878
+0-10%      0.091684
+80-90%     0.087808
+90-100%    0.084706
+unknown    0.038961
+Name: proportion, dtype: float64
+2025-04-28 11:43:53,988 - edupredict - INFO - Resampling training data for bias mitigation
+2025-04-28 11:43:56,321 - edupredict - INFO - Best parameters for Random Forest: {'n_estimators': 100, 'max_depth': None, 'min_samples_split': 2, 'min_samples_leaf': 1, 'class_weight': 'balanced', 'random_state': 0, 'n_jobs': -1}
+2025-04-28 11:43:56,347 - edupredict - ERROR - Error in EduPredict: could not convert string to float: 'AAA'
+Traceback (most recent call last):
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 875, in main
+    model_results = train_and_evaluate_models(feature_data, output_paths, args)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 683, in train_and_evaluate_models
+    model_results['rf'] = train_random_forest(feature_data, output_paths, args)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 516, in train_random_forest
+    rf_model.fit(X_train, y_train)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/model_training/random_forest_model.py", line 43, in fit
+    self.model.fit(X, y)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/base.py", line 1389, in wrapper
+    return fit_method(estimator, *args, **kwargs)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/ensemble/_forest.py", line 360, in fit
+    X, y = validate_data(
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/utils/validation.py", line 2961, in validate_data
+    X, y = check_X_y(X, y, **check_params)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/utils/validation.py", line 1370, in check_X_y
+    X = check_array(
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/utils/validation.py", line 973, in check_array
+    array = array.astype(new_dtype)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/pandas/core/generic.py", line 6643, in astype
+    new_data = self._mgr.astype(dtype=dtype, copy=copy, errors=errors)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/pandas/core/internals/managers.py", line 430, in astype
+    return self.apply(
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/pandas/core/internals/managers.py", line 363, in apply
+    applied = getattr(b, f)(**kwargs)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/pandas/core/internals/blocks.py", line 758, in astype
+    new_values = astype_array_safe(values, dtype, copy=copy, errors=errors)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/pandas/core/dtypes/astype.py", line 237, in astype_array_safe
+    new_values = astype_array(values, dtype, copy=copy)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/pandas/core/dtypes/astype.py", line 182, in astype_array
+    values = _astype_nansafe(values, dtype, copy=copy)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/pandas/core/dtypes/astype.py", line 133, in _astype_nansafe
+    return arr.astype(dtype, copy=True)
+ValueError: could not convert string to float: 'AAA'
+2025-04-28 12:16:51,197 - edupredict - INFO - Starting EduPredict in full mode
+2025-04-28 12:16:51,230 - edupredict - INFO - Data path: ./data/OULAD
+2025-04-28 12:16:51,231 - edupredict - INFO - Output directory: ./output
+2025-04-28 12:16:51,241 - edupredict - INFO - Starting data loading and processing
+2025-04-28 12:17:11,716 - edupredict - INFO - Cleaning VLE data...
+2025-04-28 12:17:16,771 - edupredict - INFO - Clean demographics shape: (32593, 12)
+2025-04-28 12:17:16,772 - edupredict - INFO - Clean vle shape: (10655280, 7)
+2025-04-28 12:17:16,773 - edupredict - INFO - Clean assessments shape: (173739, 10)
+2025-04-28 12:19:17,210 - edupredict - INFO - Generated demographic visualizations: ['./output/visualizations/gender_distribution.png', './output/visualizations/age_distribution.png', './output/visualizations/imd_distribution.png', './output/visualizations/region_distribution.png']
+2025-04-28 12:20:40,961 - edupredict - INFO - Generated engagement visualizations: ['./output/visualizations/activity_type_distribution.png', './output/visualizations/daily_engagement.png', './output/visualizations/engagement_by_gender.png', './output/visualizations/engagement_by_age.png']
+2025-04-28 12:20:40,965 - edupredict - INFO - Completed exploratory data analysis
+2025-04-28 12:20:41,469 - edupredict - INFO - Completed step: Data Loading
+2025-04-28 12:20:41,482 - edupredict - INFO - Memory usage after Data Loading: 2393.33 MB
+2025-04-28 12:20:41,484 - edupredict - INFO - Starting feature engineering
+2025-04-28 12:20:41,626 - edupredict - INFO - Demographic features shape: (32593, 48)
+2025-04-28 12:21:10,751 - edupredict - INFO - Window window_7 features shape: (627031, 28)
+2025-04-28 12:21:10,752 - edupredict - INFO - Window window_14 features shape: (376919, 28)
+2025-04-28 12:21:10,753 - edupredict - INFO - Window window_30 features shape: (204359, 28)
+2025-04-28 12:21:10,849 - edupredict - INFO - Assessment features shape: (25820, 13)
+2025-04-28 12:21:10,850 - edupredict - INFO - Creating sequential features...
+2025-04-28 12:21:24,768 - edupredict - INFO - Sequential features shape: (10655280, 9)
+2025-04-28 12:21:24,769 - edupredict - INFO - Preparing target variable
+2025-04-28 12:21:24,782 - edupredict - INFO - Target variable shape: (32593,)
+2025-04-28 12:21:27,059 - edupredict - INFO - Analyzing feature correlations and importance
+2025-04-28 12:21:33,249 - edupredict - INFO - Correlation heatmap plotted and saved.
+2025-04-28 12:21:52,555 - edupredict - INFO - Preparing dual path features
+2025-04-28 12:22:32,162 - edupredict - INFO - Feature encoding summary:
+2025-04-28 12:22:32,173 - edupredict - INFO - Static path categorical columns encoded: ['code_module', 'code_presentation', 'gender', 'region', 'highest_education', 'imd_band', 'age_band']
+2025-04-28 12:22:32,175 - edupredict - INFO - Sequential path categorical columns encoded: ['code_module', 'code_presentation', 'activity_type']
+2025-04-28 12:22:32,175 - edupredict - INFO - Final static path shape: (25820, 98)
+2025-04-28 12:22:32,195 - edupredict - INFO - Final sequential path shape: (10655280, 65)
+2025-04-28 12:22:33,730 - edupredict - INFO - static_path shape: (25820, 98)
+2025-04-28 12:22:33,732 - edupredict - INFO - sequential_path shape: (10655280, 65)
+2025-04-28 12:23:19,375 - edupredict - INFO - Saved demographic and sequential features to ./output/feature_data
+2025-04-28 12:23:31,263 - edupredict - INFO - Saved temporal features to ./output/feature_data
+2025-04-28 12:27:10,668 - edupredict - INFO - Saved dual path features to ./output/feature_data
+2025-04-28 12:27:11,755 - edupredict - INFO - Completed step: Feature Engineering
+2025-04-28 12:27:11,764 - edupredict - INFO - Memory usage after Feature Engineering: 3053.33 MB
+2025-04-28 12:27:11,768 - edupredict - INFO - Training Random Forest model...
+2025-04-28 12:27:12,105 - edupredict - INFO - 
+Verifying demographic distribution in train/test splits:
+2025-04-28 12:27:12,106 - edupredict - INFO - 
+Distribution of gender in training set:
+2025-04-28 12:27:12,115 - edupredict - INFO - gender
+m    0.550413
+f    0.449587
+Name: proportion, dtype: float64
+2025-04-28 12:27:12,140 - edupredict - INFO - 
+Distribution of gender in test set:
+2025-04-28 12:27:12,141 - edupredict - INFO - gender
+m    0.5503
+f    0.4497
+Name: proportion, dtype: float64
+2025-04-28 12:27:12,144 - edupredict - INFO - 
+Distribution of age_band in training set:
+2025-04-28 12:27:12,146 - edupredict - INFO - age_band
+0-35     0.695058
+35-55    0.297599
+55<=     0.007343
+Name: proportion, dtype: float64
+2025-04-28 12:27:12,148 - edupredict - INFO - 
+Distribution of age_band in test set:
+2025-04-28 12:27:12,149 - edupredict - INFO - age_band
+0-35     0.691219
+35-55    0.301997
+55<=     0.006784
+Name: proportion, dtype: float64
+2025-04-28 12:27:12,152 - edupredict - INFO - 
+Distribution of imd_band in training set:
+2025-04-28 12:27:12,155 - edupredict - INFO - imd_band
+30-40%     0.107638
+20-30%     0.106285
+10-20      0.100971
+50-60%     0.098749
+40-50%     0.098700
+0-10%      0.094111
+60-70%     0.092565
+70-80%     0.091985
+80-90%     0.087830
+90-100%    0.082371
+unknown    0.038794
+Name: proportion, dtype: float64
+2025-04-28 12:27:12,157 - edupredict - INFO - 
+Distribution of imd_band in test set:
+2025-04-28 12:27:12,158 - edupredict - INFO - imd_band
+30-40%     0.107579
+20-30%     0.106416
+10-20      0.100213
+40-50%     0.099244
+50-60%     0.098469
+70-80%     0.093041
+60-70%     0.091878
+0-10%      0.091684
+80-90%     0.087808
+90-100%    0.084706
+unknown    0.038961
+Name: proportion, dtype: float64
+2025-04-28 12:27:12,169 - edupredict - INFO - Resampling training data for bias mitigation
+2025-04-28 12:27:15,072 - edupredict - INFO - Tuning hyperparameters for Random Forest model
+2025-04-28 12:27:15,075 - edupredict - ERROR - Error in EduPredict: tune_random_forest() got an unexpected keyword argument 'sample_weights'
+Traceback (most recent call last):
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 875, in main
+    model_results = train_and_evaluate_models(feature_data, output_paths, args)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 683, in train_and_evaluate_models
+    model_results['rf'] = train_random_forest(feature_data, output_paths, args)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 501, in train_random_forest
+    best_params, _ = tune_random_forest(
+TypeError: tune_random_forest() got an unexpected keyword argument 'sample_weights'
+2025-04-28 12:35:38,867 - edupredict - INFO - Starting EduPredict in full mode
+2025-04-28 12:35:38,899 - edupredict - INFO - Data path: ./data/OULAD
+2025-04-28 12:35:38,902 - edupredict - INFO - Output directory: ./output
+2025-04-28 12:35:38,906 - edupredict - INFO - Starting data loading and processing
+2025-04-28 12:35:46,902 - edupredict - INFO - Cleaning VLE data...
+2025-04-28 12:35:49,635 - edupredict - INFO - Clean demographics shape: (32593, 12)
+2025-04-28 12:35:49,636 - edupredict - INFO - Clean vle shape: (10655280, 7)
+2025-04-28 12:35:49,637 - edupredict - INFO - Clean assessments shape: (173739, 10)
+2025-04-28 12:37:36,126 - edupredict - INFO - Generated demographic visualizations: ['./output/visualizations/gender_distribution.png', './output/visualizations/age_distribution.png', './output/visualizations/imd_distribution.png', './output/visualizations/region_distribution.png']
+2025-04-28 12:38:46,048 - edupredict - INFO - Generated engagement visualizations: ['./output/visualizations/activity_type_distribution.png', './output/visualizations/daily_engagement.png', './output/visualizations/engagement_by_gender.png', './output/visualizations/engagement_by_age.png']
+2025-04-28 12:38:46,050 - edupredict - INFO - Completed exploratory data analysis
+2025-04-28 12:38:46,484 - edupredict - INFO - Completed step: Data Loading
+2025-04-28 12:38:46,490 - edupredict - INFO - Memory usage after Data Loading: 3001.47 MB
+2025-04-28 12:38:46,491 - edupredict - INFO - Starting feature engineering
+2025-04-28 12:38:46,602 - edupredict - INFO - Demographic features shape: (32593, 48)
+2025-04-28 12:39:13,255 - edupredict - INFO - Window window_7 features shape: (627031, 28)
+2025-04-28 12:39:13,256 - edupredict - INFO - Window window_14 features shape: (376919, 28)
+2025-04-28 12:39:13,256 - edupredict - INFO - Window window_30 features shape: (204359, 28)
+2025-04-28 12:39:13,352 - edupredict - INFO - Assessment features shape: (25820, 13)
+2025-04-28 12:39:13,352 - edupredict - INFO - Creating sequential features...
+2025-04-28 12:39:24,082 - edupredict - INFO - Sequential features shape: (10655280, 9)
+2025-04-28 12:39:24,084 - edupredict - INFO - Preparing target variable
+2025-04-28 12:39:24,098 - edupredict - INFO - Target variable shape: (32593,)
+2025-04-28 12:39:25,247 - edupredict - INFO - Analyzing feature correlations and importance
+2025-04-28 12:39:29,533 - edupredict - INFO - Correlation heatmap plotted and saved.
+2025-04-28 12:39:47,421 - edupredict - INFO - Preparing dual path features
+2025-04-28 12:40:12,092 - edupredict - INFO - Feature encoding summary:
+2025-04-28 12:40:12,097 - edupredict - INFO - Static path categorical columns encoded: ['code_module', 'code_presentation', 'gender', 'region', 'highest_education', 'imd_band', 'age_band']
+2025-04-28 12:40:12,098 - edupredict - INFO - Sequential path categorical columns encoded: ['code_module', 'code_presentation', 'activity_type']
+2025-04-28 12:40:12,098 - edupredict - INFO - Final static path shape: (25820, 98)
+2025-04-28 12:40:12,103 - edupredict - INFO - Final sequential path shape: (10655280, 65)
+2025-04-28 12:40:12,905 - edupredict - INFO - static_path shape: (25820, 98)
+2025-04-28 12:40:12,906 - edupredict - INFO - sequential_path shape: (10655280, 65)
+2025-04-28 12:41:01,487 - edupredict - INFO - Saved demographic and sequential features to ./output/feature_data
+2025-04-28 12:41:13,478 - edupredict - INFO - Saved temporal features to ./output/feature_data
+2025-04-28 12:44:55,776 - edupredict - INFO - Saved dual path features to ./output/feature_data
+2025-04-28 12:44:56,835 - edupredict - INFO - Completed step: Feature Engineering
+2025-04-28 12:44:56,842 - edupredict - INFO - Memory usage after Feature Engineering: 3911.94 MB
+2025-04-28 12:44:56,845 - edupredict - INFO - Training Random Forest model...
+2025-04-28 12:44:57,122 - edupredict - INFO - 
+Verifying demographic distribution in train/test splits:
+2025-04-28 12:44:57,125 - edupredict - INFO - 
+Distribution of gender in training set:
+2025-04-28 12:44:57,132 - edupredict - INFO - gender
+m    0.550413
+f    0.449587
+Name: proportion, dtype: float64
+2025-04-28 12:44:57,149 - edupredict - INFO - 
+Distribution of gender in test set:
+2025-04-28 12:44:57,150 - edupredict - INFO - gender
+m    0.5503
+f    0.4497
+Name: proportion, dtype: float64
+2025-04-28 12:44:57,152 - edupredict - INFO - 
+Distribution of age_band in training set:
+2025-04-28 12:44:57,155 - edupredict - INFO - age_band
+0-35     0.695058
+35-55    0.297599
+55<=     0.007343
+Name: proportion, dtype: float64
+2025-04-28 12:44:57,157 - edupredict - INFO - 
+Distribution of age_band in test set:
+2025-04-28 12:44:57,160 - edupredict - INFO - age_band
+0-35     0.691219
+35-55    0.301997
+55<=     0.006784
+Name: proportion, dtype: float64
+2025-04-28 12:44:57,162 - edupredict - INFO - 
+Distribution of imd_band in training set:
+2025-04-28 12:44:57,166 - edupredict - INFO - imd_band
+30-40%     0.107638
+20-30%     0.106285
+10-20      0.100971
+50-60%     0.098749
+40-50%     0.098700
+0-10%      0.094111
+60-70%     0.092565
+70-80%     0.091985
+80-90%     0.087830
+90-100%    0.082371
+unknown    0.038794
+Name: proportion, dtype: float64
+2025-04-28 12:44:57,168 - edupredict - INFO - 
+Distribution of imd_band in test set:
+2025-04-28 12:44:57,170 - edupredict - INFO - imd_band
+30-40%     0.107579
+20-30%     0.106416
+10-20      0.100213
+40-50%     0.099244
+50-60%     0.098469
+70-80%     0.093041
+60-70%     0.091878
+0-10%      0.091684
+80-90%     0.087808
+90-100%    0.084706
+unknown    0.038961
+Name: proportion, dtype: float64
+2025-04-28 12:44:57,176 - edupredict - INFO - Resampling training data for bias mitigation
+2025-04-28 12:44:59,508 - edupredict - INFO - Tuning hyperparameters for Random Forest model
+2025-04-28 12:44:59,510 - edupredict - ERROR - Error in EduPredict: tune_random_forest() got an unexpected keyword argument 'cv'
+Traceback (most recent call last):
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 878, in main
+    model_results = train_and_evaluate_models(feature_data, output_paths, args)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 686, in train_and_evaluate_models
+    model_results['rf'] = train_random_forest(feature_data, output_paths, args)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 502, in train_random_forest
+    best_params, _ = tune_random_forest(
+TypeError: tune_random_forest() got an unexpected keyword argument 'cv'
+2025-04-28 12:55:21,434 - edupredict - INFO - Starting EduPredict in full mode
+2025-04-28 12:55:21,466 - edupredict - INFO - Data path: ./data/OULAD
+2025-04-28 12:55:21,467 - edupredict - INFO - Output directory: ./output
+2025-04-28 12:55:21,469 - edupredict - INFO - Starting data loading and processing
+2025-04-28 12:55:29,081 - edupredict - INFO - Cleaning VLE data...
+2025-04-28 12:55:32,252 - edupredict - INFO - Clean demographics shape: (32593, 12)
+2025-04-28 12:55:32,253 - edupredict - INFO - Clean vle shape: (10655280, 7)
+2025-04-28 12:55:32,254 - edupredict - INFO - Clean assessments shape: (173739, 10)
+2025-04-28 12:57:22,614 - edupredict - INFO - Generated demographic visualizations: ['./output/visualizations/gender_distribution.png', './output/visualizations/age_distribution.png', './output/visualizations/imd_distribution.png', './output/visualizations/region_distribution.png']
+2025-04-28 12:58:27,846 - edupredict - INFO - Generated engagement visualizations: ['./output/visualizations/activity_type_distribution.png', './output/visualizations/daily_engagement.png', './output/visualizations/engagement_by_gender.png', './output/visualizations/engagement_by_age.png']
+2025-04-28 12:58:27,847 - edupredict - INFO - Completed exploratory data analysis
+2025-04-28 12:58:28,201 - edupredict - INFO - Completed step: Data Loading
+2025-04-28 12:58:28,203 - edupredict - INFO - Memory usage after Data Loading: 2885.67 MB
+2025-04-28 12:58:28,203 - edupredict - INFO - Starting feature engineering
+2025-04-28 12:58:28,313 - edupredict - INFO - Demographic features shape: (32593, 48)
+2025-04-28 12:58:53,544 - edupredict - INFO - Window window_7 features shape: (627031, 28)
+2025-04-28 12:58:53,544 - edupredict - INFO - Window window_14 features shape: (376919, 28)
+2025-04-28 12:58:53,544 - edupredict - INFO - Window window_30 features shape: (204359, 28)
+2025-04-28 12:58:53,629 - edupredict - INFO - Assessment features shape: (25820, 13)
+2025-04-28 12:58:53,629 - edupredict - INFO - Creating sequential features...
+2025-04-28 12:59:04,024 - edupredict - INFO - Sequential features shape: (10655280, 9)
+2025-04-28 12:59:04,026 - edupredict - INFO - Preparing target variable
+2025-04-28 12:59:04,044 - edupredict - INFO - Target variable shape: (32593,)
+2025-04-28 12:59:05,216 - edupredict - INFO - Analyzing feature correlations and importance
+2025-04-28 12:59:09,486 - edupredict - INFO - Correlation heatmap plotted and saved.
+2025-04-28 12:59:26,004 - edupredict - INFO - Preparing dual path features
+2025-04-28 12:59:50,556 - edupredict - INFO - Feature encoding summary:
+2025-04-28 12:59:50,564 - edupredict - INFO - Static path categorical columns encoded: ['code_module', 'code_presentation', 'gender', 'region', 'highest_education', 'imd_band', 'age_band']
+2025-04-28 12:59:50,565 - edupredict - INFO - Sequential path categorical columns encoded: ['code_module', 'code_presentation', 'activity_type']
+2025-04-28 12:59:50,566 - edupredict - INFO - Final static path shape: (25820, 98)
+2025-04-28 12:59:50,567 - edupredict - INFO - Final sequential path shape: (10655280, 65)
+2025-04-28 12:59:50,772 - edupredict - INFO - static_path shape: (25820, 98)
+2025-04-28 12:59:50,773 - edupredict - INFO - sequential_path shape: (10655280, 65)
+2025-04-28 13:00:29,161 - edupredict - INFO - Saved demographic and sequential features to ./output/feature_data
+2025-04-28 13:00:39,774 - edupredict - INFO - Saved temporal features to ./output/feature_data
+2025-04-28 13:04:05,695 - edupredict - INFO - Saved dual path features to ./output/feature_data
+2025-04-28 13:04:06,561 - edupredict - INFO - Completed step: Feature Engineering
+2025-04-28 13:04:06,566 - edupredict - INFO - Memory usage after Feature Engineering: 4099.53 MB
+2025-04-28 13:04:06,569 - edupredict - INFO - Training Random Forest model...
+2025-04-28 13:04:06,754 - edupredict - INFO - 
+Verifying demographic distribution in train/test splits:
+2025-04-28 13:04:06,754 - edupredict - INFO - 
+Distribution of gender in training set:
+2025-04-28 13:04:06,758 - edupredict - INFO - gender
+m    0.550413
+f    0.449587
+Name: proportion, dtype: float64
+2025-04-28 13:04:06,771 - edupredict - INFO - 
+Distribution of gender in test set:
+2025-04-28 13:04:06,774 - edupredict - INFO - gender
+m    0.5503
+f    0.4497
+Name: proportion, dtype: float64
+2025-04-28 13:04:06,775 - edupredict - INFO - 
+Distribution of age_band in training set:
+2025-04-28 13:04:06,779 - edupredict - INFO - age_band
+0-35     0.695058
+35-55    0.297599
+55<=     0.007343
+Name: proportion, dtype: float64
+2025-04-28 13:04:06,781 - edupredict - INFO - 
+Distribution of age_band in test set:
+2025-04-28 13:04:06,783 - edupredict - INFO - age_band
+0-35     0.691219
+35-55    0.301997
+55<=     0.006784
+Name: proportion, dtype: float64
+2025-04-28 13:04:06,786 - edupredict - INFO - 
+Distribution of imd_band in training set:
+2025-04-28 13:04:06,790 - edupredict - INFO - imd_band
+30-40%     0.107638
+20-30%     0.106285
+10-20      0.100971
+50-60%     0.098749
+40-50%     0.098700
+0-10%      0.094111
+60-70%     0.092565
+70-80%     0.091985
+80-90%     0.087830
+90-100%    0.082371
+unknown    0.038794
+Name: proportion, dtype: float64
+2025-04-28 13:04:06,792 - edupredict - INFO - 
+Distribution of imd_band in test set:
+2025-04-28 13:04:06,795 - edupredict - INFO - imd_band
+30-40%     0.107579
+20-30%     0.106416
+10-20      0.100213
+40-50%     0.099244
+50-60%     0.098469
+70-80%     0.093041
+60-70%     0.091878
+0-10%      0.091684
+80-90%     0.087808
+90-100%    0.084706
+unknown    0.038961
+Name: proportion, dtype: float64
+2025-04-28 13:04:06,802 - edupredict - INFO - Resampling training data for bias mitigation
+2025-04-28 13:04:09,296 - edupredict - INFO - Tuning hyperparameters for Random Forest model
+2025-04-28 13:04:09,299 - edupredict - ERROR - Error in EduPredict: name 'RandomForestClassifier' is not defined
+Traceback (most recent call last):
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 878, in main
+    model_results = train_and_evaluate_models(feature_data, output_paths, args)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 686, in train_and_evaluate_models
+    model_results['rf'] = train_random_forest(feature_data, output_paths, args)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 502, in train_random_forest
+    best_params, _ = tune_random_forest(
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/model_training/hyperparameter_tuning.py", line 264, in tune_random_forest
+    base_model = RandomForestClassifier(random_state=0)
+NameError: name 'RandomForestClassifier' is not defined
+2025-04-28 13:26:13,314 - edupredict - INFO - Starting EduPredict in full mode
+2025-04-28 13:26:13,344 - edupredict - INFO - Data path: ./data/OULAD
+2025-04-28 13:26:13,347 - edupredict - INFO - Output directory: ./output
+2025-04-28 13:26:13,359 - edupredict - INFO - Starting data loading and processing
+2025-04-28 13:26:21,450 - edupredict - INFO - Cleaning VLE data...
+2025-04-28 13:26:24,428 - edupredict - INFO - Clean demographics shape: (32593, 12)
+2025-04-28 13:26:24,429 - edupredict - INFO - Clean vle shape: (10655280, 7)
+2025-04-28 13:26:24,429 - edupredict - INFO - Clean assessments shape: (173739, 10)
+2025-04-28 13:28:02,099 - edupredict - INFO - Generated demographic visualizations: ['./output/visualizations/gender_distribution.png', './output/visualizations/age_distribution.png', './output/visualizations/imd_distribution.png', './output/visualizations/region_distribution.png']
+2025-04-28 13:29:06,009 - edupredict - INFO - Generated engagement visualizations: ['./output/visualizations/activity_type_distribution.png', './output/visualizations/daily_engagement.png', './output/visualizations/engagement_by_gender.png', './output/visualizations/engagement_by_age.png']
+2025-04-28 13:29:06,010 - edupredict - INFO - Completed exploratory data analysis
+2025-04-28 13:29:06,360 - edupredict - INFO - Completed step: Data Loading
+2025-04-28 13:29:06,362 - edupredict - INFO - Memory usage after Data Loading: 3578.62 MB
+2025-04-28 13:29:06,362 - edupredict - INFO - Starting feature engineering
+2025-04-28 13:29:06,453 - edupredict - INFO - Demographic features shape: (32593, 48)
+2025-04-28 13:29:31,941 - edupredict - INFO - Window window_7 features shape: (627031, 28)
+2025-04-28 13:29:31,942 - edupredict - INFO - Window window_14 features shape: (376919, 28)
+2025-04-28 13:29:31,942 - edupredict - INFO - Window window_30 features shape: (204359, 28)
+2025-04-28 13:29:32,024 - edupredict - INFO - Assessment features shape: (25820, 13)
+2025-04-28 13:29:32,024 - edupredict - INFO - Creating sequential features...
+2025-04-28 13:29:42,520 - edupredict - INFO - Sequential features shape: (10655280, 9)
+2025-04-28 13:29:42,522 - edupredict - INFO - Preparing target variable
+2025-04-28 13:29:42,532 - edupredict - INFO - Target variable shape: (32593,)
+2025-04-28 13:29:43,633 - edupredict - INFO - Analyzing feature correlations and importance
+2025-04-28 13:29:47,271 - edupredict - INFO - Correlation heatmap plotted and saved.
+2025-04-28 13:30:03,178 - edupredict - INFO - Preparing dual path features
+2025-04-28 13:30:26,492 - edupredict - INFO - Feature encoding summary:
+2025-04-28 13:30:26,498 - edupredict - INFO - Static path categorical columns encoded: ['code_module', 'code_presentation', 'gender', 'region', 'highest_education', 'imd_band', 'age_band']
+2025-04-28 13:30:26,499 - edupredict - INFO - Sequential path categorical columns encoded: ['code_module', 'code_presentation', 'activity_type']
+2025-04-28 13:30:26,500 - edupredict - INFO - Final static path shape: (25820, 98)
+2025-04-28 13:30:26,505 - edupredict - INFO - Final sequential path shape: (10655280, 65)
+2025-04-28 13:30:26,881 - edupredict - INFO - static_path shape: (25820, 98)
+2025-04-28 13:30:26,882 - edupredict - INFO - sequential_path shape: (10655280, 65)
+2025-04-28 13:31:01,545 - edupredict - INFO - Saved demographic and sequential features to ./output/feature_data
+2025-04-28 13:31:13,774 - edupredict - INFO - Saved temporal features to ./output/feature_data
+2025-04-28 13:34:28,289 - edupredict - INFO - Saved dual path features to ./output/feature_data
+2025-04-28 13:34:29,156 - edupredict - INFO - Completed step: Feature Engineering
+2025-04-28 13:34:29,159 - edupredict - INFO - Memory usage after Feature Engineering: 4311.95 MB
+2025-04-28 13:34:29,162 - edupredict - INFO - Training Random Forest model...
+2025-04-28 13:34:29,331 - edupredict - INFO - 
+Verifying demographic distribution in train/test splits:
+2025-04-28 13:34:29,332 - edupredict - INFO - 
+Distribution of gender in training set:
+2025-04-28 13:34:29,334 - edupredict - INFO - gender
+m    0.550413
+f    0.449587
+Name: proportion, dtype: float64
+2025-04-28 13:34:29,347 - edupredict - INFO - 
+Distribution of gender in test set:
+2025-04-28 13:34:29,348 - edupredict - INFO - gender
+m    0.5503
+f    0.4497
+Name: proportion, dtype: float64
+2025-04-28 13:34:29,350 - edupredict - INFO - 
+Distribution of age_band in training set:
+2025-04-28 13:34:29,355 - edupredict - INFO - age_band
+0-35     0.695058
+35-55    0.297599
+55<=     0.007343
+Name: proportion, dtype: float64
+2025-04-28 13:34:29,357 - edupredict - INFO - 
+Distribution of age_band in test set:
+2025-04-28 13:34:29,360 - edupredict - INFO - age_band
+0-35     0.691219
+35-55    0.301997
+55<=     0.006784
+Name: proportion, dtype: float64
+2025-04-28 13:34:29,362 - edupredict - INFO - 
+Distribution of imd_band in training set:
+2025-04-28 13:34:29,367 - edupredict - INFO - imd_band
+30-40%     0.107638
+20-30%     0.106285
+10-20      0.100971
+50-60%     0.098749
+40-50%     0.098700
+0-10%      0.094111
+60-70%     0.092565
+70-80%     0.091985
+80-90%     0.087830
+90-100%    0.082371
+unknown    0.038794
+Name: proportion, dtype: float64
+2025-04-28 13:34:29,370 - edupredict - INFO - 
+Distribution of imd_band in test set:
+2025-04-28 13:34:29,372 - edupredict - INFO - imd_band
+30-40%     0.107579
+20-30%     0.106416
+10-20      0.100213
+40-50%     0.099244
+50-60%     0.098469
+70-80%     0.093041
+60-70%     0.091878
+0-10%      0.091684
+80-90%     0.087808
+90-100%    0.084706
+unknown    0.038961
+Name: proportion, dtype: float64
+2025-04-28 13:34:29,378 - edupredict - INFO - Resampling training data for bias mitigation
+2025-04-28 13:34:31,808 - edupredict - INFO - Tuning hyperparameters for Random Forest model
+2025-04-28 13:34:44,232 - edupredict - ERROR - Error in EduPredict: 
+All the 100 fits failed.
+It is very likely that your model is misconfigured.
+You can try to debug the error by setting error_score='raise'.
+
+Below are more details about the failures:
+--------------------------------------------------------------------------------
+20 fits failed with the following error:
+Traceback (most recent call last):
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/model_selection/_validation.py", line 866, in _fit_and_score
+    estimator.fit(X_train, y_train, **fit_params)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/base.py", line 1389, in wrapper
+    return fit_method(estimator, *args, **kwargs)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/ensemble/_forest.py", line 360, in fit
+    X, y = validate_data(
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/utils/validation.py", line 2961, in validate_data
+    X, y = check_X_y(X, y, **check_params)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/utils/validation.py", line 1370, in check_X_y
+    X = check_array(
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/utils/validation.py", line 973, in check_array
+    array = array.astype(new_dtype)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/pandas/core/generic.py", line 6643, in astype
+    new_data = self._mgr.astype(dtype=dtype, copy=copy, errors=errors)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/pandas/core/internals/managers.py", line 430, in astype
+    return self.apply(
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/pandas/core/internals/managers.py", line 363, in apply
+    applied = getattr(b, f)(**kwargs)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/pandas/core/internals/blocks.py", line 758, in astype
+    new_values = astype_array_safe(values, dtype, copy=copy, errors=errors)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/pandas/core/dtypes/astype.py", line 237, in astype_array_safe
+    new_values = astype_array(values, dtype, copy=copy)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/pandas/core/dtypes/astype.py", line 182, in astype_array
+    values = _astype_nansafe(values, dtype, copy=copy)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/pandas/core/dtypes/astype.py", line 133, in _astype_nansafe
+    return arr.astype(dtype, copy=True)
+ValueError: could not convert string to float: 'BBB'
+
+--------------------------------------------------------------------------------
+80 fits failed with the following error:
+Traceback (most recent call last):
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/model_selection/_validation.py", line 866, in _fit_and_score
+    estimator.fit(X_train, y_train, **fit_params)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/base.py", line 1389, in wrapper
+    return fit_method(estimator, *args, **kwargs)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/ensemble/_forest.py", line 360, in fit
+    X, y = validate_data(
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/utils/validation.py", line 2961, in validate_data
+    X, y = check_X_y(X, y, **check_params)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/utils/validation.py", line 1370, in check_X_y
+    X = check_array(
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/utils/validation.py", line 973, in check_array
+    array = array.astype(new_dtype)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/pandas/core/generic.py", line 6643, in astype
+    new_data = self._mgr.astype(dtype=dtype, copy=copy, errors=errors)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/pandas/core/internals/managers.py", line 430, in astype
+    return self.apply(
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/pandas/core/internals/managers.py", line 363, in apply
+    applied = getattr(b, f)(**kwargs)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/pandas/core/internals/blocks.py", line 758, in astype
+    new_values = astype_array_safe(values, dtype, copy=copy, errors=errors)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/pandas/core/dtypes/astype.py", line 237, in astype_array_safe
+    new_values = astype_array(values, dtype, copy=copy)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/pandas/core/dtypes/astype.py", line 182, in astype_array
+    values = _astype_nansafe(values, dtype, copy=copy)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/pandas/core/dtypes/astype.py", line 133, in _astype_nansafe
+    return arr.astype(dtype, copy=True)
+ValueError: could not convert string to float: 'AAA'
+Traceback (most recent call last):
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 881, in main
+    model_results = train_and_evaluate_models(feature_data, output_paths, args)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 689, in train_and_evaluate_models
+    model_results['rf'] = train_random_forest(feature_data, output_paths, args)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 502, in train_random_forest
+    best_params, _ = tune_random_forest(
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/model_training/hyperparameter_tuning.py", line 294, in tune_random_forest
+    search.fit(X_train_balanced, y_train_balanced, sample_weight=sample_weights)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/base.py", line 1389, in wrapper
+    return fit_method(estimator, *args, **kwargs)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/model_selection/_search.py", line 1024, in fit
+    self._run_search(evaluate_candidates)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/model_selection/_search.py", line 1951, in _run_search
+    evaluate_candidates(
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/model_selection/_search.py", line 1001, in evaluate_candidates
+    _warn_or_raise_about_fit_failures(out, self.error_score)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/model_selection/_validation.py", line 517, in _warn_or_raise_about_fit_failures
+    raise ValueError(all_fits_failed_message)
+ValueError: 
+All the 100 fits failed.
+It is very likely that your model is misconfigured.
+You can try to debug the error by setting error_score='raise'.
+
+Below are more details about the failures:
+--------------------------------------------------------------------------------
+20 fits failed with the following error:
+Traceback (most recent call last):
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/model_selection/_validation.py", line 866, in _fit_and_score
+    estimator.fit(X_train, y_train, **fit_params)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/base.py", line 1389, in wrapper
+    return fit_method(estimator, *args, **kwargs)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/ensemble/_forest.py", line 360, in fit
+    X, y = validate_data(
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/utils/validation.py", line 2961, in validate_data
+    X, y = check_X_y(X, y, **check_params)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/utils/validation.py", line 1370, in check_X_y
+    X = check_array(
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/utils/validation.py", line 973, in check_array
+    array = array.astype(new_dtype)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/pandas/core/generic.py", line 6643, in astype
+    new_data = self._mgr.astype(dtype=dtype, copy=copy, errors=errors)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/pandas/core/internals/managers.py", line 430, in astype
+    return self.apply(
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/pandas/core/internals/managers.py", line 363, in apply
+    applied = getattr(b, f)(**kwargs)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/pandas/core/internals/blocks.py", line 758, in astype
+    new_values = astype_array_safe(values, dtype, copy=copy, errors=errors)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/pandas/core/dtypes/astype.py", line 237, in astype_array_safe
+    new_values = astype_array(values, dtype, copy=copy)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/pandas/core/dtypes/astype.py", line 182, in astype_array
+    values = _astype_nansafe(values, dtype, copy=copy)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/pandas/core/dtypes/astype.py", line 133, in _astype_nansafe
+    return arr.astype(dtype, copy=True)
+ValueError: could not convert string to float: 'BBB'
+
+--------------------------------------------------------------------------------
+80 fits failed with the following error:
+Traceback (most recent call last):
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/model_selection/_validation.py", line 866, in _fit_and_score
+    estimator.fit(X_train, y_train, **fit_params)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/base.py", line 1389, in wrapper
+    return fit_method(estimator, *args, **kwargs)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/ensemble/_forest.py", line 360, in fit
+    X, y = validate_data(
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/utils/validation.py", line 2961, in validate_data
+    X, y = check_X_y(X, y, **check_params)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/utils/validation.py", line 1370, in check_X_y
+    X = check_array(
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/utils/validation.py", line 973, in check_array
+    array = array.astype(new_dtype)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/pandas/core/generic.py", line 6643, in astype
+    new_data = self._mgr.astype(dtype=dtype, copy=copy, errors=errors)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/pandas/core/internals/managers.py", line 430, in astype
+    return self.apply(
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/pandas/core/internals/managers.py", line 363, in apply
+    applied = getattr(b, f)(**kwargs)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/pandas/core/internals/blocks.py", line 758, in astype
+    new_values = astype_array_safe(values, dtype, copy=copy, errors=errors)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/pandas/core/dtypes/astype.py", line 237, in astype_array_safe
+    new_values = astype_array(values, dtype, copy=copy)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/pandas/core/dtypes/astype.py", line 182, in astype_array
+    values = _astype_nansafe(values, dtype, copy=copy)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/pandas/core/dtypes/astype.py", line 133, in _astype_nansafe
+    return arr.astype(dtype, copy=True)
+ValueError: could not convert string to float: 'AAA'
+
+2025-04-28 14:04:45,056 - edupredict - INFO - Starting EduPredict in rf_only mode
+2025-04-28 14:04:45,078 - edupredict - INFO - Data path: ./data/OULAD
+2025-04-28 14:04:45,079 - edupredict - INFO - Output directory: ./output
+2025-04-28 14:04:45,081 - edupredict - INFO - Skipping data preprocessing, loading saved features...
+2025-04-28 14:04:45,081 - edupredict - INFO - Loading preprocessed features from disk...
+2025-04-28 14:05:10,397 - edupredict - INFO - Successfully loaded all preprocessed features
+2025-04-28 14:05:10,398 - edupredict - INFO - Completed step: Loading Saved Features
+2025-04-28 14:05:10,399 - edupredict - INFO - Memory usage after Loading Saved Features: 2941.50 MB
+2025-04-28 14:05:10,399 - edupredict - INFO - Training Random Forest model...
+2025-04-28 14:05:10,399 - edupredict - ERROR - Error in EduPredict: 'static_path'
+Traceback (most recent call last):
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 898, in main
+    model_results = {'rf': train_random_forest(feature_data, output_paths, args)}
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 468, in train_random_forest
+    X = feature_data['dual_path_features']['static_path']
+KeyError: 'static_path'
+2025-04-28 14:08:42,096 - edupredict - INFO - Starting EduPredict in rf_only mode
+2025-04-28 14:08:42,115 - edupredict - INFO - Data path: ./data/OULAD
+2025-04-28 14:08:42,116 - edupredict - INFO - Output directory: ./output
+2025-04-28 14:08:42,118 - edupredict - INFO - Skipping data preprocessing, loading saved features...
+2025-04-28 14:08:42,118 - edupredict - INFO - Loading preprocessed features from disk...
+2025-04-28 14:10:24,634 - edupredict - INFO - Successfully loaded all preprocessed features
+2025-04-28 14:10:24,663 - edupredict - INFO - Dual path features available: ['static_path', 'sequential_path']
+2025-04-28 14:10:24,666 - edupredict - INFO - Completed step: Loading Saved Features
+2025-04-28 14:10:24,685 - edupredict - INFO - Memory usage after Loading Saved Features: 1802.89 MB
+2025-04-28 14:10:24,686 - edupredict - INFO - Training Random Forest model...
+2025-04-28 14:10:24,688 - edupredict - ERROR - Error in EduPredict: 'target'
+Traceback (most recent call last):
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 924, in main
+    model_results = {'rf': train_random_forest(feature_data, output_paths, args)}
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 480, in train_random_forest
+    y = feature_data['target']
+KeyError: 'target'
+2025-04-28 14:17:49,742 - edupredict - INFO - Starting EduPredict in rf_only mode
+2025-04-28 14:17:49,761 - edupredict - INFO - Data path: ./data/OULAD
+2025-04-28 14:17:49,762 - edupredict - INFO - Output directory: ./output
+2025-04-28 14:17:49,767 - edupredict - INFO - Skipping data preprocessing, loading saved features...
+2025-04-28 14:17:49,767 - edupredict - INFO - Loading preprocessed features from disk...
+2025-04-28 14:19:45,007 - edupredict - ERROR - Error loading preprocessed features: Target variable file not found
+Traceback (most recent call last):
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 883, in load_preprocessed_features
+    raise FileNotFoundError("Target variable file not found")
+FileNotFoundError: Target variable file not found
+2025-04-28 14:19:45,127 - edupredict - ERROR - Error in EduPredict: Failed to load preprocessed features. Please run feature engineering first.
+Traceback (most recent call last):
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 883, in load_preprocessed_features
+    raise FileNotFoundError("Target variable file not found")
+FileNotFoundError: Target variable file not found
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 926, in main
+    feature_data = load_preprocessed_features(output_paths['feature_dir'])
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 893, in load_preprocessed_features
+    raise RuntimeError("Failed to load preprocessed features. Please run feature engineering first.")
+RuntimeError: Failed to load preprocessed features. Please run feature engineering first.
+2025-04-28 14:28:35,416 - edupredict - INFO - Starting EduPredict in full mode
+2025-04-28 14:28:35,441 - edupredict - INFO - Data path: ./data/OULAD
+2025-04-28 14:28:35,442 - edupredict - INFO - Output directory: ./output
+2025-04-28 14:28:35,444 - edupredict - INFO - Starting data loading and processing
+2025-04-28 14:28:43,452 - edupredict - INFO - Cleaning VLE data...
+2025-04-28 14:28:46,895 - edupredict - INFO - Clean demographics shape: (32593, 12)
+2025-04-28 14:28:46,895 - edupredict - INFO - Clean vle shape: (10655280, 7)
+2025-04-28 14:28:46,895 - edupredict - INFO - Clean assessments shape: (173739, 10)
+2025-04-28 14:30:27,891 - edupredict - INFO - Generated demographic visualizations: ['./output/visualizations/gender_distribution.png', './output/visualizations/age_distribution.png', './output/visualizations/imd_distribution.png', './output/visualizations/region_distribution.png']
+2025-04-28 14:31:31,267 - edupredict - INFO - Generated engagement visualizations: ['./output/visualizations/activity_type_distribution.png', './output/visualizations/daily_engagement.png', './output/visualizations/engagement_by_gender.png', './output/visualizations/engagement_by_age.png']
+2025-04-28 14:31:31,268 - edupredict - INFO - Completed exploratory data analysis
+2025-04-28 14:31:31,625 - edupredict - INFO - Completed step: Data Loading
+2025-04-28 14:31:31,627 - edupredict - INFO - Memory usage after Data Loading: 3434.29 MB
+2025-04-28 14:31:31,628 - edupredict - INFO - Starting feature engineering
+2025-04-28 14:31:31,716 - edupredict - INFO - Demographic features shape: (32593, 48)
+2025-04-28 14:31:57,317 - edupredict - INFO - Window window_7 features shape: (627031, 28)
+2025-04-28 14:31:57,317 - edupredict - INFO - Window window_14 features shape: (376919, 28)
+2025-04-28 14:31:57,318 - edupredict - INFO - Window window_30 features shape: (204359, 28)
+2025-04-28 14:31:57,389 - edupredict - INFO - Assessment features shape: (25820, 13)
+2025-04-28 14:31:57,390 - edupredict - INFO - Creating sequential features...
+2025-04-28 14:32:08,319 - edupredict - INFO - Sequential features shape: (10655280, 9)
+2025-04-28 14:32:08,320 - edupredict - INFO - Preparing target variable
+2025-04-28 14:32:08,330 - edupredict - INFO - Target variable shape: (32593,)
+2025-04-28 14:32:09,445 - edupredict - INFO - Analyzing feature correlations and importance
+2025-04-28 14:32:13,398 - edupredict - INFO - Correlation heatmap plotted and saved.
+2025-04-28 14:32:31,108 - edupredict - INFO - Preparing dual path features
+2025-04-28 14:32:57,159 - edupredict - INFO - Feature encoding summary:
+2025-04-28 14:32:57,172 - edupredict - INFO - Static path categorical columns encoded: ['code_module', 'code_presentation', 'gender', 'region', 'highest_education', 'imd_band', 'age_band']
+2025-04-28 14:32:57,173 - edupredict - INFO - Sequential path categorical columns encoded: ['code_module', 'code_presentation', 'activity_type']
+2025-04-28 14:32:57,173 - edupredict - INFO - Final static path shape: (25820, 98)
+2025-04-28 14:32:57,174 - edupredict - INFO - Final sequential path shape: (10655280, 65)
+2025-04-28 14:32:57,441 - edupredict - INFO - static_path shape: (25820, 98)
+2025-04-28 14:32:57,442 - edupredict - INFO - sequential_path shape: (10655280, 65)
+2025-04-28 14:36:59,885 - edupredict - INFO - Saved all features to ./output/feature_data
+2025-04-28 14:37:00,504 - edupredict - INFO - Completed step: Feature Engineering
+2025-04-28 14:37:00,525 - edupredict - INFO - Memory usage after Feature Engineering: 4359.23 MB
+2025-04-28 14:37:00,526 - edupredict - INFO - Training Random Forest model...
+2025-04-28 14:37:00,537 - edupredict - INFO - Using 34 features for training
+2025-04-28 14:37:00,550 - edupredict - INFO - Numeric features: 14, Encoded features: 33
+2025-04-28 14:37:00,676 - edupredict - INFO - 
+Verifying demographic distribution in train/test splits:
+2025-04-28 14:37:00,679 - edupredict - INFO - 
+Distribution of gender in training set:
+2025-04-28 14:37:00,684 - edupredict - INFO - gender
+m    0.550413
+f    0.449587
+Name: proportion, dtype: float64
+2025-04-28 14:37:00,707 - edupredict - INFO - 
+Distribution of gender in test set:
+2025-04-28 14:37:00,710 - edupredict - INFO - gender
+m    0.5503
+f    0.4497
+Name: proportion, dtype: float64
+2025-04-28 14:37:00,713 - edupredict - INFO - 
+Distribution of age_band in training set:
+2025-04-28 14:37:00,717 - edupredict - INFO - age_band
+0-35     0.695058
+35-55    0.297599
+55<=     0.007343
+Name: proportion, dtype: float64
+2025-04-28 14:37:00,719 - edupredict - INFO - 
+Distribution of age_band in test set:
+2025-04-28 14:37:00,722 - edupredict - INFO - age_band
+0-35     0.691219
+35-55    0.301997
+55<=     0.006784
+Name: proportion, dtype: float64
+2025-04-28 14:37:00,725 - edupredict - INFO - 
+Distribution of imd_band in training set:
+2025-04-28 14:37:00,730 - edupredict - INFO - imd_band
+30-40%     0.107638
+20-30%     0.106285
+10-20      0.100971
+50-60%     0.098749
+40-50%     0.098700
+0-10%      0.094111
+60-70%     0.092565
+70-80%     0.091985
+80-90%     0.087830
+90-100%    0.082371
+unknown    0.038794
+Name: proportion, dtype: float64
+2025-04-28 14:37:00,746 - edupredict - INFO - 
+Distribution of imd_band in test set:
+2025-04-28 14:37:00,749 - edupredict - INFO - imd_band
+30-40%     0.107579
+20-30%     0.106416
+10-20      0.100213
+40-50%     0.099244
+50-60%     0.098469
+70-80%     0.093041
+60-70%     0.091878
+0-10%      0.091684
+80-90%     0.087808
+90-100%    0.084706
+unknown    0.038961
+Name: proportion, dtype: float64
+2025-04-28 14:37:00,764 - edupredict - INFO - Resampling training data for bias mitigation
+2025-04-28 14:37:02,251 - edupredict - INFO - Tuning hyperparameters for Random Forest model
+2025-04-28 14:42:52,940 - edupredict - INFO - Best parameters for Random Forest: {'n_estimators': 100, 'min_samples_split': 10, 'min_samples_leaf': 2, 'max_features': 'log2', 'max_depth': 10, 'class_weight': None}
+2025-04-28 14:42:52,942 - edupredict - ERROR - Error in EduPredict: RandomForestModel.__init__() got an unexpected keyword argument 'max_features'
+Traceback (most recent call last):
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 973, in main
+    model_results = train_and_evaluate_models(feature_data, output_paths, args)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 715, in train_and_evaluate_models
+    model_results['rf'] = train_random_forest(feature_data, output_paths, args)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 544, in train_random_forest
+    rf_model = RandomForestModel(**best_params)
+TypeError: RandomForestModel.__init__() got an unexpected keyword argument 'max_features'
+2025-04-28 14:54:25,662 - edupredict - INFO - Starting EduPredict in full mode
+2025-04-28 14:54:25,692 - edupredict - INFO - Data path: ./data/OULAD
+2025-04-28 14:54:25,693 - edupredict - INFO - Output directory: ./output
+2025-04-28 14:54:25,696 - edupredict - INFO - Starting data loading and processing
+2025-04-28 14:54:33,187 - edupredict - INFO - Cleaning VLE data...
+2025-04-28 14:54:35,914 - edupredict - INFO - Clean demographics shape: (32593, 12)
+2025-04-28 14:54:35,914 - edupredict - INFO - Clean vle shape: (10655280, 7)
+2025-04-28 14:54:35,915 - edupredict - INFO - Clean assessments shape: (173739, 10)
+2025-04-28 14:55:17,887 - edupredict - INFO - Completed step: Data Loading
+2025-04-28 14:55:17,889 - edupredict - INFO - Memory usage after Data Loading: 789.10 MB
+2025-04-28 14:55:17,890 - edupredict - INFO - Starting feature engineering
+2025-04-28 14:55:18,044 - edupredict - INFO - Demographic features shape: (32593, 48)
+2025-04-28 14:56:04,260 - edupredict - INFO - Window window_7 features shape: (627031, 28)
+2025-04-28 14:56:04,261 - edupredict - INFO - Window window_14 features shape: (376919, 28)
+2025-04-28 14:56:04,262 - edupredict - INFO - Window window_30 features shape: (204359, 28)
+2025-04-28 14:56:04,424 - edupredict - INFO - Assessment features shape: (25820, 13)
+2025-04-28 14:56:04,425 - edupredict - INFO - Creating sequential features...
+2025-04-28 14:56:18,930 - edupredict - INFO - Sequential features shape: (10655280, 9)
+2025-04-28 14:56:18,931 - edupredict - INFO - Preparing target variable
+2025-04-28 14:56:18,944 - edupredict - INFO - Target variable shape: (32593,)
+2025-04-28 14:56:20,442 - edupredict - INFO - Analyzing feature correlations and importance
+2025-04-28 14:56:24,494 - edupredict - INFO - Correlation heatmap plotted and saved.
+2025-04-28 14:56:51,110 - edupredict - INFO - Preparing dual path features
+2025-04-28 14:57:36,880 - edupredict - INFO - Feature encoding summary:
+2025-04-28 14:57:36,897 - edupredict - INFO - Static path categorical columns encoded: ['code_module', 'code_presentation', 'gender', 'region', 'highest_education', 'imd_band', 'age_band']
+2025-04-28 14:57:36,898 - edupredict - INFO - Sequential path categorical columns encoded: ['code_module', 'code_presentation', 'activity_type']
+2025-04-28 14:57:36,900 - edupredict - INFO - Final static path shape: (25820, 98)
+2025-04-28 14:57:36,902 - edupredict - INFO - Final sequential path shape: (10655280, 65)
+2025-04-28 14:57:37,959 - edupredict - INFO - static_path shape: (25820, 98)
+2025-04-28 14:57:37,960 - edupredict - INFO - sequential_path shape: (10655280, 65)
+2025-04-28 15:03:00,793 - edupredict - INFO - Saved all features to ./output/feature_data
+2025-04-28 15:03:02,164 - edupredict - INFO - Completed step: Feature Engineering
+2025-04-28 15:03:02,172 - edupredict - INFO - Memory usage after Feature Engineering: 2436.53 MB
+2025-04-28 15:03:02,176 - edupredict - INFO - Training Random Forest model...
+2025-04-28 15:03:02,206 - edupredict - INFO - Using 34 features for training
+2025-04-28 15:03:02,207 - edupredict - INFO - Numeric features: 14, Encoded features: 33
+2025-04-28 15:03:02,411 - edupredict - INFO - 
+Verifying demographic distribution in train/test splits:
+2025-04-28 15:03:02,412 - edupredict - INFO - 
+Distribution of gender in training set:
+2025-04-28 15:03:02,421 - edupredict - INFO - gender
+m    0.550413
+f    0.449587
+Name: proportion, dtype: float64
+2025-04-28 15:03:02,439 - edupredict - INFO - 
+Distribution of gender in test set:
+2025-04-28 15:03:02,441 - edupredict - INFO - gender
+m    0.5503
+f    0.4497
+Name: proportion, dtype: float64
+2025-04-28 15:03:02,444 - edupredict - INFO - 
+Distribution of age_band in training set:
+2025-04-28 15:03:02,448 - edupredict - INFO - age_band
+0-35     0.695058
+35-55    0.297599
+55<=     0.007343
+Name: proportion, dtype: float64
+2025-04-28 15:03:02,450 - edupredict - INFO - 
+Distribution of age_band in test set:
+2025-04-28 15:03:02,452 - edupredict - INFO - age_band
+0-35     0.691219
+35-55    0.301997
+55<=     0.006784
+Name: proportion, dtype: float64
+2025-04-28 15:03:02,453 - edupredict - INFO - 
+Distribution of imd_band in training set:
+2025-04-28 15:03:02,459 - edupredict - INFO - imd_band
+30-40%     0.107638
+20-30%     0.106285
+10-20      0.100971
+50-60%     0.098749
+40-50%     0.098700
+0-10%      0.094111
+60-70%     0.092565
+70-80%     0.091985
+80-90%     0.087830
+90-100%    0.082371
+unknown    0.038794
+Name: proportion, dtype: float64
+2025-04-28 15:03:02,460 - edupredict - INFO - 
+Distribution of imd_band in test set:
+2025-04-28 15:03:02,464 - edupredict - INFO - imd_band
+30-40%     0.107579
+20-30%     0.106416
+10-20      0.100213
+40-50%     0.099244
+50-60%     0.098469
+70-80%     0.093041
+60-70%     0.091878
+0-10%      0.091684
+80-90%     0.087808
+90-100%    0.084706
+unknown    0.038961
+Name: proportion, dtype: float64
+2025-04-28 15:03:02,480 - edupredict - INFO - Resampling training data for bias mitigation
+2025-04-28 15:03:04,050 - edupredict - INFO - Tuning hyperparameters for Random Forest model
+2025-04-28 15:09:02,406 - edupredict - INFO - Best parameters for Random Forest: {'n_estimators': 100, 'min_samples_split': 10, 'min_samples_leaf': 2, 'max_features': 'log2', 'max_depth': 10, 'class_weight': None}
+2025-04-28 15:09:03,168 - edupredict - INFO - Saved Random Forest model to ./models/random_forest.pkl
+2025-04-28 15:09:03,183 - edupredict - INFO - Training GRU model...
+2025-04-28 15:09:03,183 - edupredict - INFO - Preparing GRU training data
+2025-04-28 15:09:04,019 - edupredict - INFO - Creating train/validation split for GRU model
+2025-04-28 15:09:04,021 - edupredict - ERROR - Error in EduPredict: Found input variables with inconsistent numbers of samples: [4, 14]
+Traceback (most recent call last):
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 973, in main
+    model_results = train_and_evaluate_models(feature_data, output_paths, args)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 719, in train_and_evaluate_models
+    model_results['gru'] = train_gru_model(
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 581, in train_gru_model
+    train_indices, val_indices = train_test_split(
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/utils/_param_validation.py", line 216, in wrapper
+    return func(*args, **kwargs)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/model_selection/_split.py", line 2872, in train_test_split
+    train, test = next(cv.split(X=arrays[0], y=stratify))
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/model_selection/_split.py", line 1908, in split
+    X, y, groups = indexable(X, y, groups)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/utils/validation.py", line 532, in indexable
+    check_consistent_length(*result)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/utils/validation.py", line 475, in check_consistent_length
+    raise ValueError(
+ValueError: Found input variables with inconsistent numbers of samples: [4, 14]
+2025-04-28 15:21:02,585 - edupredict - INFO - Starting EduPredict in rf_only mode
+2025-04-28 15:21:02,618 - edupredict - INFO - Data path: ./data/OULAD
+2025-04-28 15:21:02,620 - edupredict - INFO - Output directory: ./output
+2025-04-28 15:21:02,626 - edupredict - INFO - Loading saved features...
+2025-04-28 15:21:02,627 - edupredict - INFO - Loading preprocessed features from disk...
+2025-04-28 15:21:02,988 - edupredict - INFO - Loaded demographic features: (32593, 48)
+2025-04-28 15:21:23,465 - edupredict - INFO - Loaded sequential features: (10655280, 11)
+2025-04-28 15:21:25,386 - edupredict - INFO - Loaded window 7 features: (627031, 28)
+2025-04-28 15:21:26,552 - edupredict - INFO - Loaded window 14 features: (376919, 28)
+2025-04-28 15:21:27,244 - edupredict - INFO - Loaded window 30 features: (204359, 28)
+2025-04-28 15:21:27,651 - edupredict - INFO - Loaded static path features: (25820, 98)
+2025-04-28 15:23:48,520 - edupredict - INFO - Loaded sequential path features: (10655280, 65)
+2025-04-28 15:23:48,591 - edupredict - INFO - Loaded target variable: (32593,)
+2025-04-28 15:23:48,592 - edupredict - INFO - Successfully loaded all preprocessed features
+2025-04-28 15:23:48,592 - edupredict - INFO - Available features: ['demographic_features', 'sequential_features', 'temporal_features', 'dual_path_features', 'target']
+2025-04-28 15:23:48,595 - edupredict - INFO - Completed step: Loading Saved Features
+2025-04-28 15:23:48,605 - edupredict - INFO - Memory usage after Loading Saved Features: 1139.67 MB
+2025-04-28 15:23:48,606 - edupredict - INFO - Skipping data preprocessing, loading saved features...
+2025-04-28 15:23:48,607 - edupredict - INFO - Loading preprocessed features from disk...
+2025-04-28 15:23:48,895 - edupredict - INFO - Loaded demographic features: (32593, 48)
+2025-04-28 15:24:01,283 - edupredict - INFO - Loaded sequential features: (10655280, 11)
+2025-04-28 15:24:03,288 - edupredict - INFO - Loaded window 7 features: (627031, 28)
+2025-04-28 15:24:04,405 - edupredict - INFO - Loaded window 14 features: (376919, 28)
+2025-04-28 15:24:05,063 - edupredict - INFO - Loaded window 30 features: (204359, 28)
+2025-04-28 15:24:05,540 - edupredict - INFO - Loaded static path features: (25820, 98)
+2025-04-28 15:26:30,246 - edupredict - INFO - Loaded sequential path features: (10655280, 65)
+2025-04-28 15:26:30,365 - edupredict - INFO - Loaded target variable: (32593,)
+2025-04-28 15:26:30,366 - edupredict - INFO - Successfully loaded all preprocessed features
+2025-04-28 15:26:30,366 - edupredict - INFO - Available features: ['demographic_features', 'sequential_features', 'temporal_features', 'dual_path_features', 'target']
+2025-04-28 15:26:33,244 - edupredict - INFO - Completed step: Loading Saved Features
+2025-04-28 15:26:33,246 - edupredict - INFO - Memory usage after Loading Saved Features: 916.55 MB
+2025-04-28 15:26:33,250 - edupredict - INFO - Training Random Forest model...
+2025-04-28 15:26:33,303 - edupredict - INFO - Using 47 features for training
+2025-04-28 15:26:33,304 - edupredict - INFO - Numeric features: 21, Encoded features: 33
+2025-04-28 15:26:33,600 - edupredict - INFO - 
+Verifying demographic distribution in train/test splits:
+2025-04-28 15:26:33,601 - edupredict - INFO - 
+Distribution of gender in training set:
+2025-04-28 15:26:33,652 - edupredict - INFO - gender
+m    0.550413
+f    0.449587
+Name: proportion, dtype: float64
+2025-04-28 15:26:33,661 - edupredict - INFO - 
+Distribution of gender in test set:
+2025-04-28 15:26:33,662 - edupredict - INFO - gender
+m    0.5503
+f    0.4497
+Name: proportion, dtype: float64
+2025-04-28 15:26:33,664 - edupredict - INFO - 
+Distribution of age_band in training set:
+2025-04-28 15:26:33,667 - edupredict - INFO - age_band
+0-35     0.695058
+35-55    0.297599
+55<=     0.007343
+Name: proportion, dtype: float64
+2025-04-28 15:26:33,668 - edupredict - INFO - 
+Distribution of age_band in test set:
+2025-04-28 15:26:33,670 - edupredict - INFO - age_band
+0-35     0.691219
+35-55    0.301997
+55<=     0.006784
+Name: proportion, dtype: float64
+2025-04-28 15:26:33,672 - edupredict - INFO - 
+Distribution of imd_band in training set:
+2025-04-28 15:26:33,675 - edupredict - INFO - imd_band
+30-40%     0.107638
+20-30%     0.106285
+10-20      0.100971
+50-60%     0.098749
+40-50%     0.098700
+0-10%      0.094111
+60-70%     0.092565
+70-80%     0.091985
+80-90%     0.087830
+90-100%    0.082371
+unknown    0.038794
+Name: proportion, dtype: float64
+2025-04-28 15:26:33,679 - edupredict - INFO - 
+Distribution of imd_band in test set:
+2025-04-28 15:26:33,681 - edupredict - INFO - imd_band
+30-40%     0.107579
+20-30%     0.106416
+10-20      0.100213
+40-50%     0.099244
+50-60%     0.098469
+70-80%     0.093041
+60-70%     0.091878
+0-10%      0.091684
+80-90%     0.087808
+90-100%    0.084706
+unknown    0.038961
+Name: proportion, dtype: float64
+2025-04-28 15:26:33,697 - edupredict - INFO - Resampling training data for bias mitigation
+2025-04-28 15:26:35,181 - edupredict - INFO - Best parameters for Random Forest: {'n_estimators': 100, 'max_depth': None, 'min_samples_split': 2, 'min_samples_leaf': 1, 'max_features': 'sqrt', 'class_weight': 'balanced', 'random_state': 0, 'n_jobs': -1}
+2025-04-28 15:26:37,371 - edupredict - INFO - Saved Random Forest model to ./models/random_forest.pkl
+2025-04-28 15:26:37,376 - edupredict - INFO - Completed step: Model Training
+2025-04-28 15:26:37,377 - edupredict - INFO - Memory usage after Model Training: 1063.85 MB
+2025-04-28 15:26:37,378 - edupredict - ERROR - Error in EduPredict: 'NoneType' object is not subscriptable
+Traceback (most recent call last):
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 1011, in main
+    fairness_results = evaluate_and_report(
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 847, in evaluate_and_report
+    clean_data['demographics'],
+TypeError: 'NoneType' object is not subscriptable
+2025-04-28 15:31:20,822 - edupredict - INFO - Starting EduPredict in rf_only mode
+2025-04-28 15:31:20,851 - edupredict - INFO - Data path: ./data/OULAD
+2025-04-28 15:31:20,853 - edupredict - INFO - Output directory: ./output
+2025-04-28 15:31:20,857 - edupredict - INFO - Loading saved features...
+2025-04-28 15:31:20,860 - edupredict - INFO - Loading preprocessed features from disk...
+2025-04-28 15:31:21,181 - edupredict - INFO - Loaded demographic features: (32593, 48)
+2025-04-28 15:31:35,143 - edupredict - INFO - Loaded sequential features: (10655280, 11)
+2025-04-28 15:31:37,059 - edupredict - INFO - Loaded window 7 features: (627031, 28)
+2025-04-28 15:31:38,119 - edupredict - INFO - Loaded window 14 features: (376919, 28)
+2025-04-28 15:31:38,725 - edupredict - INFO - Loaded window 30 features: (204359, 28)
+2025-04-28 15:31:39,136 - edupredict - INFO - Loaded static path features: (25820, 98)
+2025-04-28 15:34:01,102 - edupredict - INFO - Loaded sequential path features: (10655280, 65)
+2025-04-28 15:34:01,179 - edupredict - INFO - Loaded target variable: (32593,)
+2025-04-28 15:34:01,180 - edupredict - INFO - Successfully loaded all preprocessed features
+2025-04-28 15:34:01,182 - edupredict - INFO - Available features: ['demographic_features', 'sequential_features', 'temporal_features', 'dual_path_features', 'target']
+2025-04-28 15:34:01,184 - edupredict - INFO - Completed step: Loading Saved Features
+2025-04-28 15:34:01,191 - edupredict - INFO - Memory usage after Loading Saved Features: 1103.04 MB
+2025-04-28 15:34:01,191 - edupredict - INFO - Skipping data preprocessing, loading saved features...
+2025-04-28 15:34:01,192 - edupredict - INFO - Loading preprocessed features from disk...
+2025-04-28 15:34:01,486 - edupredict - INFO - Loaded demographic features: (32593, 48)
+2025-04-28 15:34:13,706 - edupredict - INFO - Loaded sequential features: (10655280, 11)
+2025-04-28 15:34:15,909 - edupredict - INFO - Loaded window 7 features: (627031, 28)
+2025-04-28 15:34:17,123 - edupredict - INFO - Loaded window 14 features: (376919, 28)
+2025-04-28 15:34:17,748 - edupredict - INFO - Loaded window 30 features: (204359, 28)
+2025-04-28 15:34:18,206 - edupredict - INFO - Loaded static path features: (25820, 98)
+2025-04-28 15:36:34,909 - edupredict - INFO - Loaded sequential path features: (10655280, 65)
+2025-04-28 15:36:34,943 - edupredict - INFO - Loaded target variable: (32593,)
+2025-04-28 15:36:34,944 - edupredict - INFO - Successfully loaded all preprocessed features
+2025-04-28 15:36:34,945 - edupredict - INFO - Available features: ['demographic_features', 'sequential_features', 'temporal_features', 'dual_path_features', 'target']
+2025-04-28 15:36:38,940 - edupredict - INFO - Completed step: Loading Saved Features
+2025-04-28 15:36:38,943 - edupredict - INFO - Memory usage after Loading Saved Features: 1673.22 MB
+2025-04-28 15:36:38,945 - edupredict - INFO - Training Random Forest model...
+2025-04-28 15:36:38,998 - edupredict - INFO - Using 47 features for training
+2025-04-28 15:36:38,999 - edupredict - INFO - Numeric features: 21, Encoded features: 33
+2025-04-28 15:36:39,198 - edupredict - INFO - 
+Verifying demographic distribution in train/test splits:
+2025-04-28 15:36:39,204 - edupredict - INFO - 
+Distribution of gender in training set:
+2025-04-28 15:36:39,239 - edupredict - INFO - gender
+m    0.550413
+f    0.449587
+Name: proportion, dtype: float64
+2025-04-28 15:36:39,247 - edupredict - INFO - 
+Distribution of gender in test set:
+2025-04-28 15:36:39,248 - edupredict - INFO - gender
+m    0.5503
+f    0.4497
+Name: proportion, dtype: float64
+2025-04-28 15:36:39,250 - edupredict - INFO - 
+Distribution of age_band in training set:
+2025-04-28 15:36:39,254 - edupredict - INFO - age_band
+0-35     0.695058
+35-55    0.297599
+55<=     0.007343
+Name: proportion, dtype: float64
+2025-04-28 15:36:39,258 - edupredict - INFO - 
+Distribution of age_band in test set:
+2025-04-28 15:36:39,261 - edupredict - INFO - age_band
+0-35     0.691219
+35-55    0.301997
+55<=     0.006784
+Name: proportion, dtype: float64
+2025-04-28 15:36:39,273 - edupredict - INFO - 
+Distribution of imd_band in training set:
+2025-04-28 15:36:39,276 - edupredict - INFO - imd_band
+30-40%     0.107638
+20-30%     0.106285
+10-20      0.100971
+50-60%     0.098749
+40-50%     0.098700
+0-10%      0.094111
+60-70%     0.092565
+70-80%     0.091985
+80-90%     0.087830
+90-100%    0.082371
+unknown    0.038794
+Name: proportion, dtype: float64
+2025-04-28 15:36:39,279 - edupredict - INFO - 
+Distribution of imd_band in test set:
+2025-04-28 15:36:39,280 - edupredict - INFO - imd_band
+30-40%     0.107579
+20-30%     0.106416
+10-20      0.100213
+40-50%     0.099244
+50-60%     0.098469
+70-80%     0.093041
+60-70%     0.091878
+0-10%      0.091684
+80-90%     0.087808
+90-100%    0.084706
+unknown    0.038961
+Name: proportion, dtype: float64
+2025-04-28 15:36:39,296 - edupredict - INFO - Resampling training data for bias mitigation
+2025-04-28 15:36:40,506 - edupredict - INFO - Best parameters for Random Forest: {'n_estimators': 100, 'max_depth': None, 'min_samples_split': 2, 'min_samples_leaf': 1, 'max_features': 'sqrt', 'class_weight': 'balanced', 'random_state': 0, 'n_jobs': -1}
+2025-04-28 15:36:42,291 - edupredict - INFO - Saved Random Forest model to ./models/random_forest.pkl
+2025-04-28 15:36:42,294 - edupredict - INFO - Completed step: Model Training
+2025-04-28 15:36:42,294 - edupredict - INFO - Memory usage after Model Training: 1820.83 MB
+2025-04-28 15:36:42,301 - edupredict - ERROR - Error in EduPredict: 'NoneType' object is not subscriptable
+Traceback (most recent call last):
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 1011, in main
+    fairness_results = evaluate_and_report(
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 847, in evaluate_and_report
+    clean_data['demographics'],
+TypeError: 'NoneType' object is not subscriptable
+2025-04-28 15:46:44,830 - edupredict - INFO - Starting EduPredict in full mode
+2025-04-28 15:46:44,865 - edupredict - INFO - Data path: ./data/OULAD
+2025-04-28 15:46:44,866 - edupredict - INFO - Output directory: ./output
+2025-04-28 15:46:44,869 - edupredict - INFO - Starting data loading and processing
+2025-04-28 15:46:52,384 - edupredict - INFO - Cleaning VLE data...
+2025-04-28 15:46:55,167 - edupredict - INFO - Clean demographics shape: (32593, 12)
+2025-04-28 15:46:55,168 - edupredict - INFO - Clean vle shape: (10655280, 7)
+2025-04-28 15:46:55,168 - edupredict - INFO - Clean assessments shape: (173739, 10)
+2025-04-28 15:49:16,645 - edupredict - INFO - Generated demographic visualizations: ['./output/visualizations/gender_distribution.png', './output/visualizations/age_distribution.png', './output/visualizations/imd_distribution.png', './output/visualizations/region_distribution.png']
+2025-04-28 15:50:24,111 - edupredict - INFO - Generated engagement visualizations: ['./output/visualizations/activity_type_distribution.png', './output/visualizations/daily_engagement.png', './output/visualizations/engagement_by_gender.png', './output/visualizations/engagement_by_age.png']
+2025-04-28 15:50:24,112 - edupredict - INFO - Completed exploratory data analysis
+2025-04-28 15:50:24,512 - edupredict - INFO - Completed step: Data Loading
+2025-04-28 15:50:24,516 - edupredict - INFO - Memory usage after Data Loading: 3559.07 MB
+2025-04-28 15:50:24,517 - edupredict - INFO - Starting feature engineering
+2025-04-28 15:50:24,637 - edupredict - INFO - Demographic features shape: (32593, 48)
+2025-04-28 15:50:51,165 - edupredict - INFO - Window window_7 features shape: (627031, 28)
+2025-04-28 15:50:51,166 - edupredict - INFO - Window window_14 features shape: (376919, 28)
+2025-04-28 15:50:51,166 - edupredict - INFO - Window window_30 features shape: (204359, 28)
+2025-04-28 15:50:51,240 - edupredict - INFO - Assessment features shape: (25820, 13)
+2025-04-28 15:50:51,240 - edupredict - INFO - Creating sequential features...
+2025-04-28 15:51:02,478 - edupredict - INFO - Sequential features shape: (10655280, 9)
+2025-04-28 15:51:02,480 - edupredict - INFO - Preparing target variable
+2025-04-28 15:51:02,490 - edupredict - INFO - Target variable shape: (32593,)
+2025-04-28 15:51:03,722 - edupredict - INFO - Analyzing feature correlations and importance
+2025-04-28 15:51:07,701 - edupredict - INFO - Correlation heatmap plotted and saved.
+2025-04-28 15:51:26,972 - edupredict - INFO - Preparing dual path features
+2025-04-28 15:51:53,546 - edupredict - INFO - Feature encoding summary:
+2025-04-28 15:51:53,559 - edupredict - INFO - Static path categorical columns encoded: ['code_module', 'code_presentation', 'gender', 'region', 'highest_education', 'imd_band', 'age_band']
+2025-04-28 15:51:53,559 - edupredict - INFO - Sequential path categorical columns encoded: ['code_module', 'code_presentation', 'activity_type']
+2025-04-28 15:51:53,560 - edupredict - INFO - Final static path shape: (25820, 98)
+2025-04-28 15:51:53,561 - edupredict - INFO - Final sequential path shape: (10655280, 65)
+2025-04-28 15:51:53,872 - edupredict - INFO - static_path shape: (25820, 98)
+2025-04-28 15:51:53,873 - edupredict - INFO - sequential_path shape: (10655280, 65)
+2025-04-28 15:56:43,851 - edupredict - INFO - Saved all features to ./output/feature_data
+2025-04-28 15:56:45,488 - edupredict - INFO - Completed step: Feature Engineering
+2025-04-28 15:56:45,497 - edupredict - INFO - Memory usage after Feature Engineering: 2197.82 MB
+2025-04-28 15:56:45,501 - edupredict - INFO - Training Random Forest model...
+2025-04-28 15:56:45,541 - edupredict - INFO - Using 34 features for training
+2025-04-28 15:56:45,541 - edupredict - INFO - Numeric features: 14, Encoded features: 33
+2025-04-28 15:56:45,770 - edupredict - INFO - 
+Verifying demographic distribution in train/test splits:
+2025-04-28 15:56:45,772 - edupredict - INFO - 
+Distribution of gender in training set:
+2025-04-28 15:56:45,780 - edupredict - INFO - gender
+m    0.550413
+f    0.449587
+Name: proportion, dtype: float64
+2025-04-28 15:56:45,797 - edupredict - INFO - 
+Distribution of gender in test set:
+2025-04-28 15:56:45,800 - edupredict - INFO - gender
+m    0.5503
+f    0.4497
+Name: proportion, dtype: float64
+2025-04-28 15:56:45,804 - edupredict - INFO - 
+Distribution of age_band in training set:
+2025-04-28 15:56:45,808 - edupredict - INFO - age_band
+0-35     0.695058
+35-55    0.297599
+55<=     0.007343
+Name: proportion, dtype: float64
+2025-04-28 15:56:45,811 - edupredict - INFO - 
+Distribution of age_band in test set:
+2025-04-28 15:56:45,814 - edupredict - INFO - age_band
+0-35     0.691219
+35-55    0.301997
+55<=     0.006784
+Name: proportion, dtype: float64
+2025-04-28 15:56:45,816 - edupredict - INFO - 
+Distribution of imd_band in training set:
+2025-04-28 15:56:45,821 - edupredict - INFO - imd_band
+30-40%     0.107638
+20-30%     0.106285
+10-20      0.100971
+50-60%     0.098749
+40-50%     0.098700
+0-10%      0.094111
+60-70%     0.092565
+70-80%     0.091985
+80-90%     0.087830
+90-100%    0.082371
+unknown    0.038794
+Name: proportion, dtype: float64
+2025-04-28 15:56:45,827 - edupredict - INFO - 
+Distribution of imd_band in test set:
+2025-04-28 15:56:45,831 - edupredict - INFO - imd_band
+30-40%     0.107579
+20-30%     0.106416
+10-20      0.100213
+40-50%     0.099244
+50-60%     0.098469
+70-80%     0.093041
+60-70%     0.091878
+0-10%      0.091684
+80-90%     0.087808
+90-100%    0.084706
+unknown    0.038961
+Name: proportion, dtype: float64
+2025-04-28 15:56:45,849 - edupredict - INFO - Resampling training data for bias mitigation
+2025-04-28 15:56:47,313 - edupredict - INFO - Tuning hyperparameters for Random Forest model
+2025-04-28 16:03:41,581 - edupredict - INFO - Best parameters for Random Forest: {'n_estimators': 100, 'min_samples_split': 10, 'min_samples_leaf': 2, 'max_features': 'log2', 'max_depth': 10, 'class_weight': None}
+2025-04-28 16:03:42,486 - edupredict - INFO - Saved Random Forest model to ./models/random_forest.pkl
+2025-04-28 16:03:42,522 - edupredict - INFO - Training GRU model...
+2025-04-28 16:03:42,523 - edupredict - INFO - Preparing GRU training data
+2025-04-28 16:03:43,150 - edupredict - INFO - Number of training samples: 14
+2025-04-28 16:03:43,150 - edupredict - INFO - Target shape: (14,)
+2025-04-28 16:03:43,151 - edupredict - INFO - Creating train/validation split for GRU model
+2025-04-28 16:03:43,153 - edupredict - ERROR - Error in EduPredict: The least populated class in y has only 1 member, which is too few. The minimum number of groups for any class cannot be less than 2.
+Traceback (most recent call last):
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 1013, in main
+    model_results = train_and_evaluate_models(feature_data, output_paths, args)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 749, in train_and_evaluate_models
+    model_results['gru'] = train_gru_model(
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 592, in train_gru_model
+    train_indices, val_indices = train_test_split(
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/utils/_param_validation.py", line 216, in wrapper
+    return func(*args, **kwargs)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/model_selection/_split.py", line 2872, in train_test_split
+    train, test = next(cv.split(X=arrays[0], y=stratify))
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/model_selection/_split.py", line 1909, in split
+    for train, test in self._iter_indices(X, y, groups):
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/model_selection/_split.py", line 2318, in _iter_indices
+    raise ValueError(
+ValueError: The least populated class in y has only 1 member, which is too few. The minimum number of groups for any class cannot be less than 2.
+2025-04-29 19:29:34,838 - edupredict - INFO - Starting EduPredict in full mode
+2025-04-29 19:29:34,879 - edupredict - INFO - Data path: ./data/OULAD
+2025-04-29 19:29:34,880 - edupredict - INFO - Output directory: ./output
+2025-04-29 19:29:34,883 - edupredict - INFO - Starting data loading and processing
+2025-04-29 19:29:42,883 - edupredict - INFO - Cleaning VLE data...
+2025-04-29 19:29:47,180 - edupredict - INFO - Clean demographics shape: (32593, 12)
+2025-04-29 19:29:47,180 - edupredict - INFO - Clean vle shape: (10655280, 7)
+2025-04-29 19:29:47,181 - edupredict - INFO - Clean assessments shape: (173739, 10)
+2025-04-29 19:31:36,254 - edupredict - INFO - Generated demographic visualizations: ['./output/visualizations/gender_distribution.png', './output/visualizations/age_distribution.png', './output/visualizations/imd_distribution.png', './output/visualizations/region_distribution.png']
+2025-04-29 19:32:42,782 - edupredict - INFO - Generated engagement visualizations: ['./output/visualizations/activity_type_distribution.png', './output/visualizations/daily_engagement.png', './output/visualizations/engagement_by_gender.png', './output/visualizations/engagement_by_age.png']
+2025-04-29 19:32:42,783 - edupredict - INFO - Completed exploratory data analysis
+2025-04-29 19:32:43,262 - edupredict - INFO - Completed step: Data Loading
+2025-04-29 19:32:43,271 - edupredict - INFO - Memory usage after Data Loading: 2883.08 MB
+2025-04-29 19:32:43,273 - edupredict - INFO - Starting feature engineering
+2025-04-29 19:32:43,395 - edupredict - INFO - Demographic features shape: (32593, 48)
+2025-04-29 19:33:10,265 - edupredict - INFO - Window window_7 features shape: (627031, 28)
+2025-04-29 19:33:10,266 - edupredict - INFO - Window window_14 features shape: (376919, 28)
+2025-04-29 19:33:10,266 - edupredict - INFO - Window window_30 features shape: (204359, 28)
+2025-04-29 19:33:10,421 - edupredict - INFO - Assessment features shape: (25820, 13)
+2025-04-29 19:33:10,423 - edupredict - INFO - Creating sequential features...
+2025-04-29 19:33:25,172 - edupredict - INFO - Sequential features shape: (10655280, 9)
+2025-04-29 19:33:25,176 - edupredict - INFO - Preparing target variable
+2025-04-29 19:33:25,418 - edupredict - INFO - Target variable shape: (32593,)
+2025-04-29 19:33:27,309 - edupredict - INFO - Analyzing feature correlations and importance
+2025-04-29 19:33:35,060 - edupredict - INFO - Correlation heatmap plotted and saved.
+2025-04-29 19:33:55,464 - edupredict - INFO - Preparing dual path features
+2025-04-29 19:34:25,797 - edupredict - INFO - Feature encoding summary:
+2025-04-29 19:34:25,805 - edupredict - INFO - Static path categorical columns encoded: ['code_module', 'code_presentation', 'gender', 'region', 'highest_education', 'imd_band', 'age_band']
+2025-04-29 19:34:25,806 - edupredict - INFO - Sequential path categorical columns encoded: ['code_module', 'code_presentation', 'activity_type']
+2025-04-29 19:34:25,807 - edupredict - INFO - Final static path shape: (25820, 98)
+2025-04-29 19:34:25,808 - edupredict - INFO - Final sequential path shape: (10655280, 65)
+2025-04-29 19:34:26,216 - edupredict - INFO - static_path shape: (25820, 98)
+2025-04-29 19:34:26,217 - edupredict - INFO - sequential_path shape: (10655280, 65)
+2025-04-29 19:38:25,792 - edupredict - INFO - Saved all features to ./output/feature_data
+2025-04-29 19:38:27,374 - edupredict - INFO - Completed step: Feature Engineering
+2025-04-29 19:38:27,380 - edupredict - INFO - Memory usage after Feature Engineering: 4047.33 MB
+2025-04-29 19:38:27,381 - edupredict - INFO - Training Random Forest model...
+2025-04-29 19:38:27,404 - edupredict - INFO - Using 34 features for training
+2025-04-29 19:38:27,404 - edupredict - INFO - Numeric features: 14, Encoded features: 33
+2025-04-29 19:38:27,627 - edupredict - INFO - 
+Verifying demographic distribution in train/test splits:
+2025-04-29 19:38:27,628 - edupredict - INFO - 
+Distribution of gender in training set:
+2025-04-29 19:38:27,635 - edupredict - INFO - gender
+m    0.550413
+f    0.449587
+Name: proportion, dtype: float64
+2025-04-29 19:38:27,651 - edupredict - INFO - 
+Distribution of gender in test set:
+2025-04-29 19:38:27,653 - edupredict - INFO - gender
+m    0.5503
+f    0.4497
+Name: proportion, dtype: float64
+2025-04-29 19:38:27,656 - edupredict - INFO - 
+Distribution of age_band in training set:
+2025-04-29 19:38:27,660 - edupredict - INFO - age_band
+0-35     0.695058
+35-55    0.297599
+55<=     0.007343
+Name: proportion, dtype: float64
+2025-04-29 19:38:27,661 - edupredict - INFO - 
+Distribution of age_band in test set:
+2025-04-29 19:38:27,664 - edupredict - INFO - age_band
+0-35     0.691219
+35-55    0.301997
+55<=     0.006784
+Name: proportion, dtype: float64
+2025-04-29 19:38:27,666 - edupredict - INFO - 
+Distribution of imd_band in training set:
+2025-04-29 19:38:27,672 - edupredict - INFO - imd_band
+30-40%     0.107638
+20-30%     0.106285
+10-20      0.100971
+50-60%     0.098749
+40-50%     0.098700
+0-10%      0.094111
+60-70%     0.092565
+70-80%     0.091985
+80-90%     0.087830
+90-100%    0.082371
+unknown    0.038794
+Name: proportion, dtype: float64
+2025-04-29 19:38:27,675 - edupredict - INFO - 
+Distribution of imd_band in test set:
+2025-04-29 19:38:27,677 - edupredict - INFO - imd_band
+30-40%     0.107579
+20-30%     0.106416
+10-20      0.100213
+40-50%     0.099244
+50-60%     0.098469
+70-80%     0.093041
+60-70%     0.091878
+0-10%      0.091684
+80-90%     0.087808
+90-100%    0.084706
+unknown    0.038961
+Name: proportion, dtype: float64
+2025-04-29 19:38:27,696 - edupredict - INFO - Resampling training data for bias mitigation
+2025-04-29 19:38:28,960 - edupredict - INFO - Tuning hyperparameters for Random Forest model
+2025-04-29 19:44:22,054 - edupredict - INFO - Best parameters for Random Forest: {'n_estimators': 100, 'min_samples_split': 10, 'min_samples_leaf': 2, 'max_features': 'log2', 'max_depth': 10, 'class_weight': None}
+2025-04-29 19:44:22,783 - edupredict - INFO - Saved Random Forest model to ./models/random_forest.pkl
+2025-04-29 19:44:22,799 - edupredict - INFO - Training GRU model...
+2025-04-29 19:44:22,799 - edupredict - INFO - Preparing GRU training data
+2025-04-29 19:44:23,422 - edupredict - INFO - Number of training samples: 14
+2025-04-29 19:44:23,423 - edupredict - INFO - Target shape: (14,)
+2025-04-29 19:44:23,423 - edupredict - INFO - Creating train/validation split for GRU model
+2025-04-29 19:44:23,425 - edupredict - ERROR - Error in EduPredict: The least populated class in y has only 1 member, which is too few. The minimum number of groups for any class cannot be less than 2.
+Traceback (most recent call last):
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 1013, in main
+    model_results = train_and_evaluate_models(feature_data, output_paths, args)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 749, in train_and_evaluate_models
+    model_results['gru'] = train_gru_model(
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/local repository/EduPredict/main.py", line 592, in train_gru_model
+    train_indices, val_indices = train_test_split(
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/utils/_param_validation.py", line 216, in wrapper
+    return func(*args, **kwargs)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/model_selection/_split.py", line 2872, in train_test_split
+    train, test = next(cv.split(X=arrays[0], y=stratify))
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/model_selection/_split.py", line 1909, in split
+    for train, test in self._iter_indices(X, y, groups):
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/model_selection/_split.py", line 2318, in _iter_indices
+    raise ValueError(
+ValueError: The least populated class in y has only 1 member, which is too few. The minimum number of groups for any class cannot be less than 2.

@@ -4,13 +4,20 @@
     "Gender distribution: {'m': 0.5484306446169422, 'f': 0.4515693553830577}",
     "IMD band distribution: {'20-30%': 0.11210996226183537, '30-40%': 0.1085815972754886, '10-20': 0.10787592427821925, '0-10%': 0.10158623017212284, '40-50%': 0.09989875126560918, '50-60%': 0.09584880188997638, '60-70%': 0.08912956769858559, '70-80%': 0.08833185039732458, '80-90%': 0.08474212254165005, '90-100%': 0.07780811830761207, 'unknown': 0.03408707391157611}"
   ],
-  "performance_patterns": [],
-  "engagement_patterns": [],
+  "performance_patterns": [
+    "Age-performance relationship: {'0-35': 74.55190257051278, '35-55': 77.25301108206502, '55<=': 79.57217165149545}",
+    "IMD-performance relationship: {'0-10%': 72.1047655904467, '10-20': 73.33945278915694, '20-30%': 74.30418701692825, '30-40%': 74.88306611025698, '40-50%': 75.35335069618351, '50-60%': 75.51088425161387, '60-70%': 75.89883973894126, '70-80%': 75.83869970635207, '80-90%': 77.44957675828195, '90-100%': 77.7397995509064, 'unknown': 79.08868370195405}"
+  ],
+  "engagement_patterns": [
+    "Peak engagement day: Day 236 with 4.72 avg clicks",
+    "Engagement variability: min=1, max=28615, median=824.0, std=1935.99, CV=1.27"
+  ],
   "data_quality_issues": [
-    "vle has missing values: {'week_from': 9269544, 'week_to': 9269544}",
-    "assessments has missing values: {'date': 2865}"
+    "student_assessments has missing values: {'date': 2865}"
   ],
   "modeling_implications": [
-    "Data contains missing values (up to 19.3% in some datasets); robust imputation strategies needed"
+    "Age shows correlation with performance (difference of 5.0 points); age-specific features may be beneficial",
+    "IMD band shows socioeconomic gradient in performance (correlation=0.98, p=0.000); fairness metrics needed",
+    "High variability in engagement (CV=1.27); temporal features will be critical"
   ]
 }

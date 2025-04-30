@@ -1,14 +1,14 @@
-import numpy as np
-import pandas as pd
-import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras.layers import GRU, Dense, Input, Embedding, Dropout, BatchNormalization
-from tensorflow.keras.models import Model, load_model
-from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
-from tensorflow.keras.utils import to_categorical
-from sklearn.preprocessing import StandardScaler, LabelEncoder
+import numpy as np # type: ignore
+import pandas as pd # type: ignore
+import tensorflow as tf # type: ignore
+from tensorflow import keras # type: ignore
+from tensorflow.keras.layers import GRU, Dense, Input, Embedding, Dropout, BatchNormalization # type: ignore
+from tensorflow.keras.models import Model, load_model # type: ignore
+from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint # type: ignore
+from tensorflow.keras.utils import to_categorical # type: ignore
+from sklearn.preprocessing import StandardScaler, LabelEncoder # type: ignore
 from typing import Dict, List, Tuple, Optional
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt # type: ignore
 import pickle
 import os
 
