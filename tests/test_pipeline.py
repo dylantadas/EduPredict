@@ -10,7 +10,8 @@ from data_processing.data_loader import load_raw_datasets
 from data_processing.data_cleaner import (
     clean_demographic_data,
     clean_vle_data,
-    clean_assessment_data
+    clean_assessment_data,
+    clean_registration_data
 )
 from data_processing.data_splitter import create_stratified_splits
 from data_processing.data_monitor import detect_data_quality_issues
@@ -37,18 +38,18 @@ class TestPipeline(unittest.TestCase):
         self.output_path = self.data_path / "output"
         self.output_path.mkdir()
 
-        # Create sample demographic data
+        # Create sample demographic data with enough samples for stratification
         self.demographics = pd.DataFrame({
-            'id_student': [1, 2, 3, 4, 5],
-            'code_module': ['AAA', 'BBB', 'AAA', 'CCC', 'BBB'],
-            'code_presentation': ['2020J', '2020J', '2020B', '2020B', '2020B'],
-            'gender': ['M', 'F', 'M', 'F', 'M'],
-            'region': ['East', 'London', 'Scotland', 'Wales', 'North'],
-            'highest_education': ['A Level', 'HE', 'A Level', 'None', 'HE'],
-            'imd_band': ['0-10%', '20-30%', '30-40%', '50-60%', '90-100%'],
-            'age_band': ['0-35', '0-35', '35-55', '35-55', '55<='],
-            'disability': ['N', 'Y', 'N', 'N', 'Y'],
-            'final_result': ['Pass', 'Fail', 'Distinction', 'Withdrawn', 'Pass']
+            'id_student': range(1, 21),  # 20 students
+            'code_module': ['AAA']*5 + ['BBB']*10 + ['CCC']*5,
+            'code_presentation': ['2020J']*10 + ['2020B']*10,
+            'gender': ['M', 'F']*10,  # Even gender distribution
+            'region': ['East', 'London', 'Scotland', 'Wales', 'North']*4,
+            'highest_education': ['A Level', 'HE', 'A Level', 'None', 'HE']*4,
+            'imd_band': ['0-10%', '20-30%', '30-40%', '50-60%', '90-100%']*4,
+            'age_band': ['0-35']*7 + ['35-55']*7 + ['55<=']*6,  # More balanced age distribution
+            'disability': ['N', 'Y']*10,
+            'final_result': ['Pass', 'Fail', 'Distinction', 'Withdrawn']*5
         })
 
         # Create sample VLE data
@@ -62,13 +63,30 @@ class TestPipeline(unittest.TestCase):
             'activity_type': ['resource', 'quiz', 'resource', 'forum', 'quiz']
         })
 
-        # Create sample assessment data
+        # Create sample VLE materials data
+        self.vle_materials = pd.DataFrame({
+            'id_site': [1, 2, 3],
+            'code_module': ['AAA', 'BBB', 'CCC'],
+            'code_presentation': ['2020J', '2020J', '2020B'],
+            'activity_type': ['resource', 'quiz', 'forum']
+        })
+
+        # Create sample assessments data
+        self.assessments = pd.DataFrame({
+            'id_assessment': [1, 2, 3, 4],
+            'code_module': ['AAA', 'BBB', 'AAA', 'CCC'],
+            'code_presentation': ['2020J', '2020J', '2020B', '2020B'],
+            'assessment_type': ['TMA', 'CMA', 'TMA', 'Exam'],
+            'date': [30, 60, 90, 180],
+            'weight': [20, 30, 20, 30]
+        })
+
+        # Create sample assessment submission data
         self.assessment_data = pd.DataFrame({
             'id_student': [1, 2, 2, 3, 4],
+            'id_assessment': [1, 1, 2, 3, 4],
             'code_module': ['AAA', 'BBB', 'BBB', 'AAA', 'CCC'],
             'code_presentation': ['2020J', '2020J', '2020J', '2020B', '2020B'],
-            'assessment_type': ['TMA', 'TMA', 'CMA', 'CMA', 'Exam'],
-            'date': [30, 30, 60, 60, 90],
             'date_submitted': [25, 28, 55, 58, 85],
             'score': [85, 65, 75, 90, 45]
         })
@@ -82,7 +100,9 @@ class TestPipeline(unittest.TestCase):
         # Save sample data
         self.demographics.to_csv(self.data_path / "studentInfo.csv", index=False)
         self.vle_data.to_csv(self.data_path / "studentVle.csv", index=False)
+        self.vle_materials.to_csv(self.data_path / "vle.csv", index=False)
         self.assessment_data.to_csv(self.data_path / "studentAssessment.csv", index=False)
+        self.assessments.to_csv(self.data_path / "assessments.csv", index=False)
 
         # Test data loading
         datasets = load_raw_datasets(str(self.data_path))
@@ -95,10 +115,7 @@ class TestPipeline(unittest.TestCase):
         self.assertTrue(validation_result)
 
         # Test data quality monitoring
-        quality_report = detect_data_quality_issues(
-            datasets['student_info'],
-            protected_cols=['gender', 'age_band', 'disability']
-        )
+        quality_report = detect_data_quality_issues(datasets)
         self.assertTrue('quality_metrics' in quality_report)
         self.assertTrue('recommendations' in quality_report)
 
@@ -107,7 +124,8 @@ class TestPipeline(unittest.TestCase):
             'demographics': clean_demographic_data(datasets['student_info']),
             'vle': clean_vle_data(self.vle_data, pd.DataFrame()),
             'assessments': clean_assessment_data(
-                pd.DataFrame(), datasets['student_assessments']
+                datasets['assessments'],  # Use loaded assessment data
+                datasets['student_assessments']
             )
         }
         self.assertTrue(all(len(df) > 0 for df in clean_data.values()))
@@ -148,20 +166,51 @@ class TestPipeline(unittest.TestCase):
         self.assertTrue(all(attr in demographic_impact for attr in ['gender', 'age_band', 'disability']))
 
         # Test feature importance analysis
-        importance = analyze_feature_importance(
+        importance_df, _ = analyze_feature_importance(
             self.demographics,
-            self.demographics['final_result'],
-            feature_type='demographic',
-            save_path=str(self.output_path / 'importance.png')
+            self.demographics['final_result']
         )
-        self.assertTrue(isinstance(importance[0], pd.DataFrame))
+        self.assertTrue(isinstance(importance_df, pd.DataFrame))
+        self.assertTrue('feature' in importance_df.columns)
+        self.assertTrue('importance' in importance_df.columns)
 
         # Test correlation analysis
-        correlations = analyze_feature_correlations(
-            self.demographics,
-            feature_type='demographic'
-        )
+        correlations = analyze_feature_correlations(self.demographics)
         self.assertTrue(isinstance(correlations, pd.DataFrame))
+
+    def test_registration_data_cleaning(self):
+        """Tests the cleaning of student registration data."""
+        # Create test data
+        test_data = pd.DataFrame({
+            'code_module': ['AAA', 'BBB', 'CCC', 'AAA'],
+            'code_presentation': ['2013J', '2013J', '2014B', '2014B'],
+            'id_student': [1, 2, 3, 4],
+            'date_registration': [-30, -5, 10, 35],  # Mix of early, on-time, and late
+            'date_unregistration': [None, 45, None, 190]  # Mix of completed and dropped
+        })
+        
+        # Clean the data
+        cleaned_data = clean_registration_data(test_data)
+        
+        # Validate cleaning results
+        assert 'completed_module' in cleaned_data.columns
+        assert 'registration_type' in cleaned_data.columns
+        
+        # Check registration type categorization
+        assert cleaned_data.loc[0, 'registration_type'] == 'early'
+        assert cleaned_data.loc[1, 'registration_type'] == 'on_time'
+        assert cleaned_data.loc[2, 'registration_type'] == 'late'
+        assert cleaned_data.loc[3, 'registration_type'] == 'late'
+        
+        # Check completion status
+        assert cleaned_data.loc[0, 'completed_module']  # No unregistration date = completed
+        assert not cleaned_data.loc[1, 'completed_module']  # Has unregistration = dropped
+        assert cleaned_data.loc[2, 'completed_module']  # No unregistration date = completed
+        assert not cleaned_data.loc[3, 'completed_module']  # Has unregistration = dropped
+        
+        # Validate module codes
+        assert all(code in ['AAA', 'BBB', 'CCC'] for code in cleaned_data['code_module'])
+        assert all(code in ['2013J', '2013B', '2014J', '2014B'] for code in cleaned_data['code_presentation'])
 
 if __name__ == '__main__':
     unittest.main()

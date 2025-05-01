@@ -73,99 +73,118 @@ def validate_demographic_parameters(params: Dict) -> bool:
 
 @monitor_memory_usage
 def create_demographic_features(
-    demographic_data: pd.DataFrame,
+    data: pd.DataFrame,
     params: Optional[Dict] = None
 ) -> pd.DataFrame:
     """
     Creates demographic features with fairness considerations.
     
     Args:
-        demographic_data: DataFrame containing demographic information
+        data: DataFrame containing demographic information
         params: Optional parameters for feature creation
         
     Returns:
         DataFrame with processed demographic features
     """
     try:
-        params = params or {}
-        features = demographic_data.copy()
-        
-        # Monitor original distributions
-        _monitor_original_distributions(features)
-        
-        # Standardize values
-        features = standardize_demographic_values(features)
-        
-        # Create binary indicators for sensitive attributes
-        for attr in FAIRNESS['protected_attributes']:
-            if attr in features.columns:
-                # Create dummy variables
-                dummies = pd.get_dummies(
-                    features[attr], 
-                    prefix=attr,
-                    prefix_sep='_'
-                )
-                features = pd.concat([features, dummies], axis=1)
-                
-                # Check group sizes
-                group_sizes = features[attr].value_counts()
-                small_groups = group_sizes[group_sizes < FAIRNESS['min_group_size']]
-                if not small_groups.empty:
-                    logger.warning(
-                        f"Small group sizes detected in {attr}: "
-                        f"{small_groups.to_dict()}"
+        logger.info("Starting demographic feature creation")
+        demographic_features = data.copy()
+
+        for col in demographic_features.columns:
+            try:
+                # Create protected attribute features
+                if col in FAIRNESS['protected_attributes']:
+                    # Create dummy variables
+                    attr_dummies = pd.get_dummies(
+                        demographic_features[col], 
+                        prefix=col,
+                        prefix_sep='_'
                     )
-        
-        # Handle highest education level
-        if 'highest_education' in features.columns:
-            # Create education level encoding
-            education_order = [
-                'no_formal',
-                'below_a_level',
-                'a_level',
-                'he_qualification',
-                'post_graduate'
-            ]
-            features['education_level'] = pd.Categorical(
-                features['highest_education'],
-                categories=education_order,
-                ordered=True
-            ).codes
-            
-            # Create dummy variables
-            edu_dummies = pd.get_dummies(
-                features['highest_education'],
-                prefix='education'
-            )
-            features = pd.concat([features, edu_dummies], axis=1)
-        
-        # Handle numeric demographic features
-        numeric_demo = ['studied_credits', 'num_of_prev_attempts']
-        for col in numeric_demo:
-            if col in features.columns:
-                # Add binned version
-                features[f'{col}_binned'] = pd.qcut(
-                    features[col],
-                    q=5,
-                    labels=[f'{col}_q{i+1}' for i in range(5)]
-                )
+                    demographic_features = pd.concat([demographic_features, attr_dummies], axis=1)
+                    
+                    # Check group sizes
+                    group_sizes = demographic_features[col].value_counts()
+                    small_groups = group_sizes[group_sizes < FAIRNESS['min_group_size']]
+                    if not small_groups.empty:
+                        logger.warning(
+                            f"Small group sizes detected in {col}: "
+                            f"{small_groups.to_dict()}"
+                        )
                 
-                # Add standardized version
-                features[f'{col}_scaled'] = (features[col] - features[col].mean()) / features[col].std()
-        
-        # Create interaction terms for relevant features
-        _create_interaction_terms(features)
+                # Handle education level
+                if col == 'highest_education':
+                    education_order = [
+                        'no_formal',
+                        'below_a_level',
+                        'a_level',
+                        'he_qualification',
+                        'post_graduate'
+                    ]
+                    demographic_features['education_level'] = pd.Categorical(
+                        demographic_features['highest_education'],
+                        categories=education_order,
+                        ordered=True
+                    ).codes
+                    
+                    edu_dummies = pd.get_dummies(
+                        demographic_features['highest_education'],
+                        prefix='education'
+                    )
+                    demographic_features = pd.concat([demographic_features, edu_dummies], axis=1)
+                
+                # Handle numeric demographic features
+                numeric_columns = ['studied_credits', 'num_of_prev_attempts']
+                if col in numeric_columns:
+                    # Convert to numeric safely
+                    numeric_values = pd.to_numeric(demographic_features[col], errors='coerce')
+                    demographic_features[col] = numeric_values
+                    
+                    # Only create bins if we have valid numeric values
+                    if not numeric_values.isna().all():
+                        try:
+                            # Create bins using qcut
+                            bins = pd.qcut(
+                                numeric_values,
+                                q=5,
+                                labels=[f'{col}_q{i+1}' for i in range(5)],
+                                duplicates='drop'
+                            )
+                            demographic_features[f'{col}_binned'] = bins
+                        except ValueError as e:
+                            logger.warning(f"Could not create bins for {col}: {str(e)}")
+                    
+                    # Calculate statistics for scaling using distinct variable names
+                    valid_numeric = numeric_values.dropna()
+                    if not valid_numeric.empty:
+                        # Calculate statistics with unique names to avoid conflicts
+                        col_mean = float(valid_numeric.mean())
+                        col_std = float(valid_numeric.std())
+                        
+                        if col_std > 0:
+                            demographic_features[f'{col}_scaled'] = (
+                                (numeric_values - col_mean) / col_std
+                            )
+                        else:
+                            logger.warning(f"Could not scale {col} due to zero standard deviation")
+                            demographic_features[f'{col}_scaled'] = numeric_values
+
+            except Exception as column_error:
+                logger.error("Error processing column %s: %s", col, str(column_error))
+                raise
+
+        # Create interaction terms
+        _create_interaction_terms(demographic_features)
         
         # Monitor feature distributions
-        _monitor_feature_distributions(features)
+        _monitor_feature_distributions(demographic_features)
         
         # Export feature metadata
-        _export_demographic_metadata(features, params)
+        _export_demographic_metadata(demographic_features, params)
         
-        return features
-        
+        return demographic_features
+
     except Exception as e:
-        logger.error(f"Error creating demographic features: {str(e)}")
+        logger.error("Error in create_demographic_features: %s", str(e))
         raise
 
 def _monitor_original_distributions(data: pd.DataFrame) -> None:
@@ -193,7 +212,7 @@ def _create_interaction_terms(features: pd.DataFrame) -> None:
     """Creates interaction terms between relevant features."""
     try:
         # Create education-region interaction
-        if all(col in features.columns for col in ['education_level', 'region']):
+        if all(col in features.columns for col in ['highest_education', 'region']):
             features['education_by_region'] = features.apply(
                 lambda x: f"{x['highest_education']}_{x['region']}",
                 axis=1
@@ -282,4 +301,57 @@ def _export_demographic_metadata(features: pd.DataFrame, params: Dict) -> None:
         
     except Exception as e:
         logger.error(f"Error exporting feature metadata: {str(e)}")
+        raise
+
+def load_features(feature_path: str, format: str = 'parquet') -> pd.DataFrame:
+    """
+    Load features from disk in either parquet or csv format.
+    
+    Args:
+        feature_path: Path to the feature file
+        format: File format ('parquet' or 'csv')
+        
+    Returns:
+        DataFrame containing the features
+    """
+    try:
+        if format.lower() == 'parquet':
+            try:
+                return pd.read_parquet(feature_path)
+            except (ImportError, Exception) as e:
+                logger.warning(f"Failed to load parquet file: {e}. Trying CSV format.")
+                return pd.read_csv(feature_path)
+        else:
+            return pd.read_csv(feature_path)
+    except Exception as e:
+        logger.error(f"Error loading features from {feature_path}: {str(e)}")
+        raise
+
+def save_features(features: pd.DataFrame, output_path: str, format: str = 'parquet') -> str:
+    """
+    Save features to disk in either parquet or csv format.
+    
+    Args:
+        features: DataFrame containing the features
+        output_path: Path to save the features
+        format: File format ('parquet' or 'csv')
+        
+    Returns:
+        Path to the saved file
+    """
+    try:
+        if format.lower() == 'parquet':
+            try:
+                features.to_parquet(output_path)
+                return output_path
+            except ImportError as e:
+                logger.warning(f"Failed to save as parquet: {e}. Falling back to CSV format.")
+                csv_path = output_path.replace('.parquet', '.csv')
+                features.to_csv(csv_path, index=False)
+                return csv_path
+        else:
+            features.to_csv(output_path, index=False)
+            return output_path
+    except Exception as e:
+        logger.error(f"Error saving features to {output_path}: {str(e)}")
         raise

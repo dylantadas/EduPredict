@@ -3,7 +3,7 @@ import numpy as np
 from typing import Dict, List, Optional, Any, Union
 import logging
 from scipy import stats
-from config import DATA_PROCESSING, PROTECTED_ATTRIBUTES, FAIRNESS, BIAS_MITIGATION
+from config import DATA_PROCESSING, PROTECTED_ATTRIBUTES, FAIRNESS, BIAS_MITIGATION, MODULE_CODES, PRESENTATION_CODES
 
 logger = logging.getLogger('edupredict')
 
@@ -14,261 +14,153 @@ def clean_demographic_data(
 ) -> pd.DataFrame:
     """
     Cleans demographic data and handles missing values with enhanced fairness considerations.
-
-    Args:
-        student_info: DataFrame containing student demographic information
-        missing_value_strategy: Dictionary mapping columns to missing value strategies
-        logger: Logger for tracking cleaning process
-
-    Returns:
-        Cleaned demographic DataFrame
     """
     logger = logger or logging.getLogger('edupredict')
+    
+    if student_info.empty:
+        raise ValueError("Student demographic data cannot be empty")
+        
     cleaned_data = student_info.copy()
     protected_cols = list(PROTECTED_ATTRIBUTES.keys())
 
     try:
-        # Initialize null tracking
-        initial_nulls = cleaned_data['num_of_prev_attempts'].isnull().sum()
-        logger.info(f"Initial null values in num_of_prev_attempts: {initial_nulls}")
+        # Initialize default strategies
+        strategy = missing_value_strategy or DATA_PROCESSING.get('missing_value_strategy', 'median')
+        default_strategies = {
+            'imd_band': 'unknown',
+            'disability': 'N',
+            'highest_education': 'unknown',
+            'age_band': 'unknown',
+            'region': 'unknown'
+        }
+        
+        # Log initial distributions
+        logger.info("Initial protected attribute distributions:")
+        for col in protected_cols:
+            if col in cleaned_data.columns:
+                logger.info(f"{col} distribution:\n{cleaned_data[col].value_counts(normalize=True)}")
+
+        # Handle protected attributes first
+        for col in protected_cols:
+            if col in cleaned_data.columns:
+                # Special handling for age_band merging
+                if col == 'age_band':
+                    # Merge 35-55 and 55<= into 35+
+                    cleaned_data[col] = cleaned_data[col].replace({'35-55': '35+', '55<=': '35+'})
+                    logger.info("Merged age bands 35-55 and 55<= into 35+")
+                    valid_values = ['0-35', '35+']
+                else:
+                    valid_values = PROTECTED_ATTRIBUTES[col]['values']
+                
+                # Include 'unknown' for missing value handling
+                all_values = list(valid_values) + ['unknown']
+                
+                # Create category with all possible values
+                cleaned_data[col] = pd.Categorical(
+                    cleaned_data[col].str.strip().str.lower(),
+                    categories=all_values,
+                    ordered=False
+                )
+
+                # Handle missing values while preserving distributions
+                null_mask = cleaned_data[col].isnull()
+                if null_mask.any():
+                    # Get current distribution excluding nulls
+                    current_dist = cleaned_data[col].value_counts(normalize=True).fillna(0)
+                    if current_dist.sum() > 0:  # Ensure we have valid probabilities
+                        cleaned_data.loc[null_mask, col] = np.random.choice(
+                            current_dist.index,
+                            size=null_mask.sum(),
+                            p=current_dist.values
+                        )
+                    else:
+                        # If no valid distribution, use default value
+                        cleaned_data.loc[null_mask, col] = 'unknown'
+                    
+                    logger.info(f"Filled {null_mask.sum()} missing values in {col}")
 
         # Handle num_of_prev_attempts with fairness-aware imputation
-        if 'num_of_prev_attempts' in cleaned_data.columns:
-            # First pass: Group by protected attributes for fair imputation
-            for attr in protected_cols:
-                if attr in cleaned_data.columns:
-                    # Calculate and validate group means
-                    group_means = cleaned_data.groupby(attr)['num_of_prev_attempts'].transform('mean')
-                    group_means = group_means.fillna(cleaned_data['num_of_prev_attempts'].mean())
-                    
-                    # Apply group means where null
-                    null_mask = cleaned_data['num_of_prev_attempts'].isnull()
-                    cleaned_data.loc[null_mask, 'num_of_prev_attempts'] = group_means[null_mask]
-                    
-                    remaining_nulls = cleaned_data['num_of_prev_attempts'].isnull().sum()
-                    logger.info(f"Remaining nulls after {attr} group imputation: {remaining_nulls}")
-
-            # Second pass: Fill any remaining nulls with global statistics
-            if cleaned_data['num_of_prev_attempts'].isnull().any():
-                global_mean = cleaned_data['num_of_prev_attempts'].mean()
-                if pd.isnull(global_mean):
-                    global_mean = 0  # Default to 0 if still NaN
-                cleaned_data['num_of_prev_attempts'].fillna(global_mean, inplace=True)
-                logger.info(f"Filled remaining nulls with global mean: {global_mean}")
-
-        # Verify final state
-        final_nulls = cleaned_data['num_of_prev_attempts'].isnull().sum()
-        if final_nulls > 0:
-            logger.warning(f"Unexpected remaining null values: {final_nulls}")
+        if 'num_of_prev_attempts' not in cleaned_data.columns:
+            cleaned_data['num_of_prev_attempts'] = 0
+            logger.info("Added num_of_prev_attempts column with default value 0")
         else:
-            logger.info("Successfully imputed all null values in num_of_prev_attempts")
+            initial_nulls = cleaned_data['num_of_prev_attempts'].isnull().sum()
+            if initial_nulls > 0:
+                logger.info(f"Found {initial_nulls} null values in num_of_prev_attempts")
+                
+                # Group-aware imputation
+                for attr in protected_cols:
+                    if attr in cleaned_data.columns:
+                        group_stats = cleaned_data.groupby(attr)['num_of_prev_attempts'].agg(['mean', 'std'])
+                        for group in cleaned_data[attr].unique():
+                            mask = (cleaned_data[attr] == group) & cleaned_data['num_of_prev_attempts'].isnull()
+                            if mask.any():
+                                group_mean = group_stats.loc[group, 'mean']
+                                if pd.isna(group_mean):  # If group stats are invalid, use global mean
+                                    group_mean = cleaned_data['num_of_prev_attempts'].mean()
+                                group_std = np.clip(group_stats.loc[group, 'std'], a_min=1e-6, a_max=None)
+                                cleaned_data.loc[mask, 'num_of_prev_attempts'] = group_mean
 
-        # Rest of demographic cleaning...
-        original_count = len(cleaned_data)
-
-        try:
-            # Log initial protected attribute distributions
-            logger.info("Initial protected attribute distributions:")
-            for col in protected_cols:
-                if col in cleaned_data.columns:
-                    logger.info(f"{col} distribution:\n{cleaned_data[col].value_counts(normalize=True)}")
-
-            # Use missing value strategy from config
-            strategy = missing_value_strategy or DATA_PROCESSING.get('missing_value_strategy', 'median')
-            default_strategies = {
-                'imd_band': 'unknown',
-                'disability': 'N',
-                'highest_education': 'unknown',
-                'age_band': 'unknown',
-                'region': 'unknown'
-            }
-
-            # Normalize numerical values before filtering to prevent bias
-            numerical_cols = ['studied_credits', 'num_of_prev_attempts']
-            for col in numerical_cols:
-                if col in cleaned_data.columns:
-                    # Use robust scaling to minimize impact of outliers
-                    cleaned_data[col] = (cleaned_data[col] - cleaned_data[col].median()) / (
-                        cleaned_data[col].quantile(0.75) - cleaned_data[col].quantile(0.25)
+        # Handle other categorical columns
+        for col in cleaned_data.columns:
+            if col not in protected_cols and col in default_strategies:
+                if not isinstance(cleaned_data[col].dtype, pd.CategoricalDtype):
+                    # Convert to lowercase if string
+                    if cleaned_data[col].dtype == object:
+                        cleaned_data[col] = cleaned_data[col].str.strip().str.lower()
+                    
+                    # Get unique values including default
+                    unique_vals = list(cleaned_data[col].dropna().unique()) + [default_strategies[col]]
+                    # Remove duplicates while preserving order
+                    unique_vals = list(dict.fromkeys(unique_vals))
+                    
+                    # Create categorical with all values
+                    cleaned_data[col] = pd.Categorical(
+                        cleaned_data[col],
+                        categories=unique_vals,
+                        ordered=False
                     )
 
-            # Filter rows with missing final_result using stratified sampling
-            if 'final_result' in cleaned_data.columns:
-                missing_mask = cleaned_data['final_result'].isna()
-                if missing_mask.any():
-                    # Calculate sampling weights to maintain demographic proportions
-                    weights = np.ones(len(cleaned_data))
-                    for col in protected_cols:
-                        if col in cleaned_data.columns:
-                            group_props = cleaned_data[col].value_counts(normalize=True)
-                            weights *= cleaned_data[col].map(lambda x: 1/group_props[x])
-                    
-                    # Normalize weights
-                    weights = weights / weights.sum()
-                    
-                    # Stratified sampling of rows to remove
-                    keep_mask = ~missing_mask | (
-                        np.random.random(len(cleaned_data)) < weights
-                    )
-                    cleaned_data = cleaned_data[keep_mask]
-                    
-                    removed_count = original_count - len(cleaned_data)
-                    if removed_count > 0:
-                        logger.warning(f"Removed {removed_count} rows ({removed_count/original_count:.2%}) with missing final_result")
-                        # Check impact on protected groups
-                        for col in protected_cols:
-                            if col in cleaned_data.columns:
-                                before_dist = student_info[col].value_counts(normalize=True)
-                                after_dist = cleaned_data[col].value_counts(normalize=True)
-                                max_diff = max(abs(before_dist - after_dist))
-                                if max_diff > FAIRNESS['threshold']:
-                                    logger.warning(f"Significant change in {col} distribution after filtering: {max_diff:.3f}")
-
-            # Apply data types from config
-            for col, dtype in DATA_PROCESSING['dtypes'].items():
-                if col in cleaned_data.columns:
-                    cleaned_data[col] = cleaned_data[col].astype(dtype)
-
-            # Standardize protected attributes using PROTECTED_ATTRIBUTES config
-            for col in protected_cols:
-                if col in cleaned_data.columns:
-                    # Map values to standardized format
-                    value_map = {v.lower(): v.lower() for v in PROTECTED_ATTRIBUTES[col]['values']}
-                    cleaned_data[col] = cleaned_data[col].str.strip().str.lower().map(value_map)
-                    
-                    # Handle invalid values proportionally
-                    invalid_mask = ~cleaned_data[col].isin(value_map.values())
-                    if invalid_mask.any():
-                        invalid_count = invalid_mask.sum()
-                        logger.warning(f"Found {invalid_count} invalid values in {col}")
-                        
-                        # Distribute invalid values proportionally
-                        valid_dist = cleaned_data.loc[~invalid_mask, col].value_counts(normalize=True)
-                        invalid_indices = cleaned_data[invalid_mask].index
-                        cleaned_data.loc[invalid_indices, col] = np.random.choice(
-                            valid_dist.index,
-                            size=len(invalid_indices),
-                            p=valid_dist.values
-                        )
-
-            # Handle missing values with fairness awareness
-            for col in cleaned_data.columns:
+                # Fill missing values
                 if cleaned_data[col].isnull().any():
-                    if col in protected_cols:
-                        # Preserve group distributions when filling missing values
-                        group_dist = cleaned_data[col].value_counts(normalize=True)
-                        null_indices = cleaned_data[cleaned_data[col].isnull()].index
-                        cleaned_data.loc[null_indices, col] = np.random.choice(
-                            group_dist.index,
-                            size=len(null_indices),
-                            p=group_dist.values
-                        )
-                        logger.info(f"Filled missing values in protected attribute {col} preserving distributions")
-                    elif strategy == 'median' and cleaned_data[col].dtype in ['int64', 'float64']:
-                        # Fill numerical missing values while preserving group-specific distributions
-                        for protected_col in protected_cols:
-                            if protected_col in cleaned_data.columns:
-                                group_medians = cleaned_data.groupby(protected_col)[col].transform('median')
-                                cleaned_data[col] = cleaned_data[col].fillna(group_medians)
-                    elif strategy == 'mode':
-                        # Fill categorical missing values while preserving group-specific distributions
-                        for protected_col in protected_cols:
-                            if protected_col in cleaned_data.columns:
-                                group_modes = cleaned_data.groupby(protected_col)[col].transform(
-                                    lambda x: x.mode()[0] if not x.mode().empty else None
-                                )
-                                cleaned_data[col] = cleaned_data[col].fillna(group_modes)
-                    else:
-                        # Use default strategies from config
-                        if col in default_strategies:
-                            cleaned_data[col] = cleaned_data[col].fillna(default_strategies[col])
+                    default_value = default_strategies[col]
+                    if default_value not in cleaned_data[col].cat.categories:
+                        cleaned_data[col] = cleaned_data[col].cat.add_categories([default_value])
+                    cleaned_data[col] = cleaned_data[col].fillna(default_value)
 
-            # Apply bias mitigation if configured
-            if BIAS_MITIGATION['method'] != 'none':
-                for col in protected_cols:
-                    if col in cleaned_data.columns:
-                        group_sizes = cleaned_data[col].value_counts()
-                        if (group_sizes.max() / group_sizes.min()) > BIAS_MITIGATION['max_ratio']:
+        # Apply bias mitigation if configured
+        if BIAS_MITIGATION['method'] != 'none':
+            for col in protected_cols:
+                if col in cleaned_data.columns:
+                    # Filter out empty groups
+                    group_sizes = cleaned_data[col].value_counts()
+                    non_empty_groups = group_sizes[group_sizes > 0]
+                    
+                    if len(non_empty_groups) >= 2:  # Need at least 2 groups to calculate ratio
+                        max_ratio = non_empty_groups.max() / non_empty_groups.min()
+                        
+                        if max_ratio > BIAS_MITIGATION['max_ratio']:
                             logger.warning(f"Applying {BIAS_MITIGATION['method']} bias mitigation for {col}")
                             
                             if BIAS_MITIGATION['method'] == 'reweight':
-                                # Calculate weights to balance groups
-                                weights = 1 / (group_sizes / len(cleaned_data))
+                                weights = 1 / (non_empty_groups / len(cleaned_data))
                                 cleaned_data[f'{col}_weight'] = cleaned_data[col].map(weights)
-                            
                             elif BIAS_MITIGATION['method'] in ['oversample', 'undersample']:
-                                # Implement sampling in a separate function to maintain clean structure
                                 cleaned_data = _apply_sampling_strategy(
-                                    cleaned_data, 
-                                    col, 
+                                    cleaned_data,
+                                    col,
                                     BIAS_MITIGATION['method'],
                                     BIAS_MITIGATION['target_ratios']
                                 )
 
-            # Normalize num_of_prev_attempts using fairness-aware scaling
-            if 'num_of_prev_attempts' in cleaned_data.columns:
-                for protected_col in protected_cols:
-                    if protected_col in cleaned_data.columns:
-                        # Calculate group-specific statistics
-                        group_stats = cleaned_data.groupby(protected_col)['num_of_prev_attempts'].agg(['mean', 'std'])
-                        
-                        # Apply group-specific normalization
-                        for group in cleaned_data[protected_col].unique():
-                            mask = cleaned_data[protected_col] == group
-                            group_mean = group_stats.loc[group, 'mean']
-                            # Clip std to prevent division by zero, with both lower and upper bounds
-                            group_std = np.clip(group_stats.loc[group, 'std'], a_min=1e-6, a_max=None)
-                            cleaned_data.loc[mask, 'num_of_prev_attempts'] = (
-                                (cleaned_data.loc[mask, 'num_of_prev_attempts'] - group_mean) / group_std
-                            )
-                        
-                        # Verify fairness after normalization
-                        normalized_means = cleaned_data.groupby(protected_col)['num_of_prev_attempts'].mean()
-                        max_diff = normalized_means.max() - normalized_means.min()
-                        if max_diff > FAIRNESS['threshold']:
-                            logger.warning(
-                                f"Normalized num_of_prev_attempts still shows disparity for {protected_col}: {max_diff:.3f}"
-                            )
+        # Validate final state
+        logger.info("\nFinal protected attribute distributions:")
+        for col in protected_cols:
+            if col in cleaned_data.columns:
+                final_dist = cleaned_data[col].value_counts(normalize=True)
+                logger.info(f"{col} distribution:\n{final_dist}")
 
-            # Log final protected attribute distributions
-            logger.info("Final protected attribute distributions:")
-            for col in protected_cols:
-                if col in cleaned_data.columns:
-                    logger.info(f"{col} distribution:\n{cleaned_data[col].value_counts(normalize=True)}")
-
-            # Final fairness validation
-            fairness_metrics = {}
-            for col in protected_cols:
-                if col in cleaned_data.columns:
-                    group_stats = {}
-                    for feature in numerical_cols:
-                        if feature in cleaned_data.columns:
-                            group_means = cleaned_data.groupby(col)[feature].mean()
-                            max_disparity = (group_means.max() - group_means.min()) / group_means.max()
-                            group_stats[feature] = {
-                                'disparity': max_disparity,
-                                'threshold_exceeded': max_disparity > FAIRNESS['threshold']
-                            }
-                    fairness_metrics[col] = group_stats
-                    
-                    # Log concerning disparities
-                    for feature, stats in group_stats.items():
-                        if stats['threshold_exceeded']:
-                            logger.warning(
-                                f"Feature {feature} shows high disparity ({stats['disparity']:.3f}) "
-                                f"for protected attribute {col}"
-                            )
-
-            # Validate cleaned data
-            null_cols = cleaned_data.isnull().sum()
-            if null_cols.any():
-                logger.warning(f"Remaining null values after cleaning: {null_cols[null_cols > 0].to_dict()}")
-
-            return cleaned_data
-
-        except Exception as e:
-            logger.error(f"Error cleaning demographic data: {str(e)}")
-            raise
+        return cleaned_data
 
     except Exception as e:
         logger.error(f"Error in demographic cleaning: {str(e)}")
@@ -322,6 +214,143 @@ def _apply_sampling_strategy(
     
     return pd.concat(balanced_dfs, ignore_index=True)
 
+def validate_module_codes(
+    df: pd.DataFrame,
+    strategy: str = 'warn',  # Options: 'warn', 'remove', 'replace'
+    replacement_values: Optional[Dict[str, str]] = None,
+    logger: Optional[logging.Logger] = None
+) -> pd.DataFrame:
+    """
+    Validates and standardizes module and presentation codes.
+    
+    Args:
+        df: DataFrame containing code_module and/or code_presentation columns
+        strategy: How to handle invalid codes:
+            - 'warn': Keep invalid codes but log warnings (default)
+            - 'remove': Remove rows with invalid codes
+            - 'replace': Replace invalid codes with specified replacements
+        replacement_values: Dictionary mapping invalid codes to valid replacements
+        logger: Optional logger instance
+    
+    Returns:
+        Validated DataFrame with standardized codes
+    """
+    logger = logger or logging.getLogger('edupredict')
+    validated = df.copy()
+    validation_stats = {
+        'code_module': {'valid': 0, 'invalid': 0, 'unique_invalid': set()},
+        'code_presentation': {'valid': 0, 'invalid': 0, 'unique_invalid': set()}
+    }
+    
+    try:
+        # Validate code_module
+        if 'code_module' in validated.columns:
+            valid_modules = set(MODULE_CODES['values'])
+            invalid_mask = ~validated['code_module'].isin(valid_modules)
+            
+            if invalid_mask.any():
+                invalid_codes = validated.loc[invalid_mask, 'code_module'].unique()
+                validation_stats['code_module'].update({
+                    'invalid': invalid_mask.sum(),
+                    'valid': (~invalid_mask).sum(),
+                    'unique_invalid': set(invalid_codes)
+                })
+                
+                logger.warning(
+                    f"Found {len(invalid_codes)} unique invalid module codes: {invalid_codes}\n"
+                    f"Total invalid entries: {invalid_mask.sum()}"
+                )
+                
+                if strategy == 'remove':
+                    validated = validated[~invalid_mask]
+                    logger.info(f"Removed {invalid_mask.sum()} rows with invalid module codes")
+                elif strategy == 'replace' and replacement_values:
+                    for invalid_code in invalid_codes:
+                        if invalid_code in replacement_values:
+                            mask = validated['code_module'] == invalid_code
+                            validated.loc[mask, 'code_module'] = replacement_values[invalid_code]
+                            logger.info(f"Replaced module code {invalid_code} with {replacement_values[invalid_code]}")
+                
+            # Convert to category type with valid codes
+            if strategy != 'remove':
+                # Include both valid codes and any remaining invalid ones
+                all_codes = list(valid_modules | set(validated['code_module'].unique()))
+            else:
+                all_codes = list(valid_modules)
+                
+            validated['code_module'] = pd.Categorical(
+                validated['code_module'],
+                categories=all_codes,
+                ordered=False
+            )
+            
+            # Log module code distribution
+            module_dist = validated['code_module'].value_counts(normalize=True)
+            logger.info(f"\nModule code distribution:\n{module_dist}")
+        
+        # Validate code_presentation
+        if 'code_presentation' in validated.columns:
+            valid_presentations = set(PRESENTATION_CODES['values'])
+            invalid_mask = ~validated['code_presentation'].isin(valid_presentations)
+            
+            if invalid_mask.any():
+                invalid_codes = validated.loc[invalid_mask, 'code_presentation'].unique()
+                validation_stats['code_presentation'].update({
+                    'invalid': invalid_mask.sum(),
+                    'valid': (~invalid_mask).sum(),
+                    'unique_invalid': set(invalid_codes)
+                })
+                
+                logger.warning(
+                    f"Found {len(invalid_codes)} unique invalid presentation codes: {invalid_codes}\n"
+                    f"Total invalid entries: {invalid_mask.sum()}"
+                )
+                
+                if strategy == 'remove':
+                    validated = validated[~invalid_mask]
+                    logger.info(f"Removed {invalid_mask.sum()} rows with invalid presentation codes")
+                elif strategy == 'replace' and replacement_values:
+                    for invalid_code in invalid_codes:
+                        if invalid_code in replacement_values:
+                            mask = validated['code_presentation'] == invalid_code
+                            validated.loc[mask, 'code_presentation'] = replacement_values[invalid_code]
+                            logger.info(f"Replaced presentation code {invalid_code} with {replacement_values[invalid_code]}")
+            
+            # Convert to category type with chronological order
+            if strategy != 'remove':
+                # Include both valid codes and any remaining invalid ones
+                all_codes = list(valid_presentations | set(validated['code_presentation'].unique()))
+            else:
+                all_codes = list(valid_presentations)
+            
+            validated['code_presentation'] = pd.Categorical(
+                validated['code_presentation'],
+                categories=sorted(all_codes),  # Sort chronologically
+                ordered=True
+            )
+            
+            # Log presentation code distribution
+            pres_dist = validated['code_presentation'].value_counts(normalize=True)
+            logger.info(f"\nPresentation code distribution:\n{pres_dist}")
+
+        # Add validation metadata
+        if validation_stats['code_module']['invalid'] > 0 or validation_stats['code_presentation']['invalid'] > 0:
+            logger.warning("\nValidation Summary:")
+            for col, stats in validation_stats.items():
+                if stats['invalid'] > 0:
+                    logger.warning(
+                        f"{col}:\n"
+                        f"  Valid entries: {stats['valid']}\n"
+                        f"  Invalid entries: {stats['invalid']}\n"
+                        f"  Invalid codes: {stats['unique_invalid']}"
+                    )
+        
+        return validated
+        
+    except Exception as e:
+        logger.error(f"Error validating module codes: {str(e)}")
+        raise
+
 def clean_vle_data(
     vle_interactions: pd.DataFrame,
     vle_materials: pd.DataFrame,
@@ -329,33 +358,32 @@ def clean_vle_data(
 ) -> pd.DataFrame:
     """
     Cleans VLE interaction data and removes invalid entries.
-    The date field represents days relative to the module start date,
-    where negative values indicate interactions before the module started.
-
-    Args:
-        vle_interactions: DataFrame of VLE interactions
-        vle_materials: DataFrame of VLE materials
-        logger: Logger for tracking cleaning process
-
-    Returns:
-        Cleaned and merged VLE data
+    The date field represents days relative to the module start date.
     """
     logger = logger or logging.getLogger('edupredict')
     
     try:
-        # Clean materials data first
-        clean_materials = vle_materials.copy()
-        clean_materials['activity_type'] = clean_materials['activity_type'].fillna('unknown')
-        
-        # Clean interactions data
+        if vle_interactions.empty:
+            raise ValueError("VLE interaction data cannot be empty")
+            
+        # Clean interactions data first
         clean_interactions = vle_interactions.copy()
         
-        # Remove invalid click counts and ensure date column exists
+        # Validate module and presentation codes
+        clean_interactions = validate_module_codes(clean_interactions, logger=logger)
+        
+        # Remove invalid click counts (ensure positive integers)
         original_count = len(clean_interactions)
-        clean_interactions = clean_interactions[clean_interactions['sum_click'] > 0]
+        clean_interactions = clean_interactions[
+            (clean_interactions['sum_click'] > 0) & 
+            (clean_interactions['sum_click'].astype(float).apply(lambda x: x.is_integer() if isinstance(x, float) else True))
+        ]
         removed_count = original_count - len(clean_interactions)
         if removed_count > 0:
-            logger.warning(f"Removed {removed_count} rows with invalid click counts")
+            logger.warning(f"Removed {removed_count} rows with invalid click counts (non-positive or non-integer)")
+            
+        # Convert to integer type after validation
+        clean_interactions['sum_click'] = clean_interactions['sum_click'].astype(int)
         
         # Ensure date column exists
         if 'date' not in clean_interactions.columns:
@@ -365,18 +393,28 @@ def clean_vle_data(
         # Sort by date to ensure temporal consistency
         clean_interactions = clean_interactions.sort_values(['id_student', 'date'])
         
-        # Merge with materials
-        cleaned_data = pd.merge(
-            clean_interactions,
-            clean_materials[['id_site', 'activity_type']],
-            on='id_site',
-            how='left'
-        )
-        
-        # Verify date column still exists after merge
-        if 'date' not in cleaned_data.columns:
-            logger.error("Date column lost during merge operation")
-            raise ValueError("Date column lost during merge operation")
+        # Only merge with materials if the DataFrame is not empty
+        if not vle_materials.empty and 'id_site' in vle_materials.columns:
+            # Clean materials data
+            clean_materials = vle_materials.copy()
+            if 'activity_type' in clean_materials.columns:
+                clean_materials['activity_type'] = clean_materials['activity_type'].fillna('unknown')
+            else:
+                clean_materials['activity_type'] = 'unknown'
+                logger.warning("activity_type column missing from vle_materials, using default value 'unknown'")
+            
+            # Merge with materials
+            cleaned_data = pd.merge(
+                clean_interactions,
+                clean_materials[['id_site', 'activity_type']],
+                on='id_site',
+                how='left'
+            )
+        else:
+            # If materials data is empty, just use interactions data
+            cleaned_data = clean_interactions
+            cleaned_data['activity_type'] = 'unknown'
+            logger.warning("No VLE materials data provided, using default activity_type 'unknown'")
         
         # Add additional temporal features if needed
         cleaned_data['day_of_week'] = cleaned_data['date'].abs() % 7  # Use abs() for day of week calculation
@@ -395,24 +433,30 @@ def clean_assessment_data(
     logger: Optional[logging.Logger] = None
 ) -> pd.DataFrame:
     """
-    Cleans assessment data and handles missing scores.
-    Properly interprets assessment dates relative to module timeline:
-    - Negative dates indicate assessments scheduled before module start
-    - 0 is module start date
-    - Positive dates are days since module start
-
+    Cleans assessment data ensuring proper joins and weight handling.
     Args:
-        assessments: DataFrame of assessment information
-        student_assessments: DataFrame of student assessment results
-        logger: Logger for tracking cleaning process
-
+        assessments: DataFrame containing assessment definitions (weights, dates)
+        student_assessments: DataFrame containing student submission results
+        logger: Optional logger instance
     Returns:
-        Cleaned assessment data with enhanced date interpretation
+        Cleaned and merged assessment data with timing metrics
     """
     logger = logger or logging.getLogger('edupredict')
     
     try:
-        # Clean student assessment data
+        if student_assessments.empty:
+            raise ValueError("Student assessment data cannot be empty")
+            
+        # Flag and remove final exams with no submissions
+        exams_without_submissions = assessments[
+            (assessments['assessment_type'] == 'Exam') &
+            (~assessments['id_assessment'].isin(student_assessments['id_assessment']))
+        ]
+        if not exams_without_submissions.empty:
+            logger.info(f"Removing {len(exams_without_submissions)} final exams with no submissions")
+            assessments = assessments[~assessments.index.isin(exams_without_submissions.index)]
+        
+        # Clean student assessments
         clean_student_assessments = student_assessments.copy()
         
         # Remove invalid scores
@@ -425,74 +469,112 @@ def clean_assessment_data(
         if removed_count > 0:
             logger.warning(f"Removed {removed_count} rows with invalid scores")
 
-        # Merge with assessment information
+        # Validate assessment data
+        if assessments.empty:
+            raise ValueError("Assessment data cannot be empty")
+            
+        # Handle zero weights
+        assessments_validated = assessments.copy()
+        zero_weights = assessments_validated['weight'] == 0
+        if zero_weights.any():
+            logger.warning(f"Found {zero_weights.sum()} assessments with zero weight, setting to default weight")
+            assessments_validated.loc[zero_weights, 'weight'] = 1.0
+
+        # Validate assessment IDs before merging
+        valid_assessment_ids = set(assessments_validated['id_assessment'])
+        invalid_submissions = clean_student_assessments[
+            ~clean_student_assessments['id_assessment'].isin(valid_assessment_ids)
+        ]
+        if not invalid_submissions.empty:
+            logger.warning(
+                f"Found {len(invalid_submissions)} submissions with invalid assessment IDs, "
+                "these will be excluded"
+            )
+            clean_student_assessments = clean_student_assessments[
+                clean_student_assessments['id_assessment'].isin(valid_assessment_ids)
+            ]
+
+        # Log validation summary
+        initial_submission_count = len(student_assessments)
+        final_submission_count = len(clean_student_assessments)
+        if final_submission_count < initial_submission_count:
+            logger.info(
+                f"Total submissions removed in cleaning: "
+                f"{initial_submission_count - final_submission_count} "
+                f"({(initial_submission_count - final_submission_count) / initial_submission_count:.1%})"
+            )
+
+        # Merge assessment data with validated submissions
         cleaned_data = pd.merge(
             clean_student_assessments,
-            assessments,
+            assessments_validated[['id_assessment', 'code_module', 'code_presentation', 
+                                'assessment_type', 'date', 'weight']],
             on='id_assessment',
-            how='left'
+            how='inner'
         )
-        
-        # Validate date fields
-        if 'date' not in cleaned_data.columns:
-            logger.error("Required 'date' column missing from assessments")
-            raise ValueError("Required 'date' column missing from assessments")
-            
-        if 'date_submitted' not in cleaned_data.columns:
-            logger.error("Required 'date_submitted' column missing from assessments")
-            raise ValueError("Required 'date_submitted' column missing from assessments")
-            
-        # Create timeline context fields
-        cleaned_data['is_pre_module'] = cleaned_data['date'] < 0
-        cleaned_data['time_to_deadline'] = cleaned_data['date'] - cleaned_data['date_submitted']
+
+        # Calculate timing metrics
         cleaned_data['submission_time'] = cleaned_data['date_submitted'] - cleaned_data['date']
         cleaned_data['is_late'] = cleaned_data['submission_time'] > 0
         cleaned_data['days_late'] = cleaned_data['submission_time'].clip(lower=0)
+        cleaned_data['time_to_deadline'] = cleaned_data['date'] - cleaned_data['date_submitted']
+
+        # Calculate metrics efficiently using groupby operations
+        group_cols = ['id_student', 'code_module', 'code_presentation']
         
-        # Group by student and check submission patterns
-        submission_patterns = cleaned_data.groupby('id_student').agg({
+        # Calculate weighted scores and other metrics using vectorized operations
+        student_metrics = cleaned_data.groupby(group_cols).agg({
+            'score': ['mean', 'std', 'min', 'max', 'count'],
+            'weight': 'sum',
             'is_late': ['mean', 'sum'],
             'days_late': ['mean', 'max'],
-            'time_to_deadline': ['mean', 'std']
+            'time_to_deadline': ['mean', 'std'],
+            'date_submitted': ['min', 'max']
         })
         
         # Flatten column names
-        submission_patterns.columns = [
-            f"{col[0]}_{col[1]}" for col in submission_patterns.columns
-        ]
+        student_metrics.columns = [f"{col[0]}_{col[1]}" for col in student_metrics.columns]
         
-        # Add submission pattern metrics back to main dataset
-        cleaned_data = cleaned_data.merge(
-            submission_patterns,
-            left_on='id_student',
-            right_index=True,
-            how='left'
+        # Add submission span
+        student_metrics['submission_span'] = (
+            student_metrics['date_submitted_max'] - 
+            student_metrics['date_submitted_min']
         )
         
-        # Validate temporal consistency
-        invalid_dates = cleaned_data[cleaned_data['date_submitted'] < cleaned_data['date']]
-        if not invalid_dates.empty:
+        # Calculate weighted scores efficiently for each group
+        weighted_scores = cleaned_data.groupby(group_cols).apply(
+            lambda x: np.average(x['score'], weights=x['weight']) if x['weight'].sum() > 0 else x['score'].mean()
+        ).to_frame('weighted_score')
+
+        # Merge all metrics back
+        cleaned_data = cleaned_data.merge(
+            pd.concat([weighted_scores, student_metrics], axis=1),
+            on=group_cols,
+            how='left'
+        )
+
+        # Log statistics and warnings
+        early_submissions = cleaned_data[cleaned_data['date_submitted'] < cleaned_data['date']]
+        if not early_submissions.empty:
             logger.warning(
-                f"Found {len(invalid_dates)} submissions with date_submitted before due date. "
-                "This may indicate data quality issues."
+                f"Found {len(early_submissions)} submissions before due date "
+                "(may indicate data quality issues)"
             )
-            # Log specific cases for investigation
-            for _, row in invalid_dates.iterrows():
-                logger.debug(
-                    f"Invalid submission timing - Student: {row['id_student']}, "
-                    f"Assessment: {row['id_assessment']}, "
-                    f"Due: {row['date']}, Submitted: {row['date_submitted']}"
-                )
         
-        # Log submission timing statistics
+        very_late = cleaned_data[cleaned_data['days_late'] > 30]
+        if not very_late.empty:
+            logger.warning(f"Found {len(very_late)} submissions more than 30 days late")
+        
         logger.info("\nSubmission timing statistics:")
         logger.info(f"Average days early/late: {cleaned_data['submission_time'].mean():.2f}")
         logger.info(f"Percentage of late submissions: {(cleaned_data['is_late'].mean() * 100):.2f}%")
-        
-        return cleaned_data
+        logger.info(f"Average score: {cleaned_data['score'].mean():.2f}")
+        logger.info(f"Score standard deviation: {cleaned_data['score'].std():.2f}")
 
+        return cleaned_data
+        
     except Exception as e:
-        logger.error(f"Error cleaning assessment data: {str(e)}")
+        logger.error(f"Error in assessment data cleaning: {str(e)}")
         raise
 
 def validate_data_consistency(
@@ -697,4 +779,73 @@ def detect_and_handle_outliers(
 
     except Exception as e:
         logger.error(f"Error handling outliers: {str(e)}")
+        raise
+
+def clean_registration_data(
+    registration_data: pd.DataFrame,
+    logger: Optional[logging.Logger] = None
+) -> pd.DataFrame:
+    """
+    Cleans student registration data.
+    Dates are in days relative to module start:
+    - date_registration: Can be negative (registration before module start)
+    - date_unregistration: Can be null (completed module) or positive (dropped out)
+    """
+    logger = logger or logging.getLogger('edupredict')
+    cleaned_data = registration_data.copy()
+    
+    try:
+        # Validate module and presentation codes
+        cleaned_data = validate_module_codes(cleaned_data, logger=logger)
+        
+        # Check registration timeline
+        early_registrations = cleaned_data[cleaned_data['date_registration'] < -60]
+        if not early_registrations.empty:
+            logger.warning(
+                f"Found {len(early_registrations)} registrations more than 60 days "
+                "before module start"
+            )
+        
+        late_registrations = cleaned_data[cleaned_data['date_registration'] > 30]
+        if not late_registrations.empty:
+            logger.warning(
+                f"Found {len(late_registrations)} registrations more than 30 days "
+                "after module start"
+            )
+        
+        # Analyze unregistration patterns
+        completed = cleaned_data['date_unregistration'].isnull()
+        dropped = ~completed
+        
+        if dropped.any():
+            dropout_times = cleaned_data.loc[dropped, 'date_unregistration']
+            early_dropouts = dropout_times[dropout_times < 30]
+            late_dropouts = dropout_times[dropout_times > 180]
+            
+            if not early_dropouts.empty:
+                logger.warning(
+                    f"Found {len(early_dropouts)} early dropouts (< 30 days into module)"
+                )
+            
+            if not late_dropouts.empty:
+                logger.warning(
+                    f"Found {len(late_dropouts)} late dropouts (> 180 days into module)"
+                )
+            
+            # Calculate average time to dropout
+            avg_dropout_time = dropout_times.mean()
+            logger.info(f"Average time to dropout: {avg_dropout_time:.1f} days")
+        
+        # Add derived features
+        cleaned_data['completed_module'] = completed
+        cleaned_data['registration_type'] = pd.cut(
+            cleaned_data['date_registration'],
+            bins=[-float('inf'), -30.001, -7, 0, float('inf')],  # Adjusted first bin edge
+            labels=['very_early', 'early', 'on_time', 'late']
+        )
+        
+        return cleaned_data
+        
+    except Exception as e:
+        logger.error(f"Error cleaning registration data: {str(e)}")
         raise

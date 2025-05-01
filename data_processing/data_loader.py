@@ -71,6 +71,37 @@ def validate_date_fields(
                             f"days {assessment_dates[i]} and {assessment_dates[i+1]}"
                         )
         
+        # Validate registration dates
+        if 'student_registration' in datasets:
+            registration = datasets['student_registration']
+            # Check registration dates
+            if 'date_registration' in registration.columns:
+                date_range = registration['date_registration'].agg(['min', 'max'])
+                if date_range['min'] < -180:  # More than 6 months before module start
+                    issues['student_registration'].append(
+                        f"Very early registrations detected: {date_range['min']} days before module start"
+                    )
+                if date_range['max'] > 60:  # More than 2 months after start
+                    issues['student_registration'].append(
+                        f"Very late registrations detected: {date_range['max']} days after module start"
+                    )
+            
+            # Check unregistration dates if they exist
+            if 'date_unregistration' in registration.columns:
+                # Filter out NaN values which indicate completed students
+                unregistered = registration['date_unregistration'].dropna()
+                if not unregistered.empty:
+                    date_range = unregistered.agg(['min', 'max'])
+                    if date_range['min'] < 0:  # Unregistration before module start
+                        issues['student_registration'].append(
+                            f"Unregistrations before module start detected: {date_range['min']} days"
+                        )
+                    early_drops = unregistered[unregistered < 14].count()
+                    if early_drops > 0:
+                        issues['student_registration'].append(
+                            f"Found {early_drops} very early unregistrations (<14 days after module start)"
+                        )
+        
         # Validate submission dates
         if all(k in datasets for k in ['assessments', 'student_assessments']):
             merged = pd.merge(
@@ -108,6 +139,15 @@ def validate_date_fields(
         if 'student_assessments' in datasets:
             all_dates.extend(datasets['student_assessments']['date_submitted'].unique())
             date_sources.append('Submissions')
+            
+        if 'student_registration' in datasets and 'date_registration' in datasets['student_registration'].columns:
+            all_dates.extend(datasets['student_registration']['date_registration'].unique())
+            date_sources.append('Registrations')
+            # Add unregistration dates if they exist (excluding NaN values)
+            if 'date_unregistration' in datasets['student_registration'].columns:
+                unregistration_dates = datasets['student_registration']['date_unregistration'].dropna().unique()
+                all_dates.extend(unregistration_dates)
+                date_sources.append('Unregistrations')
         
         if all_dates:
             timeline_range = max(all_dates) - min(all_dates)
@@ -147,7 +187,8 @@ def load_raw_datasets(
         ('vle.csv', 'vle_materials'),
         ('studentVle.csv', 'vle_interactions'),
         ('assessments.csv', 'assessments'),
-        ('studentAssessment.csv', 'student_assessments')
+        ('studentAssessment.csv', 'student_assessments'),
+        ('studentRegistration.csv', 'student_registration')
     ]
 
     datasets = {}
@@ -158,12 +199,16 @@ def load_raw_datasets(
     for file_name, dataset_key in required_files:
         file_path = os.path.join(data_path, file_name)
         if not os.path.exists(file_path):
-            raise FileNotFoundError(f"Required file {file_name} not found in {data_path}")
+            if file_name == 'studentRegistration.csv':
+                logger.warning(f"Optional file {file_name} not found in {data_path}, skipping...")
+                continue
+            else:
+                raise FileNotFoundError(f"Required file {file_name} not found in {data_path}")
 
         logger.info(f"Loading {file_name}...")
         
         # Use chunked reading for large files
-        if chunk_size and file_name in ['studentVle.csv']:
+        if chunk_size and file_name in ['studentVle.csv', 'studentRegistration.csv']:
             chunks = []
             for chunk in pd.read_csv(file_path, chunksize=chunk_size, dtype=dtypes.get(file_name)):
                 chunks.append(chunk)
@@ -225,6 +270,27 @@ def verify_data_integrity(
             assessment_student_ids = set(datasets['student_assessments']['id_student'])
             if not assessment_student_ids.issubset(student_ids):
                 warnings.append("Assessment data contain unknown student IDs")
+        
+        # Check registration data consistency
+        if 'student_registration' in datasets:
+            registration_student_ids = set(datasets['student_registration']['id_student'])
+            if not registration_student_ids.issubset(student_ids):
+                warnings.append("Registration data contain unknown student IDs")
+            
+            # Check if there are duplicate registrations for same student/module/presentation
+            if all(col in datasets['student_registration'].columns 
+                   for col in ['id_student', 'code_module', 'code_presentation']):
+                registration_df = datasets['student_registration']
+                registration_counts = registration_df.groupby(
+                    ['id_student', 'code_module', 'code_presentation']
+                ).size()
+                
+                duplicate_registrations = registration_counts[registration_counts > 1]
+                if not duplicate_registrations.empty:
+                    warnings.append(
+                        f"Found {len(duplicate_registrations)} students with duplicate "
+                        "registrations for the same module/presentation"
+                    )
 
         # Log any warnings
         for warning in warnings:

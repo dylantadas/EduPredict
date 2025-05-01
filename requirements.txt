@@ -40,3 +40,5 @@ python-dotenv>=0.20.0
 
 # file handling
 openpyxl>=3.0.9  # excel-pandas file support
+pyarrow>=16.0.0  # parquet support for pandas
+fastparquet>=2023.2.0  # alternative parquet engine

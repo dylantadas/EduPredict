@@ -6,7 +6,7 @@ from pathlib import Path
 import json
 from datetime import datetime
 from config import FEATURE_ENGINEERING, FAIRNESS, DIRS
-from utils.monitoring_utils import monitor_memory_usage
+from utils.monitoring_utils import monitor_memory_usage, track_progress
 
 logger = logging.getLogger('edupredict')
 
@@ -32,18 +32,43 @@ def create_temporal_features(
         # Monitor initial memory state
         monitor_memory_usage("Starting temporal feature creation")
         
-        # Merge demographic data for fairness monitoring
+        # Log the number of windows being processed
+        logger.info(f"Creating temporal features for {len(window_sizes)} window sizes: {window_sizes}")
+        
+        # Log initial data shape
+        logger.info(f"Activity data shape: {activity_data.shape}, Demographic data shape: {demographic_data.shape}")
+        
+        # Use only necessary columns from demographic data to reduce memory
+        demographic_subset = demographic_data[['id_student'] + FAIRNESS['protected_attributes']].copy()
+        
+        # Optimize dtypes before merging
+        for col in activity_data.select_dtypes(include=['int64']).columns:
+            activity_data[col] = activity_data[col].astype(np.int32)
+            
+        for col in activity_data.select_dtypes(include=['float64']).columns:
+            activity_data[col] = activity_data[col].astype(np.float32)
+        
+        # Merge demographic data for fairness monitoring - use smaller subset
         merged_data = activity_data.merge(
-            demographic_data[['id_student'] + FAIRNESS['protected_attributes']],
+            demographic_subset,
             on='id_student',
             how='left'
         )
+        logger.info(f"Merged data for temporal features: {merged_data.shape}")
         
-        for window_size in window_sizes:
+        # Process each window size individually
+        for window_size in track_progress(window_sizes, desc="Processing time windows", total=len(window_sizes)):
             monitor_memory_usage(f"Processing window size {window_size}")
             
-            # Create window-based features
-            window_features = _create_window_features(merged_data, window_size)
+            # Create a copy of necessary columns only to reduce memory footprint
+            window_data = merged_data[['id_student', 'code_module', 'code_presentation', 
+                                     'date', 'sum_click', 'id_site', 'activity_type'] + 
+                                    FAIRNESS['protected_attributes']].copy()
+            
+            # Create window-based features with reduced memory footprint
+            logger.info(f"Creating features for window size {window_size}")
+            window_features = _create_window_features(window_data, window_size)
+            logger.info(f"Created features for window size {window_size}: {window_features.shape}")
             
             # Monitor demographic distribution
             _monitor_demographic_distribution(
@@ -52,8 +77,13 @@ def create_temporal_features(
                 FAIRNESS['protected_attributes']
             )
             
+            # Store to results dictionary
             temporal_features[f'window_{window_size}'] = window_features
             
+            # Force garbage collection after each window
+            import gc
+            gc.collect()
+        
         monitor_memory_usage("Completed temporal feature creation")
         return temporal_features
         
@@ -64,37 +94,36 @@ def create_temporal_features(
 def _create_window_features(data: pd.DataFrame, window_size: int) -> pd.DataFrame:
     """
     Creates features for a specific time window.
-    Handles both negative and positive dates relative to module start,
-    ensuring consistent interpretation across the timeline.
+    The date values are already in days relative to module start.
     """
     try:
-        # Create normalized timeline for better interpretation
-        # Negative dates are before module start, 0 is module start
-        data['absolute_day'] = data['date'].abs()
-        data['is_before_start'] = data['date'] < 0
+        # Create window boundaries using floor division of days
+        data['window'] = np.floor(data['date'] / window_size).astype(np.int32)
         
-        # Group by student and time window using floor division
-        # This ensures consistent window boundaries for both negative and positive dates
-        data['window'] = np.floor(data['date'] / window_size).astype(int)
+        # Get unique student-module-window combinations for groupby
+        unique_combinations = data[['id_student', 'code_module', 'code_presentation', 'window']].drop_duplicates()
+        total_groups = len(unique_combinations)
+        logger.debug(f"Processing {total_groups} student-module-window combinations")
         
-        # Calculate engagement metrics with timeline context
-        metrics = data.groupby(['id_student', 'code_module', 'code_presentation', 'window']).agg({
+        # Use more efficient groupby with observed=True where possible
+        # Use standard pandas aggregation functions without dtype parameter
+        metrics = data.groupby(['id_student', 'code_module', 'code_presentation', 'window'], observed=True).agg({
             'sum_click': ['sum', 'mean', 'std'],
-            'id_site': 'nunique',
-            'activity_type': 'nunique',
-            'is_before_start': 'sum',  # Count activities before module start
-            'absolute_day': ['min', 'max']  # Track timeline span
+            'id_site': ['nunique'],
+            'activity_type': ['nunique'],
+            'date': ['min', 'max']
         }).reset_index()
         
         # Flatten column names
         metrics.columns = [
-            f"{col[0]}_{col[1]}" if col[1] else col[0]
+            f"{col[0]}_{col[1]}" if isinstance(col, tuple) and col[1] else col[0]
             for col in metrics.columns
         ]
         
-        # Calculate additional temporal metrics
-        metrics['window_span'] = metrics['absolute_day_max'] - metrics['absolute_day_min']
-        metrics['engagement_density'] = metrics['sum_click_sum'] / metrics['window_span'].clip(1)
+        # Calculate derived metrics with controlled dtypes - conversion happens after calculation
+        metrics['window_span'] = (metrics['date_max'] - metrics['date_min'])
+        metrics['engagement_density'] = (metrics['sum_click_sum'] / metrics['window_span'].clip(1))
+        metrics['pre_module_activities'] = (metrics['date_min'] < 0).astype(np.int8)  # Use int8 for boolean flags
         
         # Rename for clarity and drop intermediate columns
         metrics = metrics.rename(columns={
@@ -102,9 +131,24 @@ def _create_window_features(data: pd.DataFrame, window_size: int) -> pd.DataFram
             'sum_click_mean': 'avg_clicks',
             'sum_click_std': 'click_std',
             'id_site_nunique': 'unique_resources',
-            'activity_type_nunique': 'unique_activities',
-            'is_before_start_sum': 'pre_module_activities'
-        }).drop(columns=['absolute_day_min', 'absolute_day_max'])
+            'activity_type_nunique': 'unique_activities'
+        })
+        
+        # Convert columns to efficient datatypes after aggregation
+        for col in metrics.select_dtypes(include=['float64']).columns:
+            metrics[col] = metrics[col].astype(np.float32)
+            
+        for col in metrics.select_dtypes(include=['int64']).columns:
+            if col != 'id_student':  # Preserve id_student as original type
+                metrics[col] = metrics[col].astype(np.int32)
+        
+        # Delete intermediate columns to save memory
+        del metrics['date_min']
+        del metrics['date_max']
+        
+        # Force garbage collection
+        import gc
+        gc.collect()
         
         return metrics
         

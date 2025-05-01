@@ -163,74 +163,63 @@ def validate_temporal_consistency(
 ) -> Tuple[bool, List[str]]:
     """
     Validates temporal consistency across datasets.
-    Ensures proper interpretation of dates relative to module start.
-    
-    Args:
-        vle_data: DataFrame containing VLE interactions
-        assessment_data: Optional DataFrame containing assessments
-        submission_data: Optional DataFrame containing submissions
-        
-    Returns:
-        Tuple of (is_valid, list of issues)
+    All date fields represent days relative to module start (day 0).
+    Negative values indicate days before module start.
+    Typical module duration is one semester (~140 days).
     """
     issues = []
     
     try:
         # Validate VLE timeline
         vle_timeline = {
-            'min_date': vle_data['date'].min(),
-            'max_date': vle_data['date'].max(),
-            'span': vle_data['date'].max() - vle_data['date'].min()
+            'min_date': float(vle_data['date'].min()),
+            'max_date': float(vle_data['date'].max()),
+            'span': float(vle_data['date'].max() - vle_data['date'].min())
         }
         
         # Check for unreasonable pre-module activity
-        if vle_timeline['min_date'] < -90:  # More than 90 days before module start
+        # Allow up to 30 days before module start for preparation
+        if vle_timeline['min_date'] < -30:
             issues.append(
-                f"Unusually early VLE activity detected: {vle_timeline['min_date']} "
+                f"Unusually early VLE activity detected: {vle_timeline['min_date']:.1f} "
                 "days before module start"
             )
         
         # Check activity spans
-        if vle_timeline['span'] > 365:  # More than a year
+        # A typical module runs for one semester (~140 days)
+        if vle_timeline['span'] > 180:  # Allow some buffer beyond semester length
             issues.append(
-                f"VLE activity span ({vle_timeline['span']} days) exceeds "
-                "expected module duration"
+                f"VLE activity span ({vle_timeline['span']:.1f} days) exceeds "
+                "typical module duration"
             )
         
         # Validate assessment timeline if provided
         if assessment_data is not None:
             assessment_timeline = {
-                'min_date': assessment_data['date'].min(),
-                'max_date': assessment_data['date'].max()
+                'min_date': float(assessment_data['date'].min()),
+                'max_date': float(assessment_data['date'].max())
             }
             
             # Check assessment scheduling
-            if assessment_timeline['min_date'] < -30:  # Assessments >30 days before start
+            if assessment_timeline['min_date'] < -7:  # Assessments shouldn't be due before module starts
                 issues.append(
-                    f"Assessment scheduled too early: {assessment_timeline['min_date']} "
+                    f"Assessment scheduled too early: {assessment_timeline['min_date']:.1f} "
                     "days before module start"
                 )
             
-            # Check alignment with VLE activity
-            assessment_dates = assessment_data['date'].unique()
-            for assessment_date in assessment_dates:
-                window_start = assessment_date - 14
-                window_end = assessment_date
-                
-                # Check for sufficient pre-assessment activity
-                pre_assessment_activity = vle_data[
-                    (vle_data['date'] >= window_start) &
-                    (vle_data['date'] <= window_end)
-                ]
-                
-                if len(pre_assessment_activity) == 0:
+            # Check for reasonable assessment spacing
+            assessment_dates = sorted(assessment_data['date'].unique())
+            for i in range(len(assessment_dates) - 1):
+                gap = assessment_dates[i+1] - assessment_dates[i]
+                if gap < 6:  # Less than 6 days between assessments
                     issues.append(
-                        f"No VLE activity detected in two weeks before "
-                        f"assessment on day {assessment_date}"
+                        f"Short gap between assessments: {gap:.1f} days between "
+                        f"days {assessment_dates[i]:.1f} and {assessment_dates[i+1]:.1f}"
                     )
         
         # Validate submission timeline if provided
         if submission_data is not None and assessment_data is not None:
+            # Merge assessment due dates with submissions
             merged_data = pd.merge(
                 submission_data,
                 assessment_data[['id_assessment', 'date']],
@@ -239,13 +228,13 @@ def validate_temporal_consistency(
             
             # Check submission timing
             submission_delay = merged_data['date_submitted'] - merged_data['date']
-            early_submissions = submission_delay[submission_delay < 0]
+            early_submissions = submission_delay[submission_delay < -1]  # Allow 1 day early
             very_late_submissions = submission_delay[submission_delay > 30]
             
             if len(early_submissions) > 0:
                 issues.append(
-                    f"Found {len(early_submissions)} submissions before "
-                    "assessment date"
+                    f"Found {len(early_submissions)} submissions more than 1 day "
+                    "before assessment date"
                 )
             
             if len(very_late_submissions) > 0:

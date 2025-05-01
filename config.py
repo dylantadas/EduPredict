@@ -42,9 +42,74 @@ DATA_PROCESSING = {
         "id_student": "int32",
         "code_module": "category",
         "code_presentation": "category",
-        "gender": "category"
+        "gender": "category",
+        "age_band": "category",
+        "imd_band": "category",
+        "region": "category",
+        "highest_education": "category",
+        "disability": "category",
+        "sum_click": "int32",
+        "date": "float32",           # Days from module start
+        "date_registration": "float32",  # Days from module start
+        "date_unregistration": "float32",  # Days from module start
+        "date_submitted": "float32",  # Days from module start
+        "score": "float32"
     },
-    "missing_value_strategy": "median"
+    "missing_value_strategy": "median",
+    "time_handling": {
+        "negative_dates_allowed": True,  # Allow dates before module start
+        "max_negative_days": -60,  # Maximum days before module start
+        "max_positive_days": 180   # Maximum days after module start
+    }
+}
+
+# Timing and temporal analysis configuration
+TEMPORAL_CONFIG = {
+    'session_gap_days': 0.125,  # 3 hours between sessions
+    'module_length_days': 180,  # Typical module duration
+    'registration_windows': {
+        'very_early': [-float('inf'), -30],
+        'early': [-30, -7],
+        'on_time': [-7, 0],
+        'late': [0, float('inf')]
+    },
+    'activity_windows': {
+        'pre_module': [-30, 0],  # Allow up to 30 days pre-module activity
+        'early_phase': [0, 60],  # First third of module
+        'mid_phase': [60, 120],  # Middle third
+        'late_phase': [120, 180]  # Final third
+    },
+    'assessment_timing': {
+        'max_early_days': 7,  # Maximum days an assessment can be due before module starts
+        'min_gap_days': 6,    # Minimum days between assessments
+        'late_submission_threshold': 30  # Days after which a submission is considered very late
+    }
+}
+
+# Module and presentation codes
+MODULE_CODES = {
+    'name': 'code_module',
+    'values': ['AAA', 'BBB', 'CCC', 'DDD', 'EEE', 'FFF', 'GGG'],
+    'description': {
+        'AAA': 'Social sciences',
+        'BBB': 'STEM',
+        'CCC': 'STEM',
+        'DDD': 'STEM',
+        'EEE': 'STEM',
+        'FFF': 'STEM',
+        'GGG': 'Social sciences'
+    }
+}
+
+PRESENTATION_CODES = {
+    'name': 'code_presentation',
+    'values': ['2013B', '2013J', '2014B', '2014J'],
+    'semester_map': {
+        '2013B': 'Second semester 2013',
+        '2013J': 'First semester 2013',
+        '2014B': 'Second semester 2014',
+        '2014J': 'First semester 2014'
+    }
 }
 
 # Feature engineering parameters
@@ -122,7 +187,7 @@ PROTECTED_ATTRIBUTES = {
     },
     'age_band': {
         'name': 'age_band',
-        'values': ['0-35', '35-55', '55<='],
+        'values': ['0-35', '35+'],  # Merged 35-55 and 55<= into 35+
         'sensitive': True,
         'balanced_threshold': 0.25
     },
