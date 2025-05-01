@@ -1,0 +1,5 @@
+# ignore data files
+data/OULAD/
+
+# ignore feature data
+output/intermediate/
