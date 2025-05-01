@@ -1,39 +1,68 @@
 import pandas as pd
 import numpy as np
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 import logging
 import json
 from pathlib import Path
-from config import FEATURE_ENGINEERING, FAIRNESS, PROTECTED_ATTRIBUTES, DIRS
+from config import FEATURE_ENGINEERING, FAIRNESS, PROTECTED_ATTRIBUTES, DIRS, DEMOGRAPHIC_STANDARDIZATION
+from utils.monitoring_utils import monitor_memory_usage
+from feature_engineering.feature_selector import NumpyJSONEncoder
 
 logger = logging.getLogger('edupredict')
+
+def standardize_demographic_values(
+    data: pd.DataFrame,
+    standardization_rules: Dict = DEMOGRAPHIC_STANDARDIZATION
+) -> pd.DataFrame:
+    """
+    Standardizes demographic values according to defined rules.
+    
+    Args:
+        data: DataFrame containing demographic data
+        standardization_rules: Dictionary of standardization rules
+        
+    Returns:
+        DataFrame with standardized demographic values
+    """
+    standardized = data.copy()
+    
+    try:
+        for col, rule in standardization_rules.items():
+            if col not in standardized.columns:
+                continue
+                
+            if isinstance(rule, dict):
+                # Apply mapping dictionary
+                standardized[col] = standardized[col].map(rule).fillna(standardized[col])
+            elif rule == 'lower':
+                # Convert to lowercase
+                standardized[col] = standardized[col].str.lower()
+            
+        return standardized
+        
+    except Exception as e:
+        logger.error(f"Error standardizing demographic values: {str(e)}")
+        raise
 
 def validate_demographic_parameters(params: Dict) -> bool:
     """
     Validates demographic feature engineering parameters.
     
     Args:
-        params: Dictionary containing demographic feature parameters
+        params: Dictionary of parameters
         
     Returns:
-        bool: True if parameters are valid, False otherwise
+        bool: True if parameters are valid
     """
     try:
-        # Validate encoding parameters
-        encoding_method = params.get('encoding_method', 'both')
-        if encoding_method not in ['label', 'onehot', 'both']:
-            logger.error(f"Invalid encoding method: {encoding_method}")
+        # Check protected attributes
+        if not all(attr in PROTECTED_ATTRIBUTES for attr in params.get('protected_attributes', [])):
+            logger.error("Invalid protected attributes specified")
             return False
             
-        # Validate minimum group size
-        min_group_size = params.get('min_group_size', FAIRNESS['min_group_size'])
-        if min_group_size < 1:
+        # Check group size thresholds
+        if params.get('min_group_size', 0) < 1:
             logger.error("Minimum group size must be positive")
-            return False
-            
-        # Validate feature creation flags
-        if not isinstance(params.get('create_interaction_terms', True), bool):
-            logger.error("create_interaction_terms must be boolean")
             return False
             
         return True
@@ -42,63 +71,91 @@ def validate_demographic_parameters(params: Dict) -> bool:
         logger.error(f"Error validating demographic parameters: {str(e)}")
         return False
 
+@monitor_memory_usage
 def create_demographic_features(
     demographic_data: pd.DataFrame,
     params: Optional[Dict] = None
 ) -> pd.DataFrame:
     """
-    Creates demographic features with fairness monitoring.
+    Creates demographic features with fairness considerations.
     
     Args:
-        demographic_data: DataFrame containing demographic data
-        params: Dictionary containing demographic feature parameters
-    
+        demographic_data: DataFrame containing demographic information
+        params: Optional parameters for feature creation
+        
     Returns:
-        pd.DataFrame: DataFrame containing the created demographic features
+        DataFrame with processed demographic features
     """
     try:
         params = params or {}
-        if not validate_demographic_parameters(params):
-            raise ValueError("Invalid demographic parameters")
-            
         features = demographic_data.copy()
         
-        # Track original distributions for fairness monitoring
+        # Monitor original distributions
         _monitor_original_distributions(features)
         
-        # Create encoded features
-        categorical_cols = ['gender', 'region', 'highest_education', 'imd_band', 'age_band']
+        # Standardize values
+        features = standardize_demographic_values(features)
         
-        encoding_method = params.get('encoding_method', 'both')
-        if encoding_method in ['label', 'both']:
-            # Label encoding
-            for col in categorical_cols:
-                if col in features.columns:
-                    features[f"{col}_encoded"] = pd.Categorical(features[col]).codes
-                    
-        if encoding_method in ['onehot', 'both']:
-            # One-hot encoding
-            for col in categorical_cols:
-                if col in features.columns:
-                    one_hot = pd.get_dummies(
-                        features[col],
-                        prefix=col,
-                        drop_first=True
+        # Create binary indicators for sensitive attributes
+        for attr in FAIRNESS['protected_attributes']:
+            if attr in features.columns:
+                # Create dummy variables
+                dummies = pd.get_dummies(
+                    features[attr], 
+                    prefix=attr,
+                    prefix_sep='_'
+                )
+                features = pd.concat([features, dummies], axis=1)
+                
+                # Check group sizes
+                group_sizes = features[attr].value_counts()
+                small_groups = group_sizes[group_sizes < FAIRNESS['min_group_size']]
+                if not small_groups.empty:
+                    logger.warning(
+                        f"Small group sizes detected in {attr}: "
+                        f"{small_groups.to_dict()}"
                     )
-                    features = pd.concat([features, one_hot], axis=1)
-                    
-        # Create educational background features
-        if 'num_of_prev_attempts' in features.columns:
-            features['is_first_attempt'] = (features['num_of_prev_attempts'] == 0)
-            features['credit_density'] = (
-                features['studied_credits'] / 
-                features['num_of_prev_attempts'].clip(1)
+        
+        # Handle highest education level
+        if 'highest_education' in features.columns:
+            # Create education level encoding
+            education_order = [
+                'no_formal',
+                'below_a_level',
+                'a_level',
+                'he_qualification',
+                'post_graduate'
+            ]
+            features['education_level'] = pd.Categorical(
+                features['highest_education'],
+                categories=education_order,
+                ordered=True
+            ).codes
+            
+            # Create dummy variables
+            edu_dummies = pd.get_dummies(
+                features['highest_education'],
+                prefix='education'
             )
-            
-        # Create interaction terms if specified
-        if params.get('create_interaction_terms', True):
-            _create_interaction_terms(features)
-            
+            features = pd.concat([features, edu_dummies], axis=1)
+        
+        # Handle numeric demographic features
+        numeric_demo = ['studied_credits', 'num_of_prev_attempts']
+        for col in numeric_demo:
+            if col in features.columns:
+                # Add binned version
+                features[f'{col}_binned'] = pd.qcut(
+                    features[col],
+                    q=5,
+                    labels=[f'{col}_q{i+1}' for i in range(5)]
+                )
+                
+                # Add standardized version
+                features[f'{col}_scaled'] = (features[col] - features[col].mean()) / features[col].std()
+        
+        # Create interaction terms for relevant features
+        _create_interaction_terms(features)
+        
         # Monitor feature distributions
         _monitor_feature_distributions(features)
         
@@ -114,100 +171,99 @@ def create_demographic_features(
 def _monitor_original_distributions(data: pd.DataFrame) -> None:
     """Monitors original demographic distributions."""
     try:
+        # Log distribution of protected attributes
         for attr in FAIRNESS['protected_attributes']:
-            if attr not in data.columns:
-                continue
+            if attr in data.columns:
+                dist = data[attr].value_counts(normalize=True)
+                logger.info(f"\n{attr} distribution:\n{dist}")
                 
-            # Calculate group sizes
-            group_sizes = data[attr].value_counts()
-            min_size = group_sizes.min()
-            
-            # Check minimum group size
-            if min_size < FAIRNESS['min_group_size']:
-                logger.warning(
-                    f"Small group size detected for {attr}. "
-                    f"Minimum size: {min_size}"
-                )
-                
-            # Calculate group ratios
-            max_ratio = group_sizes.max() / min_size
-            if max_ratio > FAIRNESS.get('max_ratio', 3.0):
-                logger.warning(
-                    f"High imbalance detected for {attr}. "
-                    f"Max/min ratio: {max_ratio:.2f}"
-                )
-                
-            # Log distribution
-            logger.info(f"\nDistribution for {attr}:")
-            logger.info(group_sizes.to_string())
-            
+                # Check for minimum representation
+                if attr in PROTECTED_ATTRIBUTES:
+                    threshold = PROTECTED_ATTRIBUTES[attr]['balanced_threshold']
+                    below_threshold = dist[dist < threshold]
+                    if not below_threshold.empty:
+                        logger.warning(
+                            f"{attr} has groups below minimum representation threshold: "
+                            f"{below_threshold.to_dict()}"
+                        )
     except Exception as e:
-        logger.error(f"Error monitoring original distributions: {str(e)}")
-        raise
+        logger.error(f"Error monitoring distributions: {str(e)}")
 
 def _create_interaction_terms(features: pd.DataFrame) -> None:
     """Creates interaction terms between relevant features."""
     try:
-        numeric_cols = features.select_dtypes(include=['int64', 'float64']).columns
+        # Create education-region interaction
+        if all(col in features.columns for col in ['education_level', 'region']):
+            features['education_by_region'] = features.apply(
+                lambda x: f"{x['highest_education']}_{x['region']}",
+                axis=1
+            )
         
-        # Create interactions between educational features
-        if 'studied_credits' in numeric_cols and 'num_of_prev_attempts' in numeric_cols:
-            features['credits_per_attempt'] = (
-                features['studied_credits'] / 
-                features['num_of_prev_attempts'].clip(1)
+        # Create credit load by age band
+        if all(col in features.columns for col in ['studied_credits', 'age_band']):
+            features['credits_by_age'] = features.apply(
+                lambda x: f"credits_{x['studied_credits']}_{x['age_band']}",
+                axis=1
+            )
+            
+        # Create disability-education interaction
+        if all(col in features.columns for col in ['disability', 'highest_education']):
+            features['disability_by_education'] = features.apply(
+                lambda x: f"{x['disability']}_{x['highest_education']}",
+                axis=1
             )
             
     except Exception as e:
         logger.error(f"Error creating interaction terms: {str(e)}")
-        raise
 
 def _monitor_feature_distributions(features: pd.DataFrame) -> None:
     """Monitors distributions of created features."""
     try:
-        numeric_features = features.select_dtypes(include=['int64', 'float64'])
-        
-        for col in numeric_features.columns:
-            if col in FAIRNESS['protected_attributes']:
-                continue
-                
-            # Calculate statistics by protected group
-            for attr in FAIRNESS['protected_attributes']:
-                if attr not in features.columns:
-                    continue
+        # Log correlation between numeric features
+        numeric_features = features.select_dtypes(include=[np.number]).columns
+        if len(numeric_features) > 1:
+            corr_matrix = features[numeric_features].corr()
+            high_corr = np.where(np.abs(corr_matrix) > FEATURE_ENGINEERING['correlation_threshold'])
+            high_corr_pairs = [
+                (numeric_features[i], numeric_features[j], corr_matrix.iloc[i, j])
+                for i, j in zip(*high_corr)
+                if i < j  # Only get unique pairs
+            ]
+            
+            if high_corr_pairs:
+                logger.warning("High correlations detected between features:")
+                for feat1, feat2, corr in high_corr_pairs:
+                    logger.warning(f"{feat1} - {feat2}: {corr:.3f}")
                     
-                group_stats = features.groupby(attr)[col].agg(['mean', 'std'])
-                
-                # Calculate disparity
-                max_mean = group_stats['mean'].max()
-                min_mean = group_stats['mean'].min()
-                disparity = (max_mean - min_mean) / max_mean if max_mean != 0 else 0
-                
-                if disparity > FAIRNESS['threshold']:
-                    logger.warning(
-                        f"High demographic disparity detected in {col} "
-                        f"for {attr}: {disparity:.2f}"
-                    )
-                    logger.info(f"\nGroup statistics for {col}:")
-                    logger.info(group_stats.to_string())
+        # Monitor categorical feature cardinality
+        cat_features = features.select_dtypes(include=['category', 'object']).columns
+        for col in cat_features:
+            n_unique = features[col].nunique()
+            if n_unique > 50:  # High cardinality warning
+                logger.warning(
+                    f"High cardinality detected in {col}: {n_unique} unique values"
+                )
                     
     except Exception as e:
         logger.error(f"Error monitoring feature distributions: {str(e)}")
-        raise
 
 def _export_demographic_metadata(features: pd.DataFrame, params: Dict) -> None:
     """Exports metadata about demographic features."""
     try:
-        metadata_path = Path(DIRS['feature_metadata']) / 'demographic_features.json'
-        metadata_path.parent.mkdir(parents=True, exist_ok=True)
-        
         metadata = {
-            'feature_count': len(features.columns),
-            'protected_attributes': [
-                attr for attr in FAIRNESS['protected_attributes']
-                if attr in features.columns
-            ],
+            'feature_counts': {
+                'total': len(features.columns),
+                'protected': len(FAIRNESS['protected_attributes']),
+                'numeric': len(features.select_dtypes(include=[np.number]).columns),
+                'categorical': len(features.select_dtypes(include=['category', 'object']).columns)
+            },
             'group_sizes': {
                 attr: features[attr].value_counts().to_dict()
+                for attr in FAIRNESS['protected_attributes']
+                if attr in features.columns
+            },
+            'class_balance': {
+                attr: features[attr].value_counts(normalize=True).to_dict()
                 for attr in FAIRNESS['protected_attributes']
                 if attr in features.columns
             },
@@ -215,11 +271,15 @@ def _export_demographic_metadata(features: pd.DataFrame, params: Dict) -> None:
             'timestamp': pd.Timestamp.now().isoformat()
         }
         
-        with open(metadata_path, 'w') as f:
-            json.dump(metadata, f, indent=2)
+        # Save metadata
+        output_path = DIRS['feature_metadata'] / 'demographic_features.json'
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        with open(output_path, 'w') as f:
+            json.dump(metadata, f, indent=2, cls=NumpyJSONEncoder)
             
-        logger.info(f"Exported demographic feature metadata to {metadata_path}")
+        logger.info(f"Exported demographic feature metadata to {output_path}")
         
     except Exception as e:
-        logger.error(f"Error exporting demographic metadata: {str(e)}")
+        logger.error(f"Error exporting feature metadata: {str(e)}")
         raise

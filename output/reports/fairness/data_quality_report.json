@@ -1,0 +1,191 @@
+{
+  "timestamp": "2025-05-01T04:12:26.479494",
+  "dataset_info": {
+    "shape": [
+      32593,
+      12
+    ],
+    "memory_usage": 18.52566146850586
+  },
+  "quality_metrics": {
+    "completeness": {
+      "missing_values": {
+        "imd_band": 1111
+      },
+      "missing_rate": {
+        "code_module": 0.0,
+        "code_presentation": 0.0,
+        "id_student": 0.0,
+        "gender": 0.0,
+        "region": 0.0,
+        "highest_education": 0.0,
+        "imd_band": 0.03408707391157611,
+        "age_band": 0.0,
+        "num_of_prev_attempts": 0.0,
+        "studied_credits": 0.0,
+        "disability": 0.0,
+        "final_result": 0.0
+      }
+    },
+    "validity": {
+      "numeric_ranges": {
+        "id_student": {
+          "min": 3733,
+          "max": 2716795,
+          "mean": 706687.6691314086,
+          "std": 549167.3138552054
+        },
+        "num_of_prev_attempts": {
+          "min": 0,
+          "max": 6,
+          "mean": 0.16322523241186757,
+          "std": 0.47975847416297385
+        },
+        "studied_credits": {
+          "min": 30,
+          "max": 655,
+          "mean": 79.75869051636855,
+          "std": 41.07190026123349
+        }
+      }
+    },
+    "consistency": {
+      "value_counts": {
+        "code_module": {
+          "BBB": 7909,
+          "FFF": 7762,
+          "DDD": 6272,
+          "CCC": 4434,
+          "EEE": 2934,
+          "GGG": 2534,
+          "AAA": 748
+        },
+        "code_presentation": {
+          "2014J": 11260,
+          "2013J": 8845,
+          "2014B": 7804,
+          "2013B": 4684
+        },
+        "highest_education": {
+          "A Level or Equivalent": 14045,
+          "Lower Than A Level": 13158,
+          "HE Qualification": 4730,
+          "No Formal quals": 347,
+          "Post Graduate Qualification": 313
+        },
+        "imd_band": {
+          "20-30%": 3654,
+          "30-40%": 3539,
+          "10-20": 3516,
+          "0-10%": 3311,
+          "40-50%": 3256,
+          "50-60%": 3124,
+          "60-70%": 2905,
+          "70-80%": 2879,
+          "80-90%": 2762,
+          "90-100%": 2536
+        },
+        "disability": {
+          "N": 29429,
+          "Y": 3164
+        },
+        "final_result": {
+          "Pass": 12361,
+          "Withdrawn": 10156,
+          "Fail": 7052,
+          "Distinction": 3024
+        }
+      },
+      "duplicate_rows": "0"
+    },
+    "protected_attributes": {
+      "gender": {
+        "missing_rate": 0.0,
+        "value_counts": {
+          "M": 0.5484306446169422,
+          "F": 0.4515693553830577
+        },
+        "unique_values": 2,
+        "issues": [
+          {
+            "type": "invalid_values",
+            "details": [
+              "M",
+              "F"
+            ]
+          }
+        ]
+      },
+      "region": {
+        "missing_rate": 0.0,
+        "value_counts": {
+          "Scotland": 0.10572822385174731,
+          "East Anglian Region": 0.10247599177737551,
+          "London Region": 0.09867149387905379,
+          "South Region": 0.09486699598073206,
+          "North Western Region": 0.08916024913324946,
+          "West Midlands Region": 0.07921946430215077,
+          "South West Region": 0.07473997484122358,
+          "East Midlands Region": 0.07256159298008776,
+          "South East Region": 0.06476850857546099,
+          "Wales": 0.06400147270886386,
+          "Yorkshire Region": 0.06154695793575308,
+          "North Region": 0.05593225539226214,
+          "Ireland": 0.0363268186420397
+        },
+        "unique_values": 13,
+        "issues": [
+          {
+            "type": "invalid_values",
+            "details": [
+              "East Anglian Region",
+              "Scotland",
+              "North Western Region",
+              "South East Region",
+              "West Midlands Region",
+              "Wales",
+              "North Region",
+              "South Region",
+              "Ireland",
+              "South West Region",
+              "East Midlands Region",
+              "Yorkshire Region",
+              "London Region"
+            ]
+          }
+        ]
+      },
+      "age_band": {
+        "missing_rate": 0.0,
+        "value_counts": {
+          "0-35": 0.7039548369281747,
+          "35-55": 0.2894179731844261,
+          "55<=": 0.0066271898873991346
+        },
+        "unique_values": 3,
+        "issues": [
+          {
+            "type": "invalid_values",
+            "details": [
+              "55<=",
+              "35-55"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "recommendations": [
+    "Address quality issues in protected attribute gender: ['invalid_values']",
+    "Address quality issues in protected attribute region: ['invalid_values']",
+    "Address quality issues in protected attribute age_band: ['invalid_values']"
+  ],
+  "summary": {
+    "total_rows": 32593,
+    "total_columns": 12,
+    "complete_columns": 11,
+    "columns_with_missing": 1,
+    "duplicate_rows": "0",
+    "protected_attributes_with_issues": 3
+  }
+}

@@ -24,6 +24,7 @@ DIRS = {
     "intermediate": OUTPUT_DIR / "intermediate",
     "processed_data": OUTPUT_DIR / "intermediate/processed_data",
     "features": OUTPUT_DIR / "intermediate/features",
+    "feature_metadata": OUTPUT_DIR / "intermediate/features/metadata",
     "predictions": OUTPUT_DIR / "intermediate/predictions",
     "visualizations": OUTPUT_DIR / "visualizations",
     "viz_performance": OUTPUT_DIR / "visualizations/performance",
@@ -93,44 +94,91 @@ GRU_PARAM_GRID = {
 
 # Fairness parameters
 FAIRNESS = {
-    'threshold': 0.1,
+    'threshold': 0.1,  # General threshold for fairness metrics
     'thresholds': {
         'demographic_parity_difference': 0.1,
         'disparate_impact_ratio': 0.8,
-        'equal_opportunity_difference': 0.1
+        'equal_opportunity_difference': 0.1,
+        'average_odds_difference': 0.1
     },
-    'protected_attributes': ['gender', 'region', 'age_band'],
-    'demographic_cols': ['gender', 'region', 'age_band', 'disability'],
-    'min_group_size': 50
+    'protected_attributes': [
+        'gender', 'age_band', 'imd_band', 'region', 'disability'
+    ],
+    'demographic_cols': [
+        'gender', 'age_band', 'imd_band', 'region', 'disability', 
+        'highest_education', 'studied_credits', 'num_of_prev_attempts'
+    ],
+    'min_group_size': 50,
+    'reporting_frequency': 'epoch'  # When to calculate fairness metrics during training
 }
 
-# Protected attributes mapping
+# Protected attributes mapping with standardized values
 PROTECTED_ATTRIBUTES = {
     'gender': {
         'name': 'gender',
         'values': ['f', 'm'],
-        'sensitive': True
+        'sensitive': True,
+        'balanced_threshold': 0.45  # Minimum representation ratio
     },
     'age_band': {
         'name': 'age_band',
         'values': ['0-35', '35-55', '55<='],
-        'sensitive': True
+        'sensitive': True,
+        'balanced_threshold': 0.25
     },
     'imd_band': {
         'name': 'imd_band',
-        'values': ['0-10%', '10-20%', '20-30%', '30-40%', '40-50%', 
-                  '50-60%', '60-70%', '70-80%', '80-90%', '90-100%'],
-        'sensitive': True
+        'values': [
+            '0-10%', '10-20%', '20-30%', '30-40%', '40-50%',
+            '50-60%', '60-70%', '70-80%', '80-90%', '90-100%'
+        ],
+        'sensitive': True,
+        'balanced_threshold': 0.08  # Minimum 8% in any decile
+    },
+    'region': {
+        'name': 'region',
+        'values': [
+            'east anglian region', 'scotland', 'north region', 
+            'south east region', 'south region', 'wales', 
+            'west midlands region', 'north western region',
+            'south west region', 'east midlands region', 
+            'yorkshire region', 'ireland'
+        ],
+        'sensitive': True,
+        'balanced_threshold': 0.05
+    },
+    'disability': {
+        'name': 'disability',
+        'values': ['Y', 'N'],
+        'sensitive': True,
+        'balanced_threshold': 0.1
+    }
+}
+
+# Demographic value standardization
+DEMOGRAPHIC_STANDARDIZATION = {
+    'gender': {'F': 'f', 'M': 'm'},
+    'region': 'lower',  # Convert to lowercase
+    'highest_education': {
+        'No Formal quals': 'no_formal',
+        'Lower Than A Level': 'below_a_level',
+        'A Level or Equivalent': 'a_level',
+        'HE Qualification': 'he_qualification',
+        'Post Graduate Qualification': 'post_graduate'
     }
 }
 
 # Bias mitigation parameters
 BIAS_MITIGATION = {
     'method': 'reweight',  # Options: 'reweight', 'oversample', 'undersample', 'none'
-    'balance_strategy': 'group_balanced',  # Options: 'group_balanced', 'stratified'
-    'target_ratios': None,
+    'balance_strategy': 'group_balanced',
+    'target_ratios': None,  # Optional custom ratios per group
     'min_group_size': 50,
-    'max_ratio': 3.0
+    'max_ratio': 3.0,  # Maximum allowed ratio between group sizes
+    'reweight_options': {
+        'weight_clipping': 10.0,  # Maximum instance weight
+        'epsilon': 0.01  # Small constant for numerical stability
+    }
 }
 
 # Evaluation parameters

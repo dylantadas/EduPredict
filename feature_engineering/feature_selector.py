@@ -9,10 +9,23 @@ from sklearn.feature_selection import mutual_info_classif
 from scipy.stats import spearmanr
 import matplotlib.pyplot as plt
 import seaborn as sns
-from config import FEATURE_ENGINEERING, FAIRNESS, DIRS, VERSION_CONTROL
+from config import FEATURE_ENGINEERING, FAIRNESS, DIRS, VERSION_CONTROL, RANDOM_SEED
 from dataclasses import dataclass
 
 logger = logging.getLogger('edupredict')
+
+class NumpyJSONEncoder(json.JSONEncoder):
+    """Custom JSON encoder for NumPy types."""
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        if isinstance(obj, np.floating):
+            return float(obj)
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        if isinstance(obj, pd.Timestamp):
+            return obj.isoformat()
+        return super().default(obj)
 
 @dataclass
 class FeatureMetadata:
@@ -21,11 +34,11 @@ class FeatureMetadata:
     feature_type: str  # demographic, sequential, temporal
     data_type: str
     statistics: Dict
-    demographic_impact: Optional[Dict] = None
-    importance_score: Optional[float] = None
     creation_timestamp: str
     parameters_used: Dict
     validation_checks: Dict
+    demographic_impact: Optional[Dict] = None
+    importance_score: Optional[float] = None
 
 class FeatureSelector:
     def __init__(self, config: Dict):
@@ -183,15 +196,15 @@ def create_feature_statistics(feature_series: pd.Series) -> Dict[str, float]:
 
 def select_features_by_importance(
     features: pd.DataFrame,
-    model: Any,
+    target: pd.Series,
     threshold: float = FEATURE_ENGINEERING['importance_threshold']
 ) -> pd.DataFrame:
     """
-    Selects features based on importance scores.
+    Selects features based on importance scores using RandomForest.
     
     Args:
         features: DataFrame containing features
-        model: Trained model with feature importance attribute
+        target: Target variable Series
         threshold: Minimum importance score to retain feature
         
     Returns:
@@ -201,7 +214,7 @@ def select_features_by_importance(
         # Get numeric features
         numeric_features = features.select_dtypes(include=['int64', 'float64'])
         
-        # Remove identifier columns and protected attributes
+        # Remove identifier columns and protected attributes while preserving them
         exclude_cols = (
             ['id_student', 'code_module', 'code_presentation'] +
             FAIRNESS['protected_attributes']
@@ -215,25 +228,35 @@ def select_features_by_importance(
             logger.warning("No numeric features available for importance calculation")
             return features
             
+        # Handle NaN values with fair imputation
+        for col in feature_cols:
+            if numeric_features[col].isnull().any():
+                # Group by protected attributes for fair imputation
+                for attr in FAIRNESS['protected_attributes']:
+                    if attr in features.columns:
+                        # Calculate group means
+                        group_means = numeric_features.groupby(features[attr])[col].transform('mean')
+                        # Fill NaN values with their group means
+                        numeric_features.loc[numeric_features[col].isnull(), col] = group_means[numeric_features[col].isnull()]
+                
+                # Fill any remaining NaN values with overall mean
+                if numeric_features[col].isnull().any():
+                    numeric_features[col].fillna(numeric_features[col].mean(), inplace=True)
+                    
+                logger.info(f"Imputed NaN values in {col} using fairness-aware approach")
+        
+        # Initialize and train RandomForest model
+        rf_model = RandomForestClassifier(
+            n_estimators=100,
+            random_state=RANDOM_SEED
+        )
+        rf_model.fit(numeric_features[feature_cols], target)
+        
         # Get feature importance scores
-        importance_scores = getattr(model, 'feature_importances_', None)
-        if importance_scores is None:
-            logger.warning(
-                "Model does not have feature_importances_ attribute. "
-                "Using coefficients if available."
-            )
-            importance_scores = abs(getattr(model, 'coef_', None))
-            
-        if importance_scores is None:
-            logger.error(
-                "Model does not provide feature importance scores"
-            )
-            return features
-            
-        # Create importance dictionary
+        importance_scores = rf_model.feature_importances_
         importance_dict = dict(zip(feature_cols, importance_scores))
         
-        # Select features above threshold
+        # Select features above threshold while preserving protected attributes
         selected_features = [
             col for col, score in importance_dict.items()
             if score >= threshold
@@ -242,11 +265,17 @@ def select_features_by_importance(
         # Always include identifier columns and protected attributes
         selected_features.extend(exclude_cols)
         
+        # Log selected features with importance scores
+        for col in selected_features:
+            if col in importance_dict:
+                logger.info(f"Selected feature {col} with importance: {importance_dict[col]:.4f}")
+        
         logger.info(
             f"Selected {len(selected_features)} features "
             f"(threshold: {threshold})"
         )
         
+        # Return features with selected columns
         return features[selected_features]
         
     except Exception as e:
@@ -319,61 +348,107 @@ def remove_correlated_features(
 
 def calculate_feature_statistics(features: pd.DataFrame) -> pd.DataFrame:
     """
-    Calculates statistics for feature distributions.
-    
-    Args:
-        features: DataFrame containing features
-        
-    Returns:
-        DataFrame with feature statistics
+    Calculate comprehensive feature statistics with timeline awareness.
+    Properly interprets temporal features and their relationships.
     """
     try:
-        # Get numeric features
-        numeric_features = features.select_dtypes(include=['int64', 'float64'])
+        stats = pd.DataFrame()
         
-        # Remove identifier columns
-        exclude_cols = ['id_student', 'code_module', 'code_presentation']
-        feature_cols = [
-            col for col in numeric_features.columns 
-            if col not in exclude_cols
-        ]
+        # Identify temporal columns
+        temporal_cols = [col for col in features.columns if any(x in col.lower() for x in ['date', 'time', 'day', 'window'])]
+        numeric_cols = features.select_dtypes(include=['int64', 'float64']).columns
         
-        if not feature_cols:
-            logger.warning("No numeric features available for statistics")
-            return pd.DataFrame()
+        # Basic statistics
+        stats['mean'] = features[numeric_cols].mean()
+        stats['std'] = features[numeric_cols].std()
+        stats['missing_ratio'] = features[numeric_cols].isnull().mean()
         
-        # Calculate statistics
-        stats = pd.DataFrame({
-            'feature': feature_cols,
-            'mean': [features[col].mean() for col in feature_cols],
-            'std': [features[col].std() for col in feature_cols],
-            'min': [features[col].min() for col in feature_cols],
-            'max': [features[col].max() for col in feature_cols],
-            'missing': [features[col].isnull().sum() for col in feature_cols],
-            'unique': [features[col].nunique() for col in feature_cols]
-        })
+        # Timeline-specific statistics for temporal features
+        if temporal_cols:
+            for col in temporal_cols:
+                if col in numeric_cols:
+                    stats.loc[col, 'is_temporal'] = True
+                    stats.loc[col, 'min_date'] = features[col].min()
+                    stats.loc[col, 'max_date'] = features[col].max()
+                    stats.loc[col, 'timeline_span'] = features[col].max() - features[col].min()
+                    stats.loc[col, 'pre_module_ratio'] = (features[col] < 0).mean() if 'date' in col else None
         
-        # Calculate skewness and kurtosis
-        stats['skewness'] = [features[col].skew() for col in feature_cols]
-        stats['kurtosis'] = [features[col].kurtosis() for col in feature_cols]
+        # Check for potential data interpretation issues
+        if any(stats['missing_ratio'] > 0.1):
+            logger.warning(f"High missing ratio detected in features: {stats[stats['missing_ratio'] > 0.1].index.tolist()}")
         
-        # Add correlation with protected attributes if available
-        for protected_attr in FAIRNESS['protected_attributes']:
-            if protected_attr in features.columns:
-                # Calculate correlation if attribute is numeric or encoded
-                attr_col = f"{protected_attr}_encoded" if protected_attr in features.columns else protected_attr
-                if attr_col in features.columns and pd.api.types.is_numeric_dtype(features[attr_col]):
-                    stats[f'corr_{protected_attr}'] = [
-                        spearmanr(features[col], features[attr_col])[0]
-                        if not (features[col].nunique() <= 1 or features[attr_col].nunique() <= 1)
-                        else np.nan
-                        for col in feature_cols
-                    ]
+        # Correlation with temporal features
+        for tcol in temporal_cols:
+            if tcol in numeric_cols:
+                correlations = features[numeric_cols].corrwith(features[tcol])
+                high_corr = correlations[abs(correlations) > 0.7].index.tolist()
+                if high_corr:
+                    logger.info(f"Features highly correlated with {tcol}: {high_corr}")
         
         return stats
         
     except Exception as e:
         logger.error(f"Error calculating feature statistics: {str(e)}")
+        raise
+
+def analyze_feature_correlations(features: pd.DataFrame) -> pd.DataFrame:
+    """
+    Analyzes feature correlations with enhanced timeline understanding.
+    Ensures temporal features are properly interpreted in correlation analysis.
+    """
+    try:
+        # Identify different feature types
+        temporal_cols = [col for col in features.columns if any(x in col.lower() for x in ['date', 'time', 'day', 'window'])]
+        activity_cols = [col for col in features.columns if any(x in col.lower() for x in ['click', 'activity', 'session'])]
+        performance_cols = [col for col in features.columns if any(x in col.lower() for x in ['score', 'grade', 'result'])]
+        
+        numeric_cols = features.select_dtypes(include=['int64', 'float64']).columns
+        
+        # Calculate correlations by feature type
+        correlations = pd.DataFrame()
+        
+        # Timeline correlations
+        if temporal_cols:
+            time_corr = features[temporal_cols].corr()
+            logger.info("Analyzing temporal feature relationships...")
+            for col1 in temporal_cols:
+                for col2 in temporal_cols:
+                    if col1 < col2 and abs(time_corr.loc[col1, col2]) > 0.7:
+                        logger.warning(f"Strong temporal correlation between {col1} and {col2}: {time_corr.loc[col1, col2]:.3f}")
+        
+        # Activity-timeline correlations
+        if temporal_cols and activity_cols:
+            activity_time_corr = features[temporal_cols + activity_cols].corr()
+            logger.info("Analyzing activity-timeline relationships...")
+            significant_correlations = []
+            for tcol in temporal_cols:
+                for acol in activity_cols:
+                    corr = activity_time_corr.loc[tcol, acol]
+                    if abs(corr) > 0.5:
+                        significant_correlations.append((tcol, acol, corr))
+            
+            if significant_correlations:
+                logger.info("Significant activity-timeline correlations found:")
+                for t, a, c in significant_correlations:
+                    logger.info(f"{t} - {a}: {c:.3f}")
+        
+        # Performance-timeline correlations
+        if temporal_cols and performance_cols:
+            perf_time_corr = features[temporal_cols + performance_cols].corr()
+            logger.info("Analyzing performance-timeline relationships...")
+            for tcol in temporal_cols:
+                for pcol in performance_cols:
+                    corr = perf_time_corr.loc[tcol, pcol]
+                    if abs(corr) > 0.3:  # Lower threshold for performance correlations
+                        logger.info(f"Performance-timeline correlation - {tcol} vs {pcol}: {corr:.3f}")
+        
+        # Overall correlations
+        correlations = features[numeric_cols].corr()
+        
+        return correlations
+        
+    except Exception as e:
+        logger.error(f"Error analyzing feature correlations: {str(e)}")
         raise
 
 def analyze_demographic_impact(
@@ -479,7 +554,7 @@ def export_feature_metadata(
     params: Optional[Dict] = None
 ) -> str:
     """
-Exports feature metadata for downstream reference.
+    Exports feature metadata for downstream reference.
     
     Args:
         features: DataFrame containing features
@@ -488,11 +563,9 @@ Exports feature metadata for downstream reference.
         
     Returns:
         Path to saved metadata file
-"""
+    """
     try:
         output_path = Path(output_path)
-        
-        # Ensure directory exists
         output_path.parent.mkdir(parents=True, exist_ok=True)
         
         # Calculate basic statistics
@@ -507,7 +580,7 @@ Exports feature metadata for downstream reference.
             'numeric_features': len(features.select_dtypes(include=['int64', 'float64']).columns),
             'categorical_features': len(features.select_dtypes(include=['object', 'category']).columns),
             'row_count': len(features),
-            'memory_usage': features.memory_usage(deep=True).sum(),
+            'memory_usage': float(features.memory_usage(deep=True).sum()),  # Convert to native Python type
             'protected_attributes': [
                 attr for attr in FAIRNESS['protected_attributes']
                 if attr in features.columns
@@ -522,9 +595,9 @@ Exports feature metadata for downstream reference.
             'version': VERSION_CONTROL.get('version_format', 'v1.0.0')
         }
         
-        # Export metadata
+        # Export metadata using custom encoder
         with open(output_path, 'w') as f:
-            json.dump(metadata, f, indent=2)
+            json.dump(metadata, f, indent=2, cls=NumpyJSONEncoder)
         
         logger.info(f"Exported enhanced feature metadata to {output_path}")
         
@@ -537,129 +610,57 @@ Exports feature metadata for downstream reference.
 def analyze_feature_importance(
     features: pd.DataFrame,
     target: pd.Series,
-    feature_type: str,
-    save_path: Optional[str] = None
-) -> Tuple[pd.DataFrame, str]:
+    logger: Optional[logging.Logger] = None
+) -> Tuple[pd.DataFrame, Optional[plt.Figure]]:
     """
-    Analyzes and visualizes feature importance.
-    
-    Args:
-        features: DataFrame containing features
-        target: Series containing target variable
-        feature_type: Type of features (e.g., demographic, sequential)
-        save_path: Optional path to save visualization
-        
-    Returns:
-        Tuple containing DataFrame with importance scores and path to visualization
+    Analyzes feature importance with fairness considerations, handling NaN values properly.
     """
+    logger = logger or logging.getLogger('edupredict')
+
     try:
-        # Calculate feature importance using mutual information
-        numeric_features = features.select_dtypes(include=['int64', 'float64'])
+        # Handle NaN values first
+        features_clean = features.copy()
+        
+        # Get numeric columns for importance analysis
+        numeric_cols = features_clean.select_dtypes(include=['int64', 'float64']).columns
+        numeric_features = features_clean[numeric_cols]
+        
+        # Handle remaining NaN values using fairness-aware imputation
+        for col in numeric_cols:
+            if numeric_features[col].isnull().any():
+                # Use column median by default
+                col_median = numeric_features[col].median()
+                if pd.isnull(col_median):  # If median is NaN, use 0
+                    col_median = 0
+                numeric_features[col] = numeric_features[col].fillna(col_median)
+                logger.info(f"Filled NaN values in {col} with median {col_median}")
+
+        # Calculate importance scores
         importance_scores = mutual_info_classif(numeric_features, target)
         
         # Create importance DataFrame
         importance_df = pd.DataFrame({
-            'feature': numeric_features.columns,
+            'feature': numeric_cols,
             'importance': importance_scores
-        }).sort_values('importance', ascending=False)
+        })
+        importance_df = importance_df.sort_values('importance', ascending=False)
         
-        # Create visualization directory if it doesn't exist
-        viz_dir = Path(DIRS['visualizations']) / 'features'
-        viz_dir.mkdir(parents=True, exist_ok=True)
+        # Create visualization
+        plt.figure(figsize=(10, 6))
+        sns.barplot(data=importance_df.head(20), x='importance', y='feature')
+        plt.title('Top 20 Most Important Features')
+        plt.xlabel('Mutual Information Score')
+        plt.ylabel('Feature')
         
-        # Generate visualization
-        plt.figure(figsize=(12, 6))
-        sns.barplot(data=importance_df.head(15), x='importance', y='feature')
-        plt.title(f'Top 15 {feature_type} Feature Importance Scores')
-        plt.tight_layout()
+        # Log top features
+        logger.info("\nTop 10 most important features:")
+        for _, row in importance_df.head(10).iterrows():
+            logger.info(f"{row['feature']}: {row['importance']:.4f}")
         
-        # Save visualization
-        viz_path = viz_dir / f'{feature_type}_importance.png'
-        plt.savefig(viz_path)
-        plt.close()
-        
-        # Log results
-        logger.info(f"Generated feature importance visualization: {viz_path}")
-        
-        # Check for low importance features
-        low_importance = importance_df[
-            importance_df['importance'] < FEATURE_ENGINEERING['importance_threshold']
-        ]
-        if not low_importance.empty:
-            logger.warning(
-                f"Found {len(low_importance)} features with low importance "
-                f"(< {FEATURE_ENGINEERING['importance_threshold']})"
-            )
-            
-        return importance_df, str(viz_path)
-        
+        return importance_df, plt.gcf()
+
     except Exception as e:
         logger.error(f"Error analyzing feature importance: {str(e)}")
-        raise
-
-def analyze_feature_correlations(
-    features: pd.DataFrame,
-    feature_type: str
-) -> pd.DataFrame:
-    """
-    Analyzes and visualizes feature correlations.
-    
-    Args:
-        features: DataFrame containing features
-        feature_type: Type of features (e.g., demographic, sequential)
-        
-    Returns:
-        DataFrame with highly correlated feature pairs
-    """
-    try:
-        numeric_features = features.select_dtypes(include=['int64', 'float64'])
-        
-        # Calculate correlation matrix
-        corr_matrix = numeric_features.corr()
-        
-        # Create visualization directory
-        viz_dir = Path(DIRS['visualizations']) / 'features'
-        viz_dir.mkdir(parents=True, exist_ok=True)
-        
-        # Generate heatmap
-        plt.figure(figsize=(12, 10))
-        sns.heatmap(
-            corr_matrix,
-            cmap='RdBu',
-            center=0,
-            annot=True,
-            fmt='.2f',
-            square=True
-        )
-        plt.title(f'{feature_type} Feature Correlations')
-        plt.tight_layout()
-        
-        # Save visualization
-        viz_path = viz_dir / f'{feature_type}_correlations.png'
-        plt.savefig(viz_path)
-        plt.close()
-        
-        # Find highly correlated features
-        high_corr_pairs = []
-        for i in range(len(corr_matrix.columns)):
-            for j in range(i+1, len(corr_matrix.columns)):
-                if abs(corr_matrix.iloc[i, j]) > FEATURE_ENGINEERING['correlation_threshold']:
-                    high_corr_pairs.append({
-                        'feature1': corr_matrix.columns[i],
-                        'feature2': corr_matrix.columns[j],
-                        'correlation': corr_matrix.iloc[i, j]
-                    })
-                    
-        if high_corr_pairs:
-            logger.warning(
-                f"Found {len(high_corr_pairs)} highly correlated feature pairs "
-                f"(> {FEATURE_ENGINEERING['correlation_threshold']})"
-            )
-            
-        return pd.DataFrame(high_corr_pairs)
-        
-    except Exception as e:
-        logger.error(f"Error analyzing feature correlations: {str(e)}")
         raise
 
 def generate_feature_report(

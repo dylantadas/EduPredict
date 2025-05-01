@@ -6,6 +6,7 @@ from pathlib import Path
 import json
 from datetime import datetime
 from config import FEATURE_ENGINEERING, FAIRNESS, DIRS
+from utils.monitoring_utils import monitor_memory_usage
 
 logger = logging.getLogger('edupredict')
 
@@ -28,6 +29,9 @@ def create_temporal_features(
     try:
         temporal_features = {}
         
+        # Monitor initial memory state
+        monitor_memory_usage("Starting temporal feature creation")
+        
         # Merge demographic data for fairness monitoring
         merged_data = activity_data.merge(
             demographic_data[['id_student'] + FAIRNESS['protected_attributes']],
@@ -36,6 +40,8 @@ def create_temporal_features(
         )
         
         for window_size in window_sizes:
+            monitor_memory_usage(f"Processing window size {window_size}")
+            
             # Create window-based features
             window_features = _create_window_features(merged_data, window_size)
             
@@ -48,6 +54,7 @@ def create_temporal_features(
             
             temporal_features[f'window_{window_size}'] = window_features
             
+        monitor_memory_usage("Completed temporal feature creation")
         return temporal_features
         
     except Exception as e:
@@ -55,16 +62,28 @@ def create_temporal_features(
         raise
 
 def _create_window_features(data: pd.DataFrame, window_size: int) -> pd.DataFrame:
-    """Creates features for a specific time window."""
+    """
+    Creates features for a specific time window.
+    Handles both negative and positive dates relative to module start,
+    ensuring consistent interpretation across the timeline.
+    """
     try:
-        # Group by student and time window
-        data['window'] = data['date'] // window_size
+        # Create normalized timeline for better interpretation
+        # Negative dates are before module start, 0 is module start
+        data['absolute_day'] = data['date'].abs()
+        data['is_before_start'] = data['date'] < 0
         
-        # Calculate engagement metrics
+        # Group by student and time window using floor division
+        # This ensures consistent window boundaries for both negative and positive dates
+        data['window'] = np.floor(data['date'] / window_size).astype(int)
+        
+        # Calculate engagement metrics with timeline context
         metrics = data.groupby(['id_student', 'code_module', 'code_presentation', 'window']).agg({
-            'click_count': ['sum', 'mean', 'std'],
-            'duration': ['sum', 'mean', 'std'],
-            'unique_materials': 'nunique'
+            'sum_click': ['sum', 'mean', 'std'],
+            'id_site': 'nunique',
+            'activity_type': 'nunique',
+            'is_before_start': 'sum',  # Count activities before module start
+            'absolute_day': ['min', 'max']  # Track timeline span
         }).reset_index()
         
         # Flatten column names
@@ -72,6 +91,20 @@ def _create_window_features(data: pd.DataFrame, window_size: int) -> pd.DataFram
             f"{col[0]}_{col[1]}" if col[1] else col[0]
             for col in metrics.columns
         ]
+        
+        # Calculate additional temporal metrics
+        metrics['window_span'] = metrics['absolute_day_max'] - metrics['absolute_day_min']
+        metrics['engagement_density'] = metrics['sum_click_sum'] / metrics['window_span'].clip(1)
+        
+        # Rename for clarity and drop intermediate columns
+        metrics = metrics.rename(columns={
+            'sum_click_sum': 'total_clicks',
+            'sum_click_mean': 'avg_clicks',
+            'sum_click_std': 'click_std',
+            'id_site_nunique': 'unique_resources',
+            'activity_type_nunique': 'unique_activities',
+            'is_before_start_sum': 'pre_module_activities'
+        }).drop(columns=['absolute_day_min', 'absolute_day_max'])
         
         return metrics
         
@@ -92,12 +125,13 @@ def _monitor_demographic_distribution(
                 
             # Calculate engagement metrics by group
             group_metrics = features.groupby(attr).agg({
-                'click_count_sum': ['mean', 'std'],
-                'duration_sum': ['mean', 'std']
+                'total_clicks': ['mean', 'std'],
+                'avg_clicks': ['mean', 'std'],
+                'unique_resources': ['mean', 'std']
             })
             
             # Calculate disparity metrics
-            for metric in ['click_count_sum', 'duration_sum']:
+            for metric in ['total_clicks', 'avg_clicks', 'unique_resources']:
                 max_mean = group_metrics[(metric, 'mean')].max()
                 min_mean = group_metrics[(metric, 'mean')].min()
                 disparity = (max_mean - min_mean) / max_mean if max_mean != 0 else 0

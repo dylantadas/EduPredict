@@ -1,0 +1,3195 @@
+
+2025-05-01 02:10:56,002 - edupredict - INFO - Starting EduPredict pipeline with chunk size: 10000
+2025-05-01 02:10:56,016 - edupredict - INFO - Starting data processing workflow...
+2025-05-01 02:10:56,016 - edupredict - INFO - Loading raw datasets...
+2025-05-01 02:10:56,017 - edupredict - INFO - Loading studentInfo.csv...
+2025-05-01 02:10:56,092 - edupredict - INFO - Loaded student_info with shape (32593, 12)
+2025-05-01 02:10:56,093 - edupredict - INFO - Loading vle.csv...
+2025-05-01 02:10:56,106 - edupredict - INFO - Loaded vle_materials with shape (6364, 6)
+2025-05-01 02:10:56,107 - edupredict - INFO - Loading studentVle.csv...
+2025-05-01 02:11:08,388 - edupredict - INFO - Loaded vle_interactions with shape (10655280, 6)
+2025-05-01 02:11:08,389 - edupredict - INFO - Loading assessments.csv...
+2025-05-01 02:11:08,393 - edupredict - INFO - Loaded assessments with shape (206, 6)
+2025-05-01 02:11:08,393 - edupredict - INFO - Loading studentAssessment.csv...
+2025-05-01 02:11:08,493 - edupredict - INFO - Loaded student_assessments with shape (173912, 5)
+2025-05-01 02:11:08,641 - edupredict - INFO - Validating data consistency...
+2025-05-01 02:11:10,920 - edupredict - INFO - Checking data quality...
+2025-05-01 02:11:11,051 - edupredict - INFO - Generated data quality report at /Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/output/reports/fairness/data_quality_report.json
+2025-05-01 02:11:11,051 - edupredict - WARNING - Data quality recommendations:
+2025-05-01 02:11:11,051 - edupredict - WARNING - - Address quality issues in protected attribute gender: ['invalid_values']
+2025-05-01 02:11:11,051 - edupredict - WARNING - - Address quality issues in protected attribute region: ['invalid_values']
+2025-05-01 02:11:11,052 - edupredict - INFO - Cleaning datasets...
+2025-05-01 02:11:11,052 - edupredict - INFO - Demographic cleaning progress: 1/3 (33.3%)
+2025-05-01 02:11:11,055 - edupredict - INFO - Initial protected attribute distributions:
+2025-05-01 02:11:11,061 - edupredict - INFO - gender distribution:
+gender
+M    0.548431
+F    0.451569
+Name: proportion, dtype: float64
+2025-05-01 02:11:11,065 - edupredict - INFO - age_band distribution:
+age_band
+0-35     0.703955
+35-55    0.289418
+55<=     0.006627
+Name: proportion, dtype: float64
+2025-05-01 02:11:11,069 - edupredict - INFO - imd_band distribution:
+imd_band
+20-30%     0.116066
+30-40%     0.112413
+10-20      0.111683
+0-10%      0.105171
+40-50%     0.103424
+50-60%     0.099231
+60-70%     0.092275
+70-80%     0.091449
+80-90%     0.087733
+90-100%    0.080554
+Name: proportion, dtype: float64
+2025-05-01 02:11:11,072 - edupredict - INFO - region distribution:
+region
+Scotland                0.105728
+East Anglian Region     0.102476
+London Region           0.098671
+South Region            0.094867
+North Western Region    0.089160
+West Midlands Region    0.079219
+South West Region       0.074740
+East Midlands Region    0.072562
+South East Region       0.064769
+Wales                   0.064001
+Yorkshire Region        0.061547
+North Region            0.055932
+Ireland                 0.036327
+Name: proportion, dtype: float64
+2025-05-01 02:11:11,107 - edupredict - WARNING - Invalid values found in region: ['london region']
+2025-05-01 02:11:11,137 - edupredict - WARNING - Invalid values found in imd_band: ['10-20']
+2025-05-01 02:11:11,165 - edupredict - INFO - Filled missing values in protected attribute imd_band using mode
+2025-05-01 02:11:11,186 - edupredict - INFO - Final protected attribute distributions:
+2025-05-01 02:11:11,190 - edupredict - INFO - gender distribution:
+gender
+m    0.548431
+f    0.451569
+Name: proportion, dtype: float64
+2025-05-01 02:11:11,196 - edupredict - INFO - age_band distribution:
+age_band
+0-35     0.703955
+35-55    0.289418
+55<=     0.006627
+Name: proportion, dtype: float64
+2025-05-01 02:11:11,201 - edupredict - INFO - imd_band distribution:
+imd_band
+20-30%     0.146197
+30-40%     0.108582
+10-20      0.107876
+0-10%      0.101586
+40-50%     0.099899
+50-60%     0.095849
+60-70%     0.089130
+70-80%     0.088332
+80-90%     0.084742
+90-100%    0.077808
+Name: proportion, dtype: float64
+2025-05-01 02:11:11,206 - edupredict - INFO - region distribution:
+region
+scotland                0.105728
+east anglian region     0.102476
+london region           0.098671
+south region            0.094867
+north western region    0.089160
+west midlands region    0.079219
+south west region       0.074740
+east midlands region    0.072562
+south east region       0.064769
+wales                   0.064001
+yorkshire region        0.061547
+north region            0.055932
+ireland                 0.036327
+Name: proportion, dtype: float64
+2025-05-01 02:11:11,218 - edupredict - INFO - VLE cleaning progress: 2/3 (66.7%)
+2025-05-01 02:11:16,109 - edupredict - INFO - Assessment cleaning progress: 3/3 (100.0%)
+2025-05-01 02:11:16,130 - edupredict - WARNING - Removed 173 rows with invalid scores
+2025-05-01 02:11:16,190 - edupredict - INFO - Creating data splits...
+2025-05-01 02:11:16,190 - edupredict - INFO - Initial protected attribute distributions:
+2025-05-01 02:11:16,194 - edupredict - INFO - gender distribution:
+gender
+m    0.548431
+f    0.451569
+Name: proportion, dtype: float64
+2025-05-01 02:11:16,202 - edupredict - INFO - region distribution:
+region
+scotland                0.105728
+east anglian region     0.102476
+london region           0.098671
+south region            0.094867
+north western region    0.089160
+west midlands region    0.079219
+south west region       0.074740
+east midlands region    0.072562
+south east region       0.064769
+wales                   0.064001
+yorkshire region        0.061547
+north region            0.055932
+ireland                 0.036327
+Name: proportion, dtype: float64
+2025-05-01 02:11:16,206 - edupredict - INFO - age_band distribution:
+age_band
+0-35     0.703955
+35-55    0.289418
+55<=     0.006627
+Name: proportion, dtype: float64
+2025-05-01 02:11:16,443 - edupredict - WARNING - Found intersectional groups below minimum size (50):
+strat_label
+m_london region_55<=           36
+m_south region_55<=            28
+m_scotland_55<=                26
+m_south west region_55<=       21
+m_north western region_55<=    16
+m_east anglian region_55<=     14
+m_south east region_55<=       13
+f_south region_55<=            13
+m_yorkshire region_55<=        11
+m_north region_55<=            10
+m_west midlands region_55<=     7
+f_scotland_55<=                 6
+f_north region_55<=             5
+f_west midlands region_55<=     5
+m_wales_55<=                    5
+Name: count, dtype: int64
+2025-05-01 02:11:16,614 - edupredict - INFO - Train set: 19555 samples
+2025-05-01 02:11:16,615 - edupredict - INFO - Validation set: 6519 samples
+2025-05-01 02:11:16,615 - edupredict - INFO - Test set: 6519 samples
+2025-05-01 02:11:16,615 - edupredict - INFO - 
+Distribution of gender:
+2025-05-01 02:11:16,621 - edupredict - INFO - Train: {'m': 0.548453081053439, 'f': 0.45154691894656096}
+2025-05-01 02:11:16,625 - edupredict - INFO - Validation: {'m': 0.548550391164289, 'f': 0.451449608835711}
+2025-05-01 02:11:16,629 - edupredict - INFO - Test: {'m': 0.5482435956435036, 'f': 0.4517564043564964}
+2025-05-01 02:11:16,629 - edupredict - INFO - 
+Distribution of region:
+2025-05-01 02:11:16,637 - edupredict - INFO - Train: {'scotland': 0.10570186653029916, 'east anglian region': 0.10237790846330862, 'london region': 0.09864484786499617, 'south region': 0.09491178726668371, 'north western region': 0.08918435182817694, 'west midlands region': 0.07921247762720532, 'south west region': 0.07481462541549476, 'east midlands region': 0.07261569930963947, 'south east region': 0.06474047558169266, 'wales': 0.06397340833546408, 'yorkshire region': 0.06162106878036308, 'north region': 0.055842495525441065, 'ireland': 0.03635898747123498}
+2025-05-01 02:11:16,640 - edupredict - INFO - Validation: {'scotland': 0.10569105691056911, 'east anglian region': 0.10262310170271514, 'london region': 0.09878815769289769, 'south region': 0.09510661144347292, 'north western region': 0.0892774965485504, 'west midlands region': 0.07915324436263231, 'south west region': 0.07455131155085136, 'east midlands region': 0.07240374290535358, 'south east region': 0.06473385488571867, 'wales': 0.06412026384414787, 'yorkshire region': 0.061359104157079306, 'north region': 0.05599018254333487, 'ireland': 0.03620187145267679}
+2025-05-01 02:11:16,645 - edupredict - INFO - Test: {'scotland': 0.1058444546709618, 'east anglian region': 0.10262310170271514, 'london region': 0.09863475993250499, 'south region': 0.09449302040190213, 'north western region': 0.088970701027765, 'west midlands region': 0.079306642123025, 'south west region': 0.07470470931124405, 'east midlands region': 0.07255714066574628, 'south east region': 0.06488725264611137, 'wales': 0.06396686608375518, 'yorkshire region': 0.061512501917472005, 'north region': 0.05614358030372756, 'ireland': 0.03635526921306949}
+2025-05-01 02:11:16,645 - edupredict - INFO - 
+Distribution of age_band:
+2025-05-01 02:11:16,651 - edupredict - INFO - Train: {'0-35': 0.7038609051393505, '35-55': 0.28949117872666835, '55<=': 0.006647916133981079}
+2025-05-01 02:11:16,653 - edupredict - INFO - Validation: {'0-35': 0.704095720202485, '35-55': 0.2894615738610216, '55<=': 0.006442705936493327}
+2025-05-01 02:11:16,656 - edupredict - INFO - Test: {'0-35': 0.704095720202485, '35-55': 0.28915477834023623, '55<=': 0.006749501457278723}
+2025-05-01 02:11:16,770 - edupredict - INFO - Execution time: 20.75 seconds
+2025-05-01 02:11:16,771 - edupredict - INFO - Starting feature engineering workflow...
+2025-05-01 02:11:17,190 - edupredict - INFO - Creating demographic features...
+2025-05-01 02:11:17,203 - edupredict - INFO - 
+Distribution for gender:
+2025-05-01 02:11:17,203 - edupredict - INFO - gender
+m    17875
+f    14718
+2025-05-01 02:11:17,207 - edupredict - INFO - 
+Distribution for region:
+2025-05-01 02:11:17,208 - edupredict - INFO - region
+scotland                3446
+east anglian region     3340
+london region           3216
+south region            3092
+north western region    2906
+west midlands region    2582
+south west region       2436
+east midlands region    2365
+south east region       2111
+wales                   2086
+yorkshire region        2006
+north region            1823
+ireland                 1184
+2025-05-01 02:11:17,212 - edupredict - WARNING - High imbalance detected for age_band. Max/min ratio: 106.22
+2025-05-01 02:11:17,212 - edupredict - INFO - 
+Distribution for age_band:
+2025-05-01 02:11:17,212 - edupredict - INFO - age_band
+0-35     22944
+35-55     9433
+55<=       216
+2025-05-01 02:11:17,286 - edupredict - WARNING - High demographic disparity detected in num_of_prev_attempts for gender: 0.14
+2025-05-01 02:11:17,286 - edupredict - INFO - 
+Group statistics for num_of_prev_attempts:
+2025-05-01 02:11:17,289 - edupredict - INFO -             mean       std
+gender                    
+f       0.176790  0.514649
+m       0.152056  0.448707
+2025-05-01 02:11:17,294 - edupredict - WARNING - High demographic disparity detected in num_of_prev_attempts for region: 0.35
+2025-05-01 02:11:17,294 - edupredict - INFO - 
+Group statistics for num_of_prev_attempts:
+2025-05-01 02:11:17,297 - edupredict - INFO -                           mean       std
+region                                  
+east anglian region   0.150000  0.459778
+east midlands region  0.163636  0.508670
+ireland               0.185811  0.524240
+london region         0.165734  0.487053
+north region          0.159078  0.454196
+north western region  0.160358  0.473488
+scotland              0.167441  0.487994
+south east region     0.152061  0.451532
+south region          0.137128  0.433869
+south west region     0.153120  0.470871
+wales                 0.209971  0.539132
+west midlands region  0.191712  0.520075
+yorkshire region      0.147059  0.436272
+2025-05-01 02:11:17,302 - edupredict - WARNING - High demographic disparity detected in num_of_prev_attempts for age_band: 0.41
+2025-05-01 02:11:17,303 - edupredict - INFO - 
+Group statistics for num_of_prev_attempts:
+2025-05-01 02:11:17,304 - edupredict - INFO -               mean       std
+age_band                    
+0-35      0.159388  0.468421
+35-55     0.173964  0.508987
+55<=      0.101852  0.318129
+2025-05-01 02:11:17,349 - edupredict - INFO - Exported demographic feature metadata to /Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/output/intermediate/features/metadata/demographic_features.json
+2025-05-01 02:11:17,350 - edupredict - INFO - Creating temporal features...
+2025-05-01 02:11:23,574 - edupredict - WARNING - High memory usage detected: 2444.12 MB
+2025-05-01 02:11:41,325 - edupredict - INFO - Window window_7 features shape: (627031, 9)
+2025-05-01 02:11:41,325 - edupredict - INFO - Window window_14 features shape: (376919, 9)
+2025-05-01 02:11:41,326 - edupredict - INFO - Window window_30 features shape: (204359, 9)
+2025-05-01 02:11:41,326 - edupredict - INFO - Creating sequential features...
+2025-05-01 02:12:45,470 - edupredict - INFO - Exported sequential feature metadata to /Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/output/intermediate/features/metadata/sequential_features.json
+2025-05-01 02:12:45,475 - edupredict - INFO - Analyzing features...
+2025-05-01 02:12:46,660 - edupredict - INFO - Generated feature importance visualization: /Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/output/visualizations/features/demographic_importance.png
+2025-05-01 02:12:46,661 - edupredict - WARNING - Found 1 features with low importance (< 0.01)
+2025-05-01 02:12:46,975 - edupredict - WARNING - Found 3 highly correlated feature pairs (> 0.85)
+2025-05-01 02:12:46,976 - edupredict - INFO - Analyzing demographic impact...
+2025-05-01 02:12:47,002 - edupredict - WARNING - Features with high demographic disparity for gender:
+                feature  mean_disparity
+0  num_of_prev_attempts        0.139908
+2025-05-01 02:12:47,033 - edupredict - WARNING - Features with high demographic disparity for region:
+                feature  mean_disparity
+0  num_of_prev_attempts         0.34692
+2025-05-01 02:12:47,062 - edupredict - WARNING - Features with high demographic disparity for age_band:
+                feature  mean_disparity
+0  num_of_prev_attempts        0.414523
+2025-05-01 02:12:47,062 - edupredict - INFO - Exporting feature metadata...
+2025-05-01 02:12:47,156 - edupredict - WARNING - Features with high demographic disparity for gender:
+                feature  mean_disparity
+0  num_of_prev_attempts        0.139908
+2025-05-01 02:12:47,186 - edupredict - WARNING - Features with high demographic disparity for region:
+                feature  mean_disparity
+0  num_of_prev_attempts         0.34692
+2025-05-01 02:12:47,211 - edupredict - WARNING - Features with high demographic disparity for age_band:
+                feature  mean_disparity
+0  num_of_prev_attempts        0.414523
+2025-05-01 02:12:47,266 - edupredict - ERROR - Error exporting feature metadata: Object of type int64 is not JSON serializable
+2025-05-01 02:12:47,267 - edupredict - ERROR - Error in feature engineering workflow: Object of type int64 is not JSON serializable
+2025-05-01 02:12:47,267 - edupredict - ERROR - Pipeline failed: Object of type int64 is not JSON serializable
+Traceback (most recent call last):
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/main.py", line 430, in main
+    feature_results = run_feature_engineering_workflow(
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/utils/monitoring_utils.py", line 31, in wrapper
+    result = f(*args, **kwargs)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/main.py", line 355, in run_feature_engineering_workflow
+    export_feature_metadata(
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/feature_engineering/feature_selector.py", line 527, in export_feature_metadata
+    json.dump(metadata, f, indent=2)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/json/__init__.py", line 179, in dump
+    for chunk in iterable:
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/json/encoder.py", line 431, in _iterencode
+    yield from _iterencode_dict(o, _current_indent_level)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/json/encoder.py", line 405, in _iterencode_dict
+    yield from chunks
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/json/encoder.py", line 438, in _iterencode
+    o = _default(o)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/json/encoder.py", line 179, in default
+    raise TypeError(f'Object of type {o.__class__.__name__} '
+TypeError: Object of type int64 is not JSON serializable
+2025-05-01 02:16:45,356 - edupredict - INFO - Starting EduPredict pipeline with chunk size: 10000
+2025-05-01 02:16:45,374 - edupredict - INFO - Starting data processing workflow...
+2025-05-01 02:16:45,375 - edupredict - INFO - Loading raw datasets...
+2025-05-01 02:16:45,376 - edupredict - INFO - Loading studentInfo.csv...
+2025-05-01 02:16:45,460 - edupredict - INFO - Loaded student_info with shape (32593, 12)
+2025-05-01 02:16:45,460 - edupredict - INFO - Loading vle.csv...
+2025-05-01 02:16:45,471 - edupredict - INFO - Loaded vle_materials with shape (6364, 6)
+2025-05-01 02:16:45,471 - edupredict - INFO - Loading studentVle.csv...
+2025-05-01 02:16:56,836 - edupredict - INFO - Loaded vle_interactions with shape (10655280, 6)
+2025-05-01 02:16:56,836 - edupredict - INFO - Loading assessments.csv...
+2025-05-01 02:16:56,840 - edupredict - INFO - Loaded assessments with shape (206, 6)
+2025-05-01 02:16:56,840 - edupredict - INFO - Loading studentAssessment.csv...
+2025-05-01 02:16:56,927 - edupredict - INFO - Loaded student_assessments with shape (173912, 5)
+2025-05-01 02:16:57,090 - edupredict - INFO - Validating data consistency...
+2025-05-01 02:16:59,440 - edupredict - INFO - Checking data quality...
+2025-05-01 02:16:59,587 - edupredict - INFO - Generated data quality report at /Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/output/reports/fairness/data_quality_report.json
+2025-05-01 02:16:59,588 - edupredict - WARNING - Data quality recommendations:
+2025-05-01 02:16:59,588 - edupredict - WARNING - - Address quality issues in protected attribute gender: ['invalid_values']
+2025-05-01 02:16:59,589 - edupredict - WARNING - - Address quality issues in protected attribute region: ['invalid_values']
+2025-05-01 02:16:59,589 - edupredict - INFO - Cleaning datasets...
+2025-05-01 02:16:59,589 - edupredict - INFO - Demographic cleaning progress: 1/3 (33.3%)
+2025-05-01 02:16:59,594 - edupredict - INFO - Initial protected attribute distributions:
+2025-05-01 02:16:59,598 - edupredict - INFO - gender distribution:
+gender
+M    0.548431
+F    0.451569
+Name: proportion, dtype: float64
+2025-05-01 02:16:59,601 - edupredict - INFO - age_band distribution:
+age_band
+0-35     0.703955
+35-55    0.289418
+55<=     0.006627
+Name: proportion, dtype: float64
+2025-05-01 02:16:59,606 - edupredict - INFO - imd_band distribution:
+imd_band
+20-30%     0.116066
+30-40%     0.112413
+10-20      0.111683
+0-10%      0.105171
+40-50%     0.103424
+50-60%     0.099231
+60-70%     0.092275
+70-80%     0.091449
+80-90%     0.087733
+90-100%    0.080554
+Name: proportion, dtype: float64
+2025-05-01 02:16:59,610 - edupredict - INFO - region distribution:
+region
+Scotland                0.105728
+East Anglian Region     0.102476
+London Region           0.098671
+South Region            0.094867
+North Western Region    0.089160
+West Midlands Region    0.079219
+South West Region       0.074740
+East Midlands Region    0.072562
+South East Region       0.064769
+Wales                   0.064001
+Yorkshire Region        0.061547
+North Region            0.055932
+Ireland                 0.036327
+Name: proportion, dtype: float64
+2025-05-01 02:16:59,647 - edupredict - WARNING - Invalid values found in region: ['london region']
+2025-05-01 02:16:59,673 - edupredict - WARNING - Invalid values found in imd_band: ['10-20']
+2025-05-01 02:16:59,700 - edupredict - INFO - Filled missing values in protected attribute imd_band using mode
+2025-05-01 02:16:59,797 - edupredict - INFO - Final protected attribute distributions:
+2025-05-01 02:16:59,804 - edupredict - INFO - gender distribution:
+gender
+m    0.548431
+f    0.451569
+Name: proportion, dtype: float64
+2025-05-01 02:16:59,809 - edupredict - INFO - age_band distribution:
+age_band
+0-35     0.703955
+35-55    0.289418
+55<=     0.006627
+Name: proportion, dtype: float64
+2025-05-01 02:16:59,814 - edupredict - INFO - imd_band distribution:
+imd_band
+20-30%     0.146197
+30-40%     0.108582
+10-20      0.107876
+0-10%      0.101586
+40-50%     0.099899
+50-60%     0.095849
+60-70%     0.089130
+70-80%     0.088332
+80-90%     0.084742
+90-100%    0.077808
+Name: proportion, dtype: float64
+2025-05-01 02:16:59,822 - edupredict - INFO - region distribution:
+region
+scotland                0.105728
+east anglian region     0.102476
+london region           0.098671
+south region            0.094867
+north western region    0.089160
+west midlands region    0.079219
+south west region       0.074740
+east midlands region    0.072562
+south east region       0.064769
+wales                   0.064001
+yorkshire region        0.061547
+north region            0.055932
+ireland                 0.036327
+Name: proportion, dtype: float64
+2025-05-01 02:16:59,835 - edupredict - INFO - VLE cleaning progress: 2/3 (66.7%)
+2025-05-01 02:17:04,845 - edupredict - INFO - Assessment cleaning progress: 3/3 (100.0%)
+2025-05-01 02:17:04,867 - edupredict - WARNING - Removed 173 rows with invalid scores
+2025-05-01 02:17:04,932 - edupredict - INFO - Creating data splits...
+2025-05-01 02:17:04,933 - edupredict - INFO - Initial protected attribute distributions:
+2025-05-01 02:17:04,939 - edupredict - INFO - gender distribution:
+gender
+m    0.548431
+f    0.451569
+Name: proportion, dtype: float64
+2025-05-01 02:17:04,945 - edupredict - INFO - region distribution:
+region
+scotland                0.105728
+east anglian region     0.102476
+london region           0.098671
+south region            0.094867
+north western region    0.089160
+west midlands region    0.079219
+south west region       0.074740
+east midlands region    0.072562
+south east region       0.064769
+wales                   0.064001
+yorkshire region        0.061547
+north region            0.055932
+ireland                 0.036327
+Name: proportion, dtype: float64
+2025-05-01 02:17:04,950 - edupredict - INFO - age_band distribution:
+age_band
+0-35     0.703955
+35-55    0.289418
+55<=     0.006627
+Name: proportion, dtype: float64
+2025-05-01 02:17:05,196 - edupredict - WARNING - Found intersectional groups below minimum size (50):
+strat_label
+m_london region_55<=           36
+m_south region_55<=            28
+m_scotland_55<=                26
+m_south west region_55<=       21
+m_north western region_55<=    16
+m_east anglian region_55<=     14
+m_south east region_55<=       13
+f_south region_55<=            13
+m_yorkshire region_55<=        11
+m_north region_55<=            10
+m_west midlands region_55<=     7
+f_scotland_55<=                 6
+f_north region_55<=             5
+f_west midlands region_55<=     5
+m_wales_55<=                    5
+Name: count, dtype: int64
+2025-05-01 02:17:05,540 - edupredict - INFO - Train set: 19555 samples
+2025-05-01 02:17:05,541 - edupredict - INFO - Validation set: 6519 samples
+2025-05-01 02:17:05,541 - edupredict - INFO - Test set: 6519 samples
+2025-05-01 02:17:05,541 - edupredict - INFO - 
+Distribution of gender:
+2025-05-01 02:17:05,549 - edupredict - INFO - Train: {'m': 0.548453081053439, 'f': 0.45154691894656096}
+2025-05-01 02:17:05,552 - edupredict - INFO - Validation: {'m': 0.548550391164289, 'f': 0.451449608835711}
+2025-05-01 02:17:05,554 - edupredict - INFO - Test: {'m': 0.5482435956435036, 'f': 0.4517564043564964}
+2025-05-01 02:17:05,556 - edupredict - INFO - 
+Distribution of region:
+2025-05-01 02:17:05,567 - edupredict - INFO - Train: {'scotland': 0.10570186653029916, 'east anglian region': 0.10237790846330862, 'london region': 0.09864484786499617, 'south region': 0.09491178726668371, 'north western region': 0.08918435182817694, 'west midlands region': 0.07921247762720532, 'south west region': 0.07481462541549476, 'east midlands region': 0.07261569930963947, 'south east region': 0.06474047558169266, 'wales': 0.06397340833546408, 'yorkshire region': 0.06162106878036308, 'north region': 0.055842495525441065, 'ireland': 0.03635898747123498}
+2025-05-01 02:17:05,570 - edupredict - INFO - Validation: {'scotland': 0.10569105691056911, 'east anglian region': 0.10262310170271514, 'london region': 0.09878815769289769, 'south region': 0.09510661144347292, 'north western region': 0.0892774965485504, 'west midlands region': 0.07915324436263231, 'south west region': 0.07455131155085136, 'east midlands region': 0.07240374290535358, 'south east region': 0.06473385488571867, 'wales': 0.06412026384414787, 'yorkshire region': 0.061359104157079306, 'north region': 0.05599018254333487, 'ireland': 0.03620187145267679}
+2025-05-01 02:17:05,573 - edupredict - INFO - Test: {'scotland': 0.1058444546709618, 'east anglian region': 0.10262310170271514, 'london region': 0.09863475993250499, 'south region': 0.09449302040190213, 'north western region': 0.088970701027765, 'west midlands region': 0.079306642123025, 'south west region': 0.07470470931124405, 'east midlands region': 0.07255714066574628, 'south east region': 0.06488725264611137, 'wales': 0.06396686608375518, 'yorkshire region': 0.061512501917472005, 'north region': 0.05614358030372756, 'ireland': 0.03635526921306949}
+2025-05-01 02:17:05,574 - edupredict - INFO - 
+Distribution of age_band:
+2025-05-01 02:17:05,580 - edupredict - INFO - Train: {'0-35': 0.7038609051393505, '35-55': 0.28949117872666835, '55<=': 0.006647916133981079}
+2025-05-01 02:17:05,583 - edupredict - INFO - Validation: {'0-35': 0.704095720202485, '35-55': 0.2894615738610216, '55<=': 0.006442705936493327}
+2025-05-01 02:17:05,586 - edupredict - INFO - Test: {'0-35': 0.704095720202485, '35-55': 0.28915477834023623, '55<=': 0.006749501457278723}
+2025-05-01 02:17:05,729 - edupredict - INFO - Execution time: 20.35 seconds
+2025-05-01 02:17:05,730 - edupredict - INFO - Starting feature engineering workflow...
+2025-05-01 02:17:06,161 - edupredict - INFO - Creating demographic features...
+2025-05-01 02:17:06,175 - edupredict - INFO - 
+Distribution for gender:
+2025-05-01 02:17:06,176 - edupredict - INFO - gender
+m    17875
+f    14718
+2025-05-01 02:17:06,179 - edupredict - INFO - 
+Distribution for region:
+2025-05-01 02:17:06,180 - edupredict - INFO - region
+scotland                3446
+east anglian region     3340
+london region           3216
+south region            3092
+north western region    2906
+west midlands region    2582
+south west region       2436
+east midlands region    2365
+south east region       2111
+wales                   2086
+yorkshire region        2006
+north region            1823
+ireland                 1184
+2025-05-01 02:17:06,184 - edupredict - WARNING - High imbalance detected for age_band. Max/min ratio: 106.22
+2025-05-01 02:17:06,184 - edupredict - INFO - 
+Distribution for age_band:
+2025-05-01 02:17:06,185 - edupredict - INFO - age_band
+0-35     22944
+35-55     9433
+55<=       216
+2025-05-01 02:17:06,258 - edupredict - WARNING - High demographic disparity detected in num_of_prev_attempts for gender: 0.14
+2025-05-01 02:17:06,258 - edupredict - INFO - 
+Group statistics for num_of_prev_attempts:
+2025-05-01 02:17:06,261 - edupredict - INFO -             mean       std
+gender                    
+f       0.176790  0.514649
+m       0.152056  0.448707
+2025-05-01 02:17:06,266 - edupredict - WARNING - High demographic disparity detected in num_of_prev_attempts for region: 0.35
+2025-05-01 02:17:06,267 - edupredict - INFO - 
+Group statistics for num_of_prev_attempts:
+2025-05-01 02:17:06,270 - edupredict - INFO -                           mean       std
+region                                  
+east anglian region   0.150000  0.459778
+east midlands region  0.163636  0.508670
+ireland               0.185811  0.524240
+london region         0.165734  0.487053
+north region          0.159078  0.454196
+north western region  0.160358  0.473488
+scotland              0.167441  0.487994
+south east region     0.152061  0.451532
+south region          0.137128  0.433869
+south west region     0.153120  0.470871
+wales                 0.209971  0.539132
+west midlands region  0.191712  0.520075
+yorkshire region      0.147059  0.436272
+2025-05-01 02:17:06,275 - edupredict - WARNING - High demographic disparity detected in num_of_prev_attempts for age_band: 0.41
+2025-05-01 02:17:06,275 - edupredict - INFO - 
+Group statistics for num_of_prev_attempts:
+2025-05-01 02:17:06,276 - edupredict - INFO -               mean       std
+age_band                    
+0-35      0.159388  0.468421
+35-55     0.173964  0.508987
+55<=      0.101852  0.318129
+2025-05-01 02:17:06,323 - edupredict - INFO - Exported demographic feature metadata to /Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/output/intermediate/features/metadata/demographic_features.json
+2025-05-01 02:17:06,324 - edupredict - INFO - Creating temporal features...
+2025-05-01 02:17:12,225 - edupredict - WARNING - High memory usage detected: 2445.04 MB
+2025-05-01 02:17:28,676 - edupredict - INFO - Window window_7 features shape: (627031, 9)
+2025-05-01 02:17:28,677 - edupredict - INFO - Window window_14 features shape: (376919, 9)
+2025-05-01 02:17:28,677 - edupredict - INFO - Window window_30 features shape: (204359, 9)
+2025-05-01 02:17:28,677 - edupredict - INFO - Creating sequential features...
+2025-05-01 02:18:25,509 - edupredict - INFO - Exported sequential feature metadata to /Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/output/intermediate/features/metadata/sequential_features.json
+2025-05-01 02:18:25,515 - edupredict - INFO - Analyzing features...
+2025-05-01 02:18:26,721 - edupredict - INFO - Generated feature importance visualization: /Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/output/visualizations/features/demographic_importance.png
+2025-05-01 02:18:26,722 - edupredict - WARNING - Found 1 features with low importance (< 0.01)
+2025-05-01 02:18:27,024 - edupredict - WARNING - Found 3 highly correlated feature pairs (> 0.85)
+2025-05-01 02:18:27,025 - edupredict - INFO - Analyzing demographic impact...
+2025-05-01 02:18:27,052 - edupredict - WARNING - Features with high demographic disparity for gender:
+                feature  mean_disparity
+0  num_of_prev_attempts        0.139908
+2025-05-01 02:18:27,082 - edupredict - WARNING - Features with high demographic disparity for region:
+                feature  mean_disparity
+0  num_of_prev_attempts         0.34692
+2025-05-01 02:18:27,109 - edupredict - WARNING - Features with high demographic disparity for age_band:
+                feature  mean_disparity
+0  num_of_prev_attempts        0.414523
+2025-05-01 02:18:27,109 - edupredict - INFO - Exporting feature metadata...
+2025-05-01 02:18:27,204 - edupredict - WARNING - Features with high demographic disparity for gender:
+                feature  mean_disparity
+0  num_of_prev_attempts        0.139908
+2025-05-01 02:18:27,234 - edupredict - WARNING - Features with high demographic disparity for region:
+                feature  mean_disparity
+0  num_of_prev_attempts         0.34692
+2025-05-01 02:18:27,260 - edupredict - WARNING - Features with high demographic disparity for age_band:
+                feature  mean_disparity
+0  num_of_prev_attempts        0.414523
+2025-05-01 02:18:27,324 - edupredict - INFO - Exported enhanced feature metadata to /Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/output/intermediate/features/feature_metadata.json
+2025-05-01 02:18:27,324 - edupredict - INFO - Removing highly correlated features...
+2025-05-01 02:18:27,330 - edupredict - INFO - Removed 2 highly correlated features (threshold: 0.85)
+2025-05-01 02:18:27,338 - edupredict - INFO - Removed 2 correlated features
+2025-05-01 02:18:27,338 - edupredict - INFO - Selecting features by importance...
+2025-05-01 02:18:27,339 - edupredict - WARNING - Model does not have feature_importances_ attribute. Using coefficients if available.
+2025-05-01 02:18:27,339 - edupredict - ERROR - Error selecting features by importance: bad operand type for abs(): 'NoneType'
+2025-05-01 02:18:27,339 - edupredict - ERROR - Error in feature engineering workflow: bad operand type for abs(): 'NoneType'
+2025-05-01 02:18:27,339 - edupredict - ERROR - Pipeline failed: bad operand type for abs(): 'NoneType'
+Traceback (most recent call last):
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/main.py", line 430, in main
+    feature_results = run_feature_engineering_workflow(
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/utils/monitoring_utils.py", line 31, in wrapper
+    result = f(*args, **kwargs)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/main.py", line 378, in run_feature_engineering_workflow
+    demographic_features = select_features_by_importance(
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/feature_engineering/feature_selector.py", line 238, in select_features_by_importance
+    importance_scores = abs(getattr(model, 'coef_', None))
+TypeError: bad operand type for abs(): 'NoneType'
+2025-05-01 02:39:15,771 - edupredict - INFO - Starting EduPredict pipeline with chunk size: 10000
+2025-05-01 02:39:15,786 - edupredict - INFO - Starting data processing workflow...
+2025-05-01 02:39:15,787 - edupredict - INFO - Loading raw datasets...
+2025-05-01 02:39:15,787 - edupredict - INFO - Loading studentInfo.csv...
+2025-05-01 02:39:15,858 - edupredict - INFO - Loaded student_info with shape (32593, 12)
+2025-05-01 02:39:15,858 - edupredict - INFO - Loading vle.csv...
+2025-05-01 02:39:15,867 - edupredict - INFO - Loaded vle_materials with shape (6364, 6)
+2025-05-01 02:39:15,868 - edupredict - INFO - Loading studentVle.csv...
+2025-05-01 02:39:27,544 - edupredict - INFO - Loaded vle_interactions with shape (10655280, 6)
+2025-05-01 02:39:27,545 - edupredict - INFO - Loading assessments.csv...
+2025-05-01 02:39:27,549 - edupredict - INFO - Loaded assessments with shape (206, 6)
+2025-05-01 02:39:27,549 - edupredict - INFO - Loading studentAssessment.csv...
+2025-05-01 02:39:27,637 - edupredict - INFO - Loaded student_assessments with shape (173912, 5)
+2025-05-01 02:39:27,804 - edupredict - INFO - Validating data consistency...
+2025-05-01 02:39:30,212 - edupredict - INFO - Checking data quality...
+2025-05-01 02:39:30,368 - edupredict - INFO - Generated data quality report at /Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/output/reports/fairness/data_quality_report.json
+2025-05-01 02:39:30,369 - edupredict - WARNING - Data quality recommendations:
+2025-05-01 02:39:30,370 - edupredict - WARNING - - Address quality issues in protected attribute gender: ['invalid_values']
+2025-05-01 02:39:30,370 - edupredict - WARNING - - Address quality issues in protected attribute region: ['invalid_values']
+2025-05-01 02:39:30,370 - edupredict - INFO - Cleaning datasets...
+2025-05-01 02:39:30,371 - edupredict - INFO - Demographic cleaning progress: 1/3 (33.3%)
+2025-05-01 02:39:30,376 - edupredict - INFO - Initial protected attribute distributions:
+2025-05-01 02:39:30,381 - edupredict - INFO - gender distribution:
+gender
+M    0.548431
+F    0.451569
+Name: proportion, dtype: float64
+2025-05-01 02:39:30,385 - edupredict - INFO - age_band distribution:
+age_band
+0-35     0.703955
+35-55    0.289418
+55<=     0.006627
+Name: proportion, dtype: float64
+2025-05-01 02:39:30,389 - edupredict - INFO - imd_band distribution:
+imd_band
+20-30%     0.116066
+30-40%     0.112413
+10-20      0.111683
+0-10%      0.105171
+40-50%     0.103424
+50-60%     0.099231
+60-70%     0.092275
+70-80%     0.091449
+80-90%     0.087733
+90-100%    0.080554
+Name: proportion, dtype: float64
+2025-05-01 02:39:30,394 - edupredict - INFO - region distribution:
+region
+Scotland                0.105728
+East Anglian Region     0.102476
+London Region           0.098671
+South Region            0.094867
+North Western Region    0.089160
+West Midlands Region    0.079219
+South West Region       0.074740
+East Midlands Region    0.072562
+South East Region       0.064769
+Wales                   0.064001
+Yorkshire Region        0.061547
+North Region            0.055932
+Ireland                 0.036327
+Name: proportion, dtype: float64
+2025-05-01 02:39:30,428 - edupredict - WARNING - Invalid values found in region: ['london region']
+2025-05-01 02:39:30,452 - edupredict - WARNING - Invalid values found in imd_band: ['10-20']
+2025-05-01 02:39:30,478 - edupredict - INFO - Filled missing values in protected attribute imd_band using mode
+2025-05-01 02:39:30,498 - edupredict - INFO - Final protected attribute distributions:
+2025-05-01 02:39:30,501 - edupredict - INFO - gender distribution:
+gender
+m    0.548431
+f    0.451569
+Name: proportion, dtype: float64
+2025-05-01 02:39:30,505 - edupredict - INFO - age_band distribution:
+age_band
+0-35     0.703955
+35-55    0.289418
+55<=     0.006627
+Name: proportion, dtype: float64
+2025-05-01 02:39:30,509 - edupredict - INFO - imd_band distribution:
+imd_band
+20-30%     0.146197
+30-40%     0.108582
+10-20      0.107876
+0-10%      0.101586
+40-50%     0.099899
+50-60%     0.095849
+60-70%     0.089130
+70-80%     0.088332
+80-90%     0.084742
+90-100%    0.077808
+Name: proportion, dtype: float64
+2025-05-01 02:39:30,513 - edupredict - INFO - region distribution:
+region
+scotland                0.105728
+east anglian region     0.102476
+london region           0.098671
+south region            0.094867
+north western region    0.089160
+west midlands region    0.079219
+south west region       0.074740
+east midlands region    0.072562
+south east region       0.064769
+wales                   0.064001
+yorkshire region        0.061547
+north region            0.055932
+ireland                 0.036327
+Name: proportion, dtype: float64
+2025-05-01 02:39:30,525 - edupredict - INFO - VLE cleaning progress: 2/3 (66.7%)
+2025-05-01 02:39:35,598 - edupredict - INFO - Assessment cleaning progress: 3/3 (100.0%)
+2025-05-01 02:39:35,616 - edupredict - WARNING - Removed 173 rows with invalid scores
+2025-05-01 02:39:35,672 - edupredict - INFO - Creating data splits...
+2025-05-01 02:39:35,673 - edupredict - INFO - Initial protected attribute distributions:
+2025-05-01 02:39:35,676 - edupredict - INFO - gender distribution:
+gender
+m    0.548431
+f    0.451569
+Name: proportion, dtype: float64
+2025-05-01 02:39:35,681 - edupredict - INFO - region distribution:
+region
+scotland                0.105728
+east anglian region     0.102476
+london region           0.098671
+south region            0.094867
+north western region    0.089160
+west midlands region    0.079219
+south west region       0.074740
+east midlands region    0.072562
+south east region       0.064769
+wales                   0.064001
+yorkshire region        0.061547
+north region            0.055932
+ireland                 0.036327
+Name: proportion, dtype: float64
+2025-05-01 02:39:35,684 - edupredict - INFO - age_band distribution:
+age_band
+0-35     0.703955
+35-55    0.289418
+55<=     0.006627
+Name: proportion, dtype: float64
+2025-05-01 02:39:35,890 - edupredict - WARNING - Found intersectional groups below minimum size (50):
+strat_label
+m_london region_55<=           36
+m_south region_55<=            28
+m_scotland_55<=                26
+m_south west region_55<=       21
+m_north western region_55<=    16
+m_east anglian region_55<=     14
+m_south east region_55<=       13
+f_south region_55<=            13
+m_yorkshire region_55<=        11
+m_north region_55<=            10
+m_west midlands region_55<=     7
+f_scotland_55<=                 6
+f_north region_55<=             5
+f_west midlands region_55<=     5
+m_wales_55<=                    5
+Name: count, dtype: int64
+2025-05-01 02:39:36,034 - edupredict - INFO - Train set: 19555 samples
+2025-05-01 02:39:36,035 - edupredict - INFO - Validation set: 6519 samples
+2025-05-01 02:39:36,035 - edupredict - INFO - Test set: 6519 samples
+2025-05-01 02:39:36,035 - edupredict - INFO - 
+Distribution of gender:
+2025-05-01 02:39:36,042 - edupredict - INFO - Train: {'m': 0.548453081053439, 'f': 0.45154691894656096}
+2025-05-01 02:39:36,045 - edupredict - INFO - Validation: {'m': 0.548550391164289, 'f': 0.451449608835711}
+2025-05-01 02:39:36,048 - edupredict - INFO - Test: {'m': 0.5482435956435036, 'f': 0.4517564043564964}
+2025-05-01 02:39:36,048 - edupredict - INFO - 
+Distribution of region:
+2025-05-01 02:39:36,054 - edupredict - INFO - Train: {'scotland': 0.10570186653029916, 'east anglian region': 0.10237790846330862, 'london region': 0.09864484786499617, 'south region': 0.09491178726668371, 'north western region': 0.08918435182817694, 'west midlands region': 0.07921247762720532, 'south west region': 0.07481462541549476, 'east midlands region': 0.07261569930963947, 'south east region': 0.06474047558169266, 'wales': 0.06397340833546408, 'yorkshire region': 0.06162106878036308, 'north region': 0.055842495525441065, 'ireland': 0.03635898747123498}
+2025-05-01 02:39:36,056 - edupredict - INFO - Validation: {'scotland': 0.10569105691056911, 'east anglian region': 0.10262310170271514, 'london region': 0.09878815769289769, 'south region': 0.09510661144347292, 'north western region': 0.0892774965485504, 'west midlands region': 0.07915324436263231, 'south west region': 0.07455131155085136, 'east midlands region': 0.07240374290535358, 'south east region': 0.06473385488571867, 'wales': 0.06412026384414787, 'yorkshire region': 0.061359104157079306, 'north region': 0.05599018254333487, 'ireland': 0.03620187145267679}
+2025-05-01 02:39:36,058 - edupredict - INFO - Test: {'scotland': 0.1058444546709618, 'east anglian region': 0.10262310170271514, 'london region': 0.09863475993250499, 'south region': 0.09449302040190213, 'north western region': 0.088970701027765, 'west midlands region': 0.079306642123025, 'south west region': 0.07470470931124405, 'east midlands region': 0.07255714066574628, 'south east region': 0.06488725264611137, 'wales': 0.06396686608375518, 'yorkshire region': 0.061512501917472005, 'north region': 0.05614358030372756, 'ireland': 0.03635526921306949}
+2025-05-01 02:39:36,059 - edupredict - INFO - 
+Distribution of age_band:
+2025-05-01 02:39:36,065 - edupredict - INFO - Train: {'0-35': 0.7038609051393505, '35-55': 0.28949117872666835, '55<=': 0.006647916133981079}
+2025-05-01 02:39:36,067 - edupredict - INFO - Validation: {'0-35': 0.704095720202485, '35-55': 0.2894615738610216, '55<=': 0.006442705936493327}
+2025-05-01 02:39:36,069 - edupredict - INFO - Test: {'0-35': 0.704095720202485, '35-55': 0.28915477834023623, '55<=': 0.006749501457278723}
+2025-05-01 02:39:36,178 - edupredict - INFO - Execution time: 20.39 seconds
+2025-05-01 02:39:36,179 - edupredict - INFO - Starting feature engineering workflow...
+2025-05-01 02:39:36,179 - edupredict - ERROR - Error in feature engineering workflow: validate_feature_engineering_inputs() missing 1 required positional argument: 'required_columns'
+2025-05-01 02:39:36,179 - edupredict - ERROR - Pipeline failed: validate_feature_engineering_inputs() missing 1 required positional argument: 'required_columns'
+Traceback (most recent call last):
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/main.py", line 435, in main
+    feature_results = run_feature_engineering_workflow(
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/utils/monitoring_utils.py", line 31, in wrapper
+    result = f(*args, **kwargs)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/main.py", line 283, in run_feature_engineering_workflow
+    if not validate_feature_engineering_inputs(data['clean_data']):
+TypeError: validate_feature_engineering_inputs() missing 1 required positional argument: 'required_columns'
+2025-05-01 02:44:09,310 - edupredict - INFO - Starting EduPredict pipeline with chunk size: 10000
+2025-05-01 02:44:09,325 - edupredict - INFO - Starting data processing workflow...
+2025-05-01 02:44:09,325 - edupredict - INFO - Loading raw datasets...
+2025-05-01 02:44:09,326 - edupredict - INFO - Loading studentInfo.csv...
+2025-05-01 02:44:09,396 - edupredict - INFO - Loaded student_info with shape (32593, 12)
+2025-05-01 02:44:09,397 - edupredict - INFO - Loading vle.csv...
+2025-05-01 02:44:09,406 - edupredict - INFO - Loaded vle_materials with shape (6364, 6)
+2025-05-01 02:44:09,406 - edupredict - INFO - Loading studentVle.csv...
+2025-05-01 02:44:20,404 - edupredict - INFO - Loaded vle_interactions with shape (10655280, 6)
+2025-05-01 02:44:20,404 - edupredict - INFO - Loading assessments.csv...
+2025-05-01 02:44:20,407 - edupredict - INFO - Loaded assessments with shape (206, 6)
+2025-05-01 02:44:20,407 - edupredict - INFO - Loading studentAssessment.csv...
+2025-05-01 02:44:20,492 - edupredict - INFO - Loaded student_assessments with shape (173912, 5)
+2025-05-01 02:44:20,639 - edupredict - INFO - Validating data consistency...
+2025-05-01 02:44:22,941 - edupredict - INFO - Checking data quality...
+2025-05-01 02:44:23,076 - edupredict - INFO - Generated data quality report at /Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/output/reports/fairness/data_quality_report.json
+2025-05-01 02:44:23,076 - edupredict - WARNING - Data quality recommendations:
+2025-05-01 02:44:23,076 - edupredict - WARNING - - Address quality issues in protected attribute gender: ['invalid_values']
+2025-05-01 02:44:23,077 - edupredict - WARNING - - Address quality issues in protected attribute region: ['invalid_values']
+2025-05-01 02:44:23,077 - edupredict - INFO - Cleaning datasets...
+2025-05-01 02:44:23,077 - edupredict - INFO - Demographic cleaning progress: 1/3 (33.3%)
+2025-05-01 02:44:23,081 - edupredict - INFO - Initial protected attribute distributions:
+2025-05-01 02:44:23,086 - edupredict - INFO - gender distribution:
+gender
+M    0.548431
+F    0.451569
+Name: proportion, dtype: float64
+2025-05-01 02:44:23,090 - edupredict - INFO - age_band distribution:
+age_band
+0-35     0.703955
+35-55    0.289418
+55<=     0.006627
+Name: proportion, dtype: float64
+2025-05-01 02:44:23,093 - edupredict - INFO - imd_band distribution:
+imd_band
+20-30%     0.116066
+30-40%     0.112413
+10-20      0.111683
+0-10%      0.105171
+40-50%     0.103424
+50-60%     0.099231
+60-70%     0.092275
+70-80%     0.091449
+80-90%     0.087733
+90-100%    0.080554
+Name: proportion, dtype: float64
+2025-05-01 02:44:23,097 - edupredict - INFO - region distribution:
+region
+Scotland                0.105728
+East Anglian Region     0.102476
+London Region           0.098671
+South Region            0.094867
+North Western Region    0.089160
+West Midlands Region    0.079219
+South West Region       0.074740
+East Midlands Region    0.072562
+South East Region       0.064769
+Wales                   0.064001
+Yorkshire Region        0.061547
+North Region            0.055932
+Ireland                 0.036327
+Name: proportion, dtype: float64
+2025-05-01 02:44:23,135 - edupredict - WARNING - Invalid values found in region: ['london region']
+2025-05-01 02:44:23,161 - edupredict - WARNING - Invalid values found in imd_band: ['10-20']
+2025-05-01 02:44:23,187 - edupredict - INFO - Filled missing values in protected attribute imd_band using mode
+2025-05-01 02:44:23,209 - edupredict - INFO - Final protected attribute distributions:
+2025-05-01 02:44:23,213 - edupredict - INFO - gender distribution:
+gender
+m    0.548431
+f    0.451569
+Name: proportion, dtype: float64
+2025-05-01 02:44:23,217 - edupredict - INFO - age_band distribution:
+age_band
+0-35     0.703955
+35-55    0.289418
+55<=     0.006627
+Name: proportion, dtype: float64
+2025-05-01 02:44:23,222 - edupredict - INFO - imd_band distribution:
+imd_band
+20-30%     0.146197
+30-40%     0.108582
+10-20      0.107876
+0-10%      0.101586
+40-50%     0.099899
+50-60%     0.095849
+60-70%     0.089130
+70-80%     0.088332
+80-90%     0.084742
+90-100%    0.077808
+Name: proportion, dtype: float64
+2025-05-01 02:44:23,227 - edupredict - INFO - region distribution:
+region
+scotland                0.105728
+east anglian region     0.102476
+london region           0.098671
+south region            0.094867
+north western region    0.089160
+west midlands region    0.079219
+south west region       0.074740
+east midlands region    0.072562
+south east region       0.064769
+wales                   0.064001
+yorkshire region        0.061547
+north region            0.055932
+ireland                 0.036327
+Name: proportion, dtype: float64
+2025-05-01 02:44:23,240 - edupredict - INFO - VLE cleaning progress: 2/3 (66.7%)
+2025-05-01 02:44:27,717 - edupredict - INFO - Assessment cleaning progress: 3/3 (100.0%)
+2025-05-01 02:44:27,739 - edupredict - WARNING - Removed 173 rows with invalid scores
+2025-05-01 02:44:27,799 - edupredict - INFO - Creating data splits...
+2025-05-01 02:44:27,799 - edupredict - INFO - Initial protected attribute distributions:
+2025-05-01 02:44:27,802 - edupredict - INFO - gender distribution:
+gender
+m    0.548431
+f    0.451569
+Name: proportion, dtype: float64
+2025-05-01 02:44:27,808 - edupredict - INFO - region distribution:
+region
+scotland                0.105728
+east anglian region     0.102476
+london region           0.098671
+south region            0.094867
+north western region    0.089160
+west midlands region    0.079219
+south west region       0.074740
+east midlands region    0.072562
+south east region       0.064769
+wales                   0.064001
+yorkshire region        0.061547
+north region            0.055932
+ireland                 0.036327
+Name: proportion, dtype: float64
+2025-05-01 02:44:27,813 - edupredict - INFO - age_band distribution:
+age_band
+0-35     0.703955
+35-55    0.289418
+55<=     0.006627
+Name: proportion, dtype: float64
+2025-05-01 02:44:28,009 - edupredict - WARNING - Found intersectional groups below minimum size (50):
+strat_label
+m_london region_55<=           36
+m_south region_55<=            28
+m_scotland_55<=                26
+m_south west region_55<=       21
+m_north western region_55<=    16
+m_east anglian region_55<=     14
+m_south east region_55<=       13
+f_south region_55<=            13
+m_yorkshire region_55<=        11
+m_north region_55<=            10
+m_west midlands region_55<=     7
+f_scotland_55<=                 6
+f_north region_55<=             5
+f_west midlands region_55<=     5
+m_wales_55<=                    5
+Name: count, dtype: int64
+2025-05-01 02:44:28,140 - edupredict - INFO - Train set: 19555 samples
+2025-05-01 02:44:28,141 - edupredict - INFO - Validation set: 6519 samples
+2025-05-01 02:44:28,141 - edupredict - INFO - Test set: 6519 samples
+2025-05-01 02:44:28,141 - edupredict - INFO - 
+Distribution of gender:
+2025-05-01 02:44:28,146 - edupredict - INFO - Train: {'m': 0.548453081053439, 'f': 0.45154691894656096}
+2025-05-01 02:44:28,150 - edupredict - INFO - Validation: {'m': 0.548550391164289, 'f': 0.451449608835711}
+2025-05-01 02:44:28,152 - edupredict - INFO - Test: {'m': 0.5482435956435036, 'f': 0.4517564043564964}
+2025-05-01 02:44:28,152 - edupredict - INFO - 
+Distribution of region:
+2025-05-01 02:44:28,158 - edupredict - INFO - Train: {'scotland': 0.10570186653029916, 'east anglian region': 0.10237790846330862, 'london region': 0.09864484786499617, 'south region': 0.09491178726668371, 'north western region': 0.08918435182817694, 'west midlands region': 0.07921247762720532, 'south west region': 0.07481462541549476, 'east midlands region': 0.07261569930963947, 'south east region': 0.06474047558169266, 'wales': 0.06397340833546408, 'yorkshire region': 0.06162106878036308, 'north region': 0.055842495525441065, 'ireland': 0.03635898747123498}
+2025-05-01 02:44:28,160 - edupredict - INFO - Validation: {'scotland': 0.10569105691056911, 'east anglian region': 0.10262310170271514, 'london region': 0.09878815769289769, 'south region': 0.09510661144347292, 'north western region': 0.0892774965485504, 'west midlands region': 0.07915324436263231, 'south west region': 0.07455131155085136, 'east midlands region': 0.07240374290535358, 'south east region': 0.06473385488571867, 'wales': 0.06412026384414787, 'yorkshire region': 0.061359104157079306, 'north region': 0.05599018254333487, 'ireland': 0.03620187145267679}
+2025-05-01 02:44:28,161 - edupredict - INFO - Test: {'scotland': 0.1058444546709618, 'east anglian region': 0.10262310170271514, 'london region': 0.09863475993250499, 'south region': 0.09449302040190213, 'north western region': 0.088970701027765, 'west midlands region': 0.079306642123025, 'south west region': 0.07470470931124405, 'east midlands region': 0.07255714066574628, 'south east region': 0.06488725264611137, 'wales': 0.06396686608375518, 'yorkshire region': 0.061512501917472005, 'north region': 0.05614358030372756, 'ireland': 0.03635526921306949}
+2025-05-01 02:44:28,162 - edupredict - INFO - 
+Distribution of age_band:
+2025-05-01 02:44:28,167 - edupredict - INFO - Train: {'0-35': 0.7038609051393505, '35-55': 0.28949117872666835, '55<=': 0.006647916133981079}
+2025-05-01 02:44:28,169 - edupredict - INFO - Validation: {'0-35': 0.704095720202485, '35-55': 0.2894615738610216, '55<=': 0.006442705936493327}
+2025-05-01 02:44:28,171 - edupredict - INFO - Test: {'0-35': 0.704095720202485, '35-55': 0.28915477834023623, '55<=': 0.006749501457278723}
+2025-05-01 02:44:28,297 - edupredict - INFO - Execution time: 18.97 seconds
+2025-05-01 02:44:28,297 - edupredict - INFO - Starting feature engineering workflow...
+2025-05-01 02:44:29,420 - edupredict - INFO - Creating demographic features...
+2025-05-01 02:44:29,434 - edupredict - INFO - 
+Distribution for gender:
+2025-05-01 02:44:29,436 - edupredict - INFO - gender
+m    17875
+f    14718
+2025-05-01 02:44:29,439 - edupredict - INFO - 
+Distribution for region:
+2025-05-01 02:44:29,440 - edupredict - INFO - region
+scotland                3446
+east anglian region     3340
+london region           3216
+south region            3092
+north western region    2906
+west midlands region    2582
+south west region       2436
+east midlands region    2365
+south east region       2111
+wales                   2086
+yorkshire region        2006
+north region            1823
+ireland                 1184
+2025-05-01 02:44:29,443 - edupredict - WARNING - High imbalance detected for age_band. Max/min ratio: 106.22
+2025-05-01 02:44:29,443 - edupredict - INFO - 
+Distribution for age_band:
+2025-05-01 02:44:29,444 - edupredict - INFO - age_band
+0-35     22944
+35-55     9433
+55<=       216
+2025-05-01 02:44:29,509 - edupredict - WARNING - High demographic disparity detected in num_of_prev_attempts for gender: 0.14
+2025-05-01 02:44:29,509 - edupredict - INFO - 
+Group statistics for num_of_prev_attempts:
+2025-05-01 02:44:29,513 - edupredict - INFO -             mean       std
+gender                    
+f       0.176790  0.514649
+m       0.152056  0.448707
+2025-05-01 02:44:29,517 - edupredict - WARNING - High demographic disparity detected in num_of_prev_attempts for region: 0.35
+2025-05-01 02:44:29,518 - edupredict - INFO - 
+Group statistics for num_of_prev_attempts:
+2025-05-01 02:44:29,520 - edupredict - INFO -                           mean       std
+region                                  
+east anglian region   0.150000  0.459778
+east midlands region  0.163636  0.508670
+ireland               0.185811  0.524240
+london region         0.165734  0.487053
+north region          0.159078  0.454196
+north western region  0.160358  0.473488
+scotland              0.167441  0.487994
+south east region     0.152061  0.451532
+south region          0.137128  0.433869
+south west region     0.153120  0.470871
+wales                 0.209971  0.539132
+west midlands region  0.191712  0.520075
+yorkshire region      0.147059  0.436272
+2025-05-01 02:44:29,525 - edupredict - WARNING - High demographic disparity detected in num_of_prev_attempts for age_band: 0.41
+2025-05-01 02:44:29,525 - edupredict - INFO - 
+Group statistics for num_of_prev_attempts:
+2025-05-01 02:44:29,527 - edupredict - INFO -               mean       std
+age_band                    
+0-35      0.159388  0.468421
+35-55     0.173964  0.508987
+55<=      0.101852  0.318129
+2025-05-01 02:44:29,571 - edupredict - INFO - Exported demographic feature metadata to /Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/output/intermediate/features/metadata/demographic_features.json
+2025-05-01 02:44:29,571 - edupredict - INFO - Creating temporal features...
+2025-05-01 02:44:35,110 - edupredict - WARNING - High memory usage detected: 2462.63 MB
+2025-05-01 02:44:52,568 - edupredict - INFO - Window window_7 features shape: (627031, 9)
+2025-05-01 02:44:52,569 - edupredict - INFO - Window window_14 features shape: (376919, 9)
+2025-05-01 02:44:52,569 - edupredict - INFO - Window window_30 features shape: (204359, 9)
+2025-05-01 02:44:52,569 - edupredict - INFO - Creating sequential features...
+2025-05-01 02:45:50,872 - edupredict - INFO - Exported sequential feature metadata to /Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/output/intermediate/features/metadata/sequential_features.json
+2025-05-01 02:45:50,877 - edupredict - INFO - Analyzing features...
+2025-05-01 02:45:52,074 - edupredict - INFO - Generated feature importance visualization: /Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/output/visualizations/features/demographic_importance.png
+2025-05-01 02:45:52,075 - edupredict - WARNING - Found 1 features with low importance (< 0.01)
+2025-05-01 02:45:52,371 - edupredict - WARNING - Found 3 highly correlated feature pairs (> 0.85)
+2025-05-01 02:45:52,372 - edupredict - INFO - Analyzing demographic impact...
+2025-05-01 02:45:52,398 - edupredict - WARNING - Features with high demographic disparity for gender:
+                feature  mean_disparity
+0  num_of_prev_attempts        0.139908
+2025-05-01 02:45:52,428 - edupredict - WARNING - Features with high demographic disparity for region:
+                feature  mean_disparity
+0  num_of_prev_attempts         0.34692
+2025-05-01 02:45:52,453 - edupredict - WARNING - Features with high demographic disparity for age_band:
+                feature  mean_disparity
+0  num_of_prev_attempts        0.414523
+2025-05-01 02:45:52,454 - edupredict - INFO - Exporting feature metadata...
+2025-05-01 02:45:52,548 - edupredict - WARNING - Features with high demographic disparity for gender:
+                feature  mean_disparity
+0  num_of_prev_attempts        0.139908
+2025-05-01 02:45:52,577 - edupredict - WARNING - Features with high demographic disparity for region:
+                feature  mean_disparity
+0  num_of_prev_attempts         0.34692
+2025-05-01 02:45:52,603 - edupredict - WARNING - Features with high demographic disparity for age_band:
+                feature  mean_disparity
+0  num_of_prev_attempts        0.414523
+2025-05-01 02:45:52,658 - edupredict - INFO - Exported enhanced feature metadata to /Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/output/intermediate/features/feature_metadata.json
+2025-05-01 02:45:52,658 - edupredict - INFO - Removing highly correlated features...
+2025-05-01 02:45:52,664 - edupredict - INFO - Removed 2 highly correlated features (threshold: 0.85)
+2025-05-01 02:45:52,673 - edupredict - INFO - Removed 2 correlated features
+2025-05-01 02:45:52,673 - edupredict - INFO - Selecting features by importance...
+2025-05-01 02:45:53,300 - edupredict - INFO - Selected feature num_of_prev_attempts with importance: 0.2101
+2025-05-01 02:45:53,300 - edupredict - INFO - Selected feature studied_credits with importance: 0.7899
+2025-05-01 02:45:53,300 - edupredict - INFO - Selected 8 features (threshold: 0.01)
+2025-05-01 02:45:53,305 - edupredict - INFO - Selected 8 important features
+2025-05-01 02:45:53,305 - edupredict - INFO - Validating feature selection impact...
+2025-05-01 02:45:53,305 - edupredict - INFO - Execution time: 85.01 seconds
+2025-05-01 02:45:53,305 - edupredict - INFO - Pipeline completed successfully in 104.00 seconds
+2025-05-01 03:11:16,400 - edupredict - INFO - Starting EduPredict pipeline with chunk size: 10000
+2025-05-01 03:11:16,417 - edupredict - INFO - Starting data processing workflow...
+2025-05-01 03:11:16,418 - edupredict - INFO - Loading raw datasets...
+2025-05-01 03:11:16,418 - edupredict - INFO - Loading studentInfo.csv...
+2025-05-01 03:11:16,491 - edupredict - INFO - Loaded student_info with shape (32593, 12)
+2025-05-01 03:11:16,492 - edupredict - INFO - Loading vle.csv...
+2025-05-01 03:11:16,503 - edupredict - INFO - Loaded vle_materials with shape (6364, 6)
+2025-05-01 03:11:16,503 - edupredict - INFO - Loading studentVle.csv...
+2025-05-01 03:11:28,730 - edupredict - INFO - Loaded vle_interactions with shape (10655280, 6)
+2025-05-01 03:11:28,731 - edupredict - INFO - Loading assessments.csv...
+2025-05-01 03:11:28,734 - edupredict - INFO - Loaded assessments with shape (206, 6)
+2025-05-01 03:11:28,734 - edupredict - INFO - Loading studentAssessment.csv...
+2025-05-01 03:11:28,823 - edupredict - INFO - Loaded student_assessments with shape (173912, 5)
+2025-05-01 03:11:28,966 - edupredict - INFO - Validating data consistency...
+2025-05-01 03:11:31,123 - edupredict - INFO - Checking data quality...
+2025-05-01 03:11:31,249 - edupredict - INFO - Generated data quality report at /Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/output/reports/fairness/data_quality_report.json
+2025-05-01 03:11:31,249 - edupredict - WARNING - Data quality recommendations:
+2025-05-01 03:11:31,249 - edupredict - WARNING - - Address quality issues in protected attribute gender: ['invalid_values']
+2025-05-01 03:11:31,249 - edupredict - WARNING - - Address quality issues in protected attribute region: ['invalid_values']
+2025-05-01 03:11:31,249 - edupredict - WARNING - - Address quality issues in protected attribute age_band: ['invalid_values']
+2025-05-01 03:11:31,250 - edupredict - INFO - Cleaning datasets...
+2025-05-01 03:11:31,250 - edupredict - INFO - Demographic cleaning progress: 1/3 (33.3%)
+2025-05-01 03:11:31,253 - edupredict - INFO - Initial protected attribute distributions:
+2025-05-01 03:11:31,257 - edupredict - INFO - gender distribution:
+gender
+M    0.548431
+F    0.451569
+Name: proportion, dtype: float64
+2025-05-01 03:11:31,261 - edupredict - INFO - age_band distribution:
+age_band
+0-35     0.703955
+35-55    0.289418
+55<=     0.006627
+Name: proportion, dtype: float64
+2025-05-01 03:11:31,264 - edupredict - INFO - imd_band distribution:
+imd_band
+20-30%     0.116066
+30-40%     0.112413
+10-20      0.111683
+0-10%      0.105171
+40-50%     0.103424
+50-60%     0.099231
+60-70%     0.092275
+70-80%     0.091449
+80-90%     0.087733
+90-100%    0.080554
+Name: proportion, dtype: float64
+2025-05-01 03:11:31,268 - edupredict - INFO - region distribution:
+region
+Scotland                0.105728
+East Anglian Region     0.102476
+London Region           0.098671
+South Region            0.094867
+North Western Region    0.089160
+West Midlands Region    0.079219
+South West Region       0.074740
+East Midlands Region    0.072562
+South East Region       0.064769
+Wales                   0.064001
+Yorkshire Region        0.061547
+North Region            0.055932
+Ireland                 0.036327
+Name: proportion, dtype: float64
+2025-05-01 03:11:31,403 - edupredict - WARNING - Invalid values found in region: ['london region']
+2025-05-01 03:11:31,421 - edupredict - INFO - Filled missing values in protected attribute imd_band using mode
+2025-05-01 03:11:31,466 - edupredict - INFO - Final protected attribute distributions:
+2025-05-01 03:11:31,469 - edupredict - INFO - gender distribution:
+gender
+m    0.548431
+f    0.451569
+Name: proportion, dtype: float64
+2025-05-01 03:11:31,472 - edupredict - INFO - age_band distribution:
+age_band
+0-35    0.703955
+35+     0.296045
+Name: proportion, dtype: float64
+2025-05-01 03:11:31,477 - edupredict - INFO - imd_band distribution:
+imd_band
+20-30%     0.146197
+30-40%     0.108582
+10-20%     0.107876
+0-10%      0.101586
+40-50%     0.099899
+50-60%     0.095849
+60-70%     0.089130
+70-80%     0.088332
+80-90%     0.084742
+90-100%    0.077808
+Name: proportion, dtype: float64
+2025-05-01 03:11:31,481 - edupredict - INFO - region distribution:
+region
+scotland                0.105728
+east anglian region     0.102476
+london region           0.098671
+south region            0.094867
+north western region    0.089160
+west midlands region    0.079219
+south west region       0.074740
+east midlands region    0.072562
+south east region       0.064769
+wales                   0.064001
+yorkshire region        0.061547
+north region            0.055932
+ireland                 0.036327
+Name: proportion, dtype: float64
+2025-05-01 03:11:31,492 - edupredict - INFO - VLE cleaning progress: 2/3 (66.7%)
+2025-05-01 03:11:35,933 - edupredict - INFO - Assessment cleaning progress: 3/3 (100.0%)
+2025-05-01 03:11:35,957 - edupredict - WARNING - Removed 173 rows with invalid scores
+2025-05-01 03:11:36,015 - edupredict - INFO - Creating data splits...
+2025-05-01 03:11:36,015 - edupredict - INFO - Initial protected attribute distributions:
+2025-05-01 03:11:36,018 - edupredict - INFO - gender distribution:
+gender
+m    0.548431
+f    0.451569
+Name: proportion, dtype: float64
+2025-05-01 03:11:36,023 - edupredict - INFO - region distribution:
+region
+scotland                0.105728
+east anglian region     0.102476
+london region           0.098671
+south region            0.094867
+north western region    0.089160
+west midlands region    0.079219
+south west region       0.074740
+east midlands region    0.072562
+south east region       0.064769
+wales                   0.064001
+yorkshire region        0.061547
+north region            0.055932
+ireland                 0.036327
+Name: proportion, dtype: float64
+2025-05-01 03:11:36,026 - edupredict - INFO - age_band distribution:
+age_band
+0-35    0.703955
+35+     0.296045
+Name: proportion, dtype: float64
+2025-05-01 03:11:36,345 - edupredict - INFO - Train set: 19555 samples
+2025-05-01 03:11:36,345 - edupredict - INFO - Validation set: 6519 samples
+2025-05-01 03:11:36,345 - edupredict - INFO - Test set: 6519 samples
+2025-05-01 03:11:36,345 - edupredict - INFO - 
+Distribution of gender:
+2025-05-01 03:11:36,350 - edupredict - INFO - Train: {'m': 0.5486064945026847, 'f': 0.4513935054973153}
+2025-05-01 03:11:36,354 - edupredict - INFO - Validation: {'m': 0.5480901978831109, 'f': 0.4519098021168891}
+2025-05-01 03:11:36,356 - edupredict - INFO - Test: {'m': 0.5482435956435036, 'f': 0.4517564043564964}
+2025-05-01 03:11:36,357 - edupredict - INFO - 
+Distribution of region:
+2025-05-01 03:11:36,363 - edupredict - INFO - Train: {'scotland': 0.10575300434671439, 'east anglian region': 0.10242904627972385, 'london region': 0.0986959856814114, 'south region': 0.09480951163385323, 'north western region': 0.08918435182817694, 'west midlands region': 0.07921247762720532, 'south west region': 0.07471234978266428, 'east midlands region': 0.07256456149322424, 'south east region': 0.0647916133981079, 'wales': 0.06402454615187932, 'yorkshire region': 0.06156993096394784, 'north region': 0.055893633341856305, 'ireland': 0.03635898747123498}
+2025-05-01 03:11:36,365 - edupredict - INFO - Validation: {'scotland': 0.10569105691056911, 'east anglian region': 0.10246970394232244, 'london region': 0.09848136217211229, 'south region': 0.09495321368308023, 'north western region': 0.088970701027765, 'west midlands region': 0.0789998466022396, 'south west region': 0.07485810707163676, 'east midlands region': 0.07271053842613898, 'south east region': 0.06488725264611137, 'wales': 0.06396686608375518, 'yorkshire region': 0.061512501917472005, 'north region': 0.05614358030372756, 'ireland': 0.03635526921306949}
+2025-05-01 03:11:36,380 - edupredict - INFO - Test: {'scotland': 0.10569105691056911, 'east anglian region': 0.10262310170271514, 'london region': 0.09878815769289769, 'south region': 0.09495321368308023, 'north western region': 0.0892774965485504, 'west midlands region': 0.0794600398834177, 'south west region': 0.07470470931124405, 'east midlands region': 0.07240374290535358, 'south east region': 0.06458045712532597, 'wales': 0.06396686608375518, 'yorkshire region': 0.061512501917472005, 'north region': 0.05583678478294217, 'ireland': 0.03620187145267679}
+2025-05-01 03:11:36,380 - edupredict - INFO - 
+Distribution of age_band:
+2025-05-01 03:11:36,383 - edupredict - INFO - Train: {'0-35': 0.703963180772181, '35+': 0.296036819227819}
+2025-05-01 03:11:36,385 - edupredict - INFO - Validation: {'0-35': 0.7037889246816996, '35+': 0.2962110753183004}
+2025-05-01 03:11:36,387 - edupredict - INFO - Test: {'0-35': 0.704095720202485, '35+': 0.29590427979751494}
+2025-05-01 03:11:36,510 - edupredict - INFO - Execution time: 20.09 seconds
+2025-05-01 03:11:36,510 - edupredict - INFO - Starting feature engineering workflow...
+2025-05-01 03:11:37,629 - edupredict - INFO - Creating demographic features...
+2025-05-01 03:11:37,642 - edupredict - INFO - 
+Distribution for gender:
+2025-05-01 03:11:37,643 - edupredict - INFO - gender
+m    17875
+f    14718
+2025-05-01 03:11:37,647 - edupredict - INFO - 
+Distribution for region:
+2025-05-01 03:11:37,649 - edupredict - INFO - region
+scotland                3446
+east anglian region     3340
+london region           3216
+south region            3092
+north western region    2906
+west midlands region    2582
+south west region       2436
+east midlands region    2365
+south east region       2111
+wales                   2086
+yorkshire region        2006
+north region            1823
+ireland                 1184
+2025-05-01 03:11:37,652 - edupredict - INFO - 
+Distribution for age_band:
+2025-05-01 03:11:37,653 - edupredict - INFO - age_band
+0-35    22944
+35+      9649
+2025-05-01 03:11:37,721 - edupredict - WARNING - High demographic disparity detected in num_of_prev_attempts for gender: 2.21
+2025-05-01 03:11:37,721 - edupredict - INFO - 
+Group statistics for num_of_prev_attempts:
+2025-05-01 03:11:37,724 - edupredict - INFO -             mean       std
+gender                    
+f      -0.005245  0.984049
+m       0.004319  1.012621
+2025-05-01 03:11:37,729 - edupredict - WARNING - High demographic disparity detected in num_of_prev_attempts for region: 1.71
+2025-05-01 03:11:37,730 - edupredict - INFO - 
+Group statistics for num_of_prev_attempts:
+2025-05-01 03:11:37,733 - edupredict - INFO -                               mean  std
+region                                 
+east anglian region   5.850277e-18  1.0
+east midlands region -6.712976e-18  1.0
+ireland               2.001965e-17  1.0
+london region        -1.898702e-18  1.0
+north region         -7.338556e-18  1.0
+north western region  2.276989e-17  1.0
+scotland              1.875072e-17  1.0
+south east region    -1.622472e-17  1.0
+south region         -3.841975e-18  1.0
+south west region     2.916842e-18  1.0
+wales                 1.567405e-17  1.0
+west midlands region  5.159828e-18  1.0
+yorkshire region     -6.032618e-18  1.0
+2025-05-01 03:11:37,738 - edupredict - WARNING - High demographic disparity detected in num_of_prev_attempts for age_band: 1.42
+2025-05-01 03:11:37,738 - edupredict - INFO - 
+Group statistics for num_of_prev_attempts:
+2025-05-01 03:11:37,739 - edupredict - INFO -               mean       std
+age_band                    
+0-35     -0.001345  0.997542
+35+       0.003199  1.005246
+2025-05-01 03:11:37,784 - edupredict - INFO - Exported demographic feature metadata to /Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/output/intermediate/features/metadata/demographic_features.json
+2025-05-01 03:11:37,785 - edupredict - INFO - Creating temporal features...
+2025-05-01 03:11:43,156 - edupredict - WARNING - High memory usage detected: 2532.71 MB
+2025-05-01 03:11:59,077 - edupredict - INFO - Window window_7 features shape: (627031, 9)
+2025-05-01 03:11:59,077 - edupredict - INFO - Window window_14 features shape: (376919, 9)
+2025-05-01 03:11:59,077 - edupredict - INFO - Window window_30 features shape: (204359, 9)
+2025-05-01 03:11:59,077 - edupredict - INFO - Creating sequential features...
+2025-05-01 03:12:55,967 - edupredict - INFO - Exported sequential feature metadata to /Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/output/intermediate/features/metadata/sequential_features.json
+2025-05-01 03:12:55,972 - edupredict - INFO - Analyzing features...
+2025-05-01 03:12:57,182 - edupredict - INFO - Generated feature importance visualization: /Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/output/visualizations/features/demographic_importance.png
+2025-05-01 03:12:57,502 - edupredict - WARNING - Found 3 highly correlated feature pairs (> 0.85)
+2025-05-01 03:12:57,502 - edupredict - INFO - Analyzing demographic impact...
+2025-05-01 03:12:57,530 - edupredict - WARNING - Features with high demographic disparity for gender:
+                feature  mean_disparity
+0  num_of_prev_attempts        2.214499
+2025-05-01 03:12:57,559 - edupredict - WARNING - Features with high demographic disparity for region:
+                feature  mean_disparity
+0  num_of_prev_attempts        1.712552
+2025-05-01 03:12:57,585 - edupredict - WARNING - Features with high demographic disparity for age_band:
+                feature  mean_disparity
+0  num_of_prev_attempts        1.420546
+2025-05-01 03:12:57,585 - edupredict - INFO - Exporting feature metadata...
+2025-05-01 03:12:57,685 - edupredict - WARNING - Features with high demographic disparity for gender:
+                feature  mean_disparity
+0  num_of_prev_attempts        2.214499
+2025-05-01 03:12:57,717 - edupredict - WARNING - Features with high demographic disparity for region:
+                feature  mean_disparity
+0  num_of_prev_attempts        1.712552
+2025-05-01 03:12:57,741 - edupredict - WARNING - Features with high demographic disparity for age_band:
+                feature  mean_disparity
+0  num_of_prev_attempts        1.420546
+2025-05-01 03:12:57,798 - edupredict - INFO - Exported enhanced feature metadata to /Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/output/intermediate/features/feature_metadata.json
+2025-05-01 03:12:57,798 - edupredict - INFO - Removing highly correlated features...
+2025-05-01 03:12:57,803 - edupredict - INFO - Removed 2 highly correlated features (threshold: 0.85)
+2025-05-01 03:12:57,810 - edupredict - INFO - Removed 2 correlated features
+2025-05-01 03:12:57,810 - edupredict - INFO - Selecting features by importance...
+2025-05-01 03:13:01,105 - edupredict - INFO - Selected feature num_of_prev_attempts with importance: 0.8824
+2025-05-01 03:13:01,105 - edupredict - INFO - Selected feature studied_credits with importance: 0.1176
+2025-05-01 03:13:01,105 - edupredict - INFO - Selected 8 features (threshold: 0.01)
+2025-05-01 03:13:01,116 - edupredict - INFO - Selected 8 important features
+2025-05-01 03:13:01,117 - edupredict - INFO - Validating feature selection impact...
+2025-05-01 03:13:01,117 - edupredict - INFO - Execution time: 84.61 seconds
+2025-05-01 03:13:01,117 - edupredict - INFO - Pipeline completed successfully in 104.72 seconds
+2025-05-01 03:18:21,776 - edupredict - INFO - Starting EduPredict pipeline with chunk size: 10000
+2025-05-01 03:18:21,791 - edupredict - INFO - Starting data processing workflow...
+2025-05-01 03:18:21,791 - edupredict - INFO - Loading raw datasets...
+2025-05-01 03:18:21,792 - edupredict - INFO - Loading studentInfo.csv...
+2025-05-01 03:18:21,864 - edupredict - INFO - Loaded student_info with shape (32593, 12)
+2025-05-01 03:18:21,865 - edupredict - INFO - Loading vle.csv...
+2025-05-01 03:18:21,875 - edupredict - INFO - Loaded vle_materials with shape (6364, 6)
+2025-05-01 03:18:21,876 - edupredict - INFO - Loading studentVle.csv...
+2025-05-01 03:18:33,012 - edupredict - INFO - Loaded vle_interactions with shape (10655280, 6)
+2025-05-01 03:18:33,013 - edupredict - INFO - Loading assessments.csv...
+2025-05-01 03:18:33,017 - edupredict - INFO - Loaded assessments with shape (206, 6)
+2025-05-01 03:18:33,018 - edupredict - INFO - Loading studentAssessment.csv...
+2025-05-01 03:18:33,111 - edupredict - INFO - Loaded student_assessments with shape (173912, 5)
+2025-05-01 03:18:33,264 - edupredict - INFO - Validating data consistency...
+2025-05-01 03:18:35,571 - edupredict - INFO - Checking data quality...
+2025-05-01 03:18:35,700 - edupredict - INFO - Generated data quality report at /Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/output/reports/fairness/data_quality_report.json
+2025-05-01 03:18:35,700 - edupredict - WARNING - Data quality recommendations:
+2025-05-01 03:18:35,700 - edupredict - WARNING - - Address quality issues in protected attribute gender: ['invalid_values']
+2025-05-01 03:18:35,700 - edupredict - WARNING - - Address quality issues in protected attribute region: ['invalid_values']
+2025-05-01 03:18:35,700 - edupredict - WARNING - - Address quality issues in protected attribute age_band: ['invalid_values']
+2025-05-01 03:18:35,700 - edupredict - INFO - Cleaning datasets...
+2025-05-01 03:18:35,701 - edupredict - INFO - Demographic cleaning progress: 1/3 (33.3%)
+2025-05-01 03:18:35,704 - edupredict - INFO - Initial protected attribute distributions:
+2025-05-01 03:18:35,708 - edupredict - INFO - gender distribution:
+gender
+M    0.548431
+F    0.451569
+Name: proportion, dtype: float64
+2025-05-01 03:18:35,712 - edupredict - INFO - age_band distribution:
+age_band
+0-35     0.703955
+35-55    0.289418
+55<=     0.006627
+Name: proportion, dtype: float64
+2025-05-01 03:18:35,715 - edupredict - INFO - imd_band distribution:
+imd_band
+20-30%     0.116066
+30-40%     0.112413
+10-20      0.111683
+0-10%      0.105171
+40-50%     0.103424
+50-60%     0.099231
+60-70%     0.092275
+70-80%     0.091449
+80-90%     0.087733
+90-100%    0.080554
+Name: proportion, dtype: float64
+2025-05-01 03:18:35,719 - edupredict - INFO - region distribution:
+region
+Scotland                0.105728
+East Anglian Region     0.102476
+London Region           0.098671
+South Region            0.094867
+North Western Region    0.089160
+West Midlands Region    0.079219
+South West Region       0.074740
+East Midlands Region    0.072562
+South East Region       0.064769
+Wales                   0.064001
+Yorkshire Region        0.061547
+North Region            0.055932
+Ireland                 0.036327
+Name: proportion, dtype: float64
+2025-05-01 03:18:35,761 - edupredict - WARNING - Found 9649 invalid values in age_band
+2025-05-01 03:18:35,787 - edupredict - WARNING - Found 4627 invalid values in imd_band
+2025-05-01 03:18:35,811 - edupredict - WARNING - Found 3216 invalid values in region
+2025-05-01 03:18:35,858 - edupredict - ERROR - Error cleaning demographic data: One of max or min must be given
+2025-05-01 03:18:35,858 - edupredict - ERROR - Error in data processing workflow: One of max or min must be given
+2025-05-01 03:18:35,858 - edupredict - ERROR - Pipeline failed: One of max or min must be given
+Traceback (most recent call last):
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/main.py", line 443, in main
+    data_results = run_data_processing_workflow(args, dirs, logger)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/utils/monitoring_utils.py", line 31, in wrapper
+    result = f(*args, **kwargs)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/main.py", line 220, in run_data_processing_workflow
+    clean_data['demographics'] = clean_demographic_data(
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/data_processing/data_cleaner.py", line 181, in clean_demographic_data
+    group_std = group_stats.loc[group, 'std'].clip(lower=1e-6)  # Prevent division by zero
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/numpy/core/_methods.py", line 92, in _clip
+    raise ValueError("One of max or min must be given")
+ValueError: One of max or min must be given
+2025-05-01 03:19:48,514 - edupredict - INFO - Starting EduPredict pipeline with chunk size: 10000
+2025-05-01 03:19:48,529 - edupredict - INFO - Starting data processing workflow...
+2025-05-01 03:19:48,530 - edupredict - INFO - Loading raw datasets...
+2025-05-01 03:19:48,530 - edupredict - INFO - Loading studentInfo.csv...
+2025-05-01 03:19:48,600 - edupredict - INFO - Loaded student_info with shape (32593, 12)
+2025-05-01 03:19:48,601 - edupredict - INFO - Loading vle.csv...
+2025-05-01 03:19:48,611 - edupredict - INFO - Loaded vle_materials with shape (6364, 6)
+2025-05-01 03:19:48,612 - edupredict - INFO - Loading studentVle.csv...
+2025-05-01 03:20:00,969 - edupredict - INFO - Loaded vle_interactions with shape (10655280, 6)
+2025-05-01 03:20:00,969 - edupredict - INFO - Loading assessments.csv...
+2025-05-01 03:20:00,974 - edupredict - INFO - Loaded assessments with shape (206, 6)
+2025-05-01 03:20:00,975 - edupredict - INFO - Loading studentAssessment.csv...
+2025-05-01 03:20:01,078 - edupredict - INFO - Loaded student_assessments with shape (173912, 5)
+2025-05-01 03:20:01,247 - edupredict - INFO - Validating data consistency...
+2025-05-01 03:20:04,995 - edupredict - INFO - Checking data quality...
+2025-05-01 03:20:05,285 - edupredict - INFO - Generated data quality report at /Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/output/reports/fairness/data_quality_report.json
+2025-05-01 03:20:05,285 - edupredict - WARNING - Data quality recommendations:
+2025-05-01 03:20:05,286 - edupredict - WARNING - - Address quality issues in protected attribute gender: ['invalid_values']
+2025-05-01 03:20:05,286 - edupredict - WARNING - - Address quality issues in protected attribute region: ['invalid_values']
+2025-05-01 03:20:05,286 - edupredict - WARNING - - Address quality issues in protected attribute age_band: ['invalid_values']
+2025-05-01 03:20:05,287 - edupredict - INFO - Cleaning datasets...
+2025-05-01 03:20:05,287 - edupredict - INFO - Demographic cleaning progress: 1/3 (33.3%)
+2025-05-01 03:20:05,292 - edupredict - INFO - Initial protected attribute distributions:
+2025-05-01 03:20:05,405 - edupredict - INFO - gender distribution:
+gender
+M    0.548431
+F    0.451569
+Name: proportion, dtype: float64
+2025-05-01 03:20:05,418 - edupredict - INFO - age_band distribution:
+age_band
+0-35     0.703955
+35-55    0.289418
+55<=     0.006627
+Name: proportion, dtype: float64
+2025-05-01 03:20:05,423 - edupredict - INFO - imd_band distribution:
+imd_band
+20-30%     0.116066
+30-40%     0.112413
+10-20      0.111683
+0-10%      0.105171
+40-50%     0.103424
+50-60%     0.099231
+60-70%     0.092275
+70-80%     0.091449
+80-90%     0.087733
+90-100%    0.080554
+Name: proportion, dtype: float64
+2025-05-01 03:20:05,428 - edupredict - INFO - region distribution:
+region
+Scotland                0.105728
+East Anglian Region     0.102476
+London Region           0.098671
+South Region            0.094867
+North Western Region    0.089160
+West Midlands Region    0.079219
+South West Region       0.074740
+East Midlands Region    0.072562
+South East Region       0.064769
+Wales                   0.064001
+Yorkshire Region        0.061547
+North Region            0.055932
+Ireland                 0.036327
+Name: proportion, dtype: float64
+2025-05-01 03:20:05,494 - edupredict - WARNING - Found 9649 invalid values in age_band
+2025-05-01 03:20:05,533 - edupredict - WARNING - Found 4627 invalid values in imd_band
+2025-05-01 03:20:05,708 - edupredict - WARNING - Found 3216 invalid values in region
+2025-05-01 03:20:06,145 - edupredict - INFO - Final protected attribute distributions:
+2025-05-01 03:20:06,150 - edupredict - INFO - gender distribution:
+gender
+m    0.548431
+f    0.451569
+Name: proportion, dtype: float64
+2025-05-01 03:20:06,155 - edupredict - INFO - age_band distribution:
+age_band
+0-35    1.0
+Name: proportion, dtype: float64
+2025-05-01 03:20:06,161 - edupredict - INFO - imd_band distribution:
+imd_band
+20-30%     0.131040
+30-40%     0.126469
+0-10%      0.118799
+40-50%     0.115178
+50-60%     0.112325
+60-70%     0.104532
+70-80%     0.103059
+80-90%     0.098150
+90-100%    0.090449
+Name: proportion, dtype: float64
+2025-05-01 03:20:06,168 - edupredict - INFO - region distribution:
+region
+scotland                0.118246
+east anglian region     0.113153
+south region            0.105513
+north western region    0.098242
+west midlands region    0.088270
+south west region       0.083392
+east midlands region    0.080539
+south east region       0.071580
+wales                   0.070260
+yorkshire region        0.068205
+north region            0.061823
+ireland                 0.040776
+Name: proportion, dtype: float64
+2025-05-01 03:20:06,193 - edupredict - WARNING - Feature studied_credits shows high disparity (0.223) for protected attribute imd_band
+2025-05-01 03:20:06,206 - edupredict - WARNING - Feature studied_credits shows high disparity (0.215) for protected attribute region
+2025-05-01 03:20:06,230 - edupredict - WARNING - Remaining null values after cleaning: {'num_of_prev_attempts': 32593}
+2025-05-01 03:20:06,230 - edupredict - INFO - VLE cleaning progress: 2/3 (66.7%)
+2025-05-01 03:20:13,385 - edupredict - INFO - Assessment cleaning progress: 3/3 (100.0%)
+2025-05-01 03:20:13,414 - edupredict - WARNING - Removed 173 rows with invalid scores
+2025-05-01 03:20:13,470 - edupredict - INFO - Creating data splits...
+2025-05-01 03:20:13,470 - edupredict - INFO - Initial protected attribute distributions:
+2025-05-01 03:20:13,477 - edupredict - INFO - gender distribution:
+gender
+m    0.548431
+f    0.451569
+Name: proportion, dtype: float64
+2025-05-01 03:20:13,481 - edupredict - INFO - region distribution:
+region
+scotland                0.118246
+east anglian region     0.113153
+south region            0.105513
+north western region    0.098242
+west midlands region    0.088270
+south west region       0.083392
+east midlands region    0.080539
+south east region       0.071580
+wales                   0.070260
+yorkshire region        0.068205
+north region            0.061823
+ireland                 0.040776
+Name: proportion, dtype: float64
+2025-05-01 03:20:13,485 - edupredict - INFO - age_band distribution:
+age_band
+0-35    1.0
+Name: proportion, dtype: float64
+2025-05-01 03:20:13,888 - edupredict - INFO - Train set: 19555 samples
+2025-05-01 03:20:13,889 - edupredict - INFO - Validation set: 6519 samples
+2025-05-01 03:20:13,889 - edupredict - INFO - Test set: 6519 samples
+2025-05-01 03:20:13,889 - edupredict - INFO - 
+Distribution of gender:
+2025-05-01 03:20:13,893 - edupredict - INFO - Train: {'m': 0.5485553566862695, 'f': 0.4514446433137305}
+2025-05-01 03:20:13,895 - edupredict - INFO - Validation: {'m': 0.5482435956435036, 'f': 0.4517564043564964}
+2025-05-01 03:20:13,897 - edupredict - INFO - Test: {'m': 0.5482435956435036, 'f': 0.4517564043564964}
+2025-05-01 03:20:13,897 - edupredict - INFO - 
+Distribution of region:
+2025-05-01 03:20:13,901 - edupredict - INFO - Train: {'scotland': 0.11828176936844796, 'east anglian region': 0.11311684991050883, 'south region': 0.10559959089746868, 'north western region': 0.09823574533367425, 'west midlands region': 0.08826387113270263, 'south west region': 0.08340577857325492, 'east midlands region': 0.0804909230375863, 'south east region': 0.07164408079774993, 'wales': 0.07021222193812324, 'yorkshire region': 0.06821784709792891, 'north region': 0.061774482229608796, 'ireland': 0.040756839682945536}
+2025-05-01 03:20:13,904 - edupredict - INFO - Validation: {'scotland': 0.11811627550237766, 'east anglian region': 0.11320754716981132, 'south region': 0.10538426138978371, 'north western region': 0.09832796441171959, 'west midlands region': 0.0882037122258015, 'south west region': 0.08344838165362786, 'east midlands region': 0.08053382420616659, 'south east region': 0.07148335634299739, 'wales': 0.0704095720202485, 'yorkshire region': 0.06810860561435803, 'north region': 0.0619726951986501, 'ireland': 0.04080380426445774}
+2025-05-01 03:20:13,906 - edupredict - INFO - Test: {'scotland': 0.11826967326277037, 'east anglian region': 0.11320754716981132, 'south region': 0.10538426138978371, 'north western region': 0.09817456665132689, 'west midlands region': 0.0883571099861942, 'south west region': 0.08329498389323516, 'east midlands region': 0.0806872219665593, 'south east region': 0.07148335634299739, 'wales': 0.07025617425985581, 'yorkshire region': 0.06826200337475073, 'north region': 0.061819297438257405, 'ireland': 0.04080380426445774}
+2025-05-01 03:20:13,907 - edupredict - INFO - 
+Distribution of age_band:
+2025-05-01 03:20:13,912 - edupredict - INFO - Train: {'0-35': 1.0}
+2025-05-01 03:20:13,914 - edupredict - INFO - Validation: {'0-35': 1.0}
+2025-05-01 03:20:13,916 - edupredict - INFO - Test: {'0-35': 1.0}
+2025-05-01 03:20:14,031 - edupredict - INFO - Execution time: 25.50 seconds
+2025-05-01 03:20:14,031 - edupredict - INFO - Starting feature engineering workflow...
+2025-05-01 03:20:15,410 - edupredict - INFO - Creating demographic features...
+2025-05-01 03:20:15,424 - edupredict - INFO - 
+Distribution for gender:
+2025-05-01 03:20:15,425 - edupredict - INFO - gender
+m    17875
+f    14718
+2025-05-01 03:20:15,428 - edupredict - INFO - 
+Distribution for region:
+2025-05-01 03:20:15,429 - edupredict - INFO - region
+scotland                3854
+east anglian region     3688
+south region            3439
+north western region    3202
+west midlands region    2877
+south west region       2718
+east midlands region    2625
+south east region       2333
+wales                   2290
+yorkshire region        2223
+north region            2015
+ireland                 1329
+2025-05-01 03:20:15,431 - edupredict - INFO - 
+Distribution for age_band:
+2025-05-01 03:20:15,432 - edupredict - INFO - age_band
+0-35    32593
+2025-05-01 03:20:15,531 - edupredict - WARNING - High demographic disparity detected in studied_credits for region: 0.21
+2025-05-01 03:20:15,531 - edupredict - INFO - 
+Group statistics for studied_credits:
+2025-05-01 03:20:15,538 - edupredict - INFO -                           mean       std
+region                                  
+east anglian region   0.304953  0.680173
+east midlands region  0.348825  0.712040
+ireland               0.311199  0.624813
+north region          0.346609  0.698920
+north western region  0.349755  0.708006
+scotland              0.290542  0.640061
+south east region     0.322225  0.676615
+south region          0.305539  0.676780
+south west region     0.343144  0.701810
+wales                 0.369942  0.669836
+west midlands region  0.348222  0.700999
+yorkshire region      0.340568  0.707037
+2025-05-01 03:20:15,578 - edupredict - INFO - Exported demographic feature metadata to /Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/output/intermediate/features/metadata/demographic_features.json
+2025-05-01 03:20:15,579 - edupredict - INFO - Creating temporal features...
+2025-05-01 03:20:24,479 - edupredict - WARNING - High memory usage detected: 2120.87 MB
+2025-05-01 03:20:43,595 - edupredict - INFO - Window window_7 features shape: (627031, 9)
+2025-05-01 03:20:43,596 - edupredict - INFO - Window window_14 features shape: (376919, 9)
+2025-05-01 03:20:43,596 - edupredict - INFO - Window window_30 features shape: (204359, 9)
+2025-05-01 03:20:43,596 - edupredict - INFO - Creating sequential features...
+2025-05-01 03:21:57,568 - edupredict - INFO - Exported sequential feature metadata to /Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/output/intermediate/features/metadata/sequential_features.json
+2025-05-01 03:21:57,574 - edupredict - INFO - Analyzing features...
+2025-05-01 03:21:57,596 - edupredict - ERROR - Error analyzing feature importance: Input X contains NaN.
+2025-05-01 03:21:57,596 - edupredict - ERROR - Error in feature engineering workflow: Input X contains NaN.
+2025-05-01 03:21:57,597 - edupredict - ERROR - Pipeline failed: Input X contains NaN.
+Traceback (most recent call last):
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/main.py", line 447, in main
+    feature_results = run_feature_engineering_workflow(
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/utils/monitoring_utils.py", line 31, in wrapper
+    result = f(*args, **kwargs)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/main.py", line 339, in run_feature_engineering_workflow
+    feature_importance, importance_viz = analyze_feature_importance(
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/feature_engineering/feature_selector.py", line 573, in analyze_feature_importance
+    importance_scores = mutual_info_classif(numeric_features, target)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/utils/_param_validation.py", line 216, in wrapper
+    return func(*args, **kwargs)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/feature_selection/_mutual_info.py", line 571, in mutual_info_classif
+    return _estimate_mi(
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/feature_selection/_mutual_info.py", line 271, in _estimate_mi
+    X, y = check_X_y(X, y, accept_sparse="csc", y_numeric=not discrete_target)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/utils/validation.py", line 1370, in check_X_y
+    X = check_array(
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/utils/validation.py", line 1107, in check_array
+    _assert_all_finite(
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/utils/validation.py", line 120, in _assert_all_finite
+    _assert_all_finite_element_wise(
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/utils/validation.py", line 169, in _assert_all_finite_element_wise
+    raise ValueError(msg_err)
+ValueError: Input X contains NaN.
+2025-05-01 03:27:00,253 - edupredict - INFO - Starting EduPredict pipeline with chunk size: 10000
+2025-05-01 03:27:00,270 - edupredict - INFO - Starting data processing workflow...
+2025-05-01 03:27:00,271 - edupredict - INFO - Loading raw datasets...
+2025-05-01 03:27:00,272 - edupredict - INFO - Loading studentInfo.csv...
+2025-05-01 03:27:00,350 - edupredict - INFO - Loaded student_info with shape (32593, 12)
+2025-05-01 03:27:00,350 - edupredict - INFO - Loading vle.csv...
+2025-05-01 03:27:00,362 - edupredict - INFO - Loaded vle_materials with shape (6364, 6)
+2025-05-01 03:27:00,362 - edupredict - INFO - Loading studentVle.csv...
+2025-05-01 03:27:12,513 - edupredict - INFO - Loaded vle_interactions with shape (10655280, 6)
+2025-05-01 03:27:12,513 - edupredict - INFO - Loading assessments.csv...
+2025-05-01 03:27:12,517 - edupredict - INFO - Loaded assessments with shape (206, 6)
+2025-05-01 03:27:12,517 - edupredict - INFO - Loading studentAssessment.csv...
+2025-05-01 03:27:12,604 - edupredict - INFO - Loaded student_assessments with shape (173912, 5)
+2025-05-01 03:27:12,765 - edupredict - INFO - Validating data consistency...
+2025-05-01 03:27:15,068 - edupredict - INFO - Checking data quality...
+2025-05-01 03:27:15,201 - edupredict - INFO - Generated data quality report at /Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/output/reports/fairness/data_quality_report.json
+2025-05-01 03:27:15,201 - edupredict - WARNING - Data quality recommendations:
+2025-05-01 03:27:15,201 - edupredict - WARNING - - Address quality issues in protected attribute gender: ['invalid_values']
+2025-05-01 03:27:15,202 - edupredict - WARNING - - Address quality issues in protected attribute region: ['invalid_values']
+2025-05-01 03:27:15,202 - edupredict - WARNING - - Address quality issues in protected attribute age_band: ['invalid_values']
+2025-05-01 03:27:15,202 - edupredict - INFO - Cleaning datasets...
+2025-05-01 03:27:15,202 - edupredict - INFO - Demographic cleaning progress: 1/3 (33.3%)
+2025-05-01 03:27:15,206 - edupredict - INFO - Initial protected attribute distributions:
+2025-05-01 03:27:15,209 - edupredict - INFO - gender distribution:
+gender
+M    0.548431
+F    0.451569
+Name: proportion, dtype: float64
+2025-05-01 03:27:15,213 - edupredict - INFO - age_band distribution:
+age_band
+0-35     0.703955
+35-55    0.289418
+55<=     0.006627
+Name: proportion, dtype: float64
+2025-05-01 03:27:15,217 - edupredict - INFO - imd_band distribution:
+imd_band
+20-30%     0.116066
+30-40%     0.112413
+10-20      0.111683
+0-10%      0.105171
+40-50%     0.103424
+50-60%     0.099231
+60-70%     0.092275
+70-80%     0.091449
+80-90%     0.087733
+90-100%    0.080554
+Name: proportion, dtype: float64
+2025-05-01 03:27:15,220 - edupredict - INFO - region distribution:
+region
+Scotland                0.105728
+East Anglian Region     0.102476
+London Region           0.098671
+South Region            0.094867
+North Western Region    0.089160
+West Midlands Region    0.079219
+South West Region       0.074740
+East Midlands Region    0.072562
+South East Region       0.064769
+Wales                   0.064001
+Yorkshire Region        0.061547
+North Region            0.055932
+Ireland                 0.036327
+Name: proportion, dtype: float64
+2025-05-01 03:27:15,259 - edupredict - WARNING - Found 9649 invalid values in age_band
+2025-05-01 03:27:15,282 - edupredict - WARNING - Found 4627 invalid values in imd_band
+2025-05-01 03:27:15,304 - edupredict - WARNING - Found 3216 invalid values in region
+2025-05-01 03:27:15,433 - edupredict - INFO - Imputed num_of_prev_attempts for gender groups using fairness-aware sampling
+2025-05-01 03:27:15,473 - edupredict - INFO - Imputed num_of_prev_attempts for age_band groups using fairness-aware sampling
+2025-05-01 03:27:15,516 - edupredict - INFO - Imputed num_of_prev_attempts for imd_band groups using fairness-aware sampling
+2025-05-01 03:27:15,565 - edupredict - INFO - Imputed num_of_prev_attempts for region groups using fairness-aware sampling
+2025-05-01 03:27:15,690 - edupredict - INFO - Final protected attribute distributions:
+2025-05-01 03:27:15,693 - edupredict - INFO - gender distribution:
+gender
+m    0.548431
+f    0.451569
+Name: proportion, dtype: float64
+2025-05-01 03:27:15,696 - edupredict - INFO - age_band distribution:
+age_band
+0-35    1.0
+Name: proportion, dtype: float64
+2025-05-01 03:27:15,699 - edupredict - INFO - imd_band distribution:
+imd_band
+20-30%     0.130335
+30-40%     0.126806
+0-10%      0.118706
+40-50%     0.116927
+50-60%     0.112417
+60-70%     0.103366
+70-80%     0.102046
+80-90%     0.097935
+90-100%    0.091461
+Name: proportion, dtype: float64
+2025-05-01 03:27:15,703 - edupredict - INFO - region distribution:
+region
+scotland                0.117479
+east anglian region     0.113399
+south region            0.106004
+north western region    0.099346
+west midlands region    0.086859
+south west region       0.082932
+east midlands region    0.080999
+south east region       0.072255
+wales                   0.070935
+yorkshire region        0.067775
+north region            0.061731
+ireland                 0.040285
+Name: proportion, dtype: float64
+2025-05-01 03:27:15,717 - edupredict - WARNING - Feature studied_credits shows high disparity (0.233) for protected attribute imd_band
+2025-05-01 03:27:15,723 - edupredict - WARNING - Feature studied_credits shows high disparity (0.188) for protected attribute region
+2025-05-01 03:27:15,734 - edupredict - WARNING - Remaining null values after cleaning: {'num_of_prev_attempts': 32593}
+2025-05-01 03:27:15,734 - edupredict - INFO - VLE cleaning progress: 2/3 (66.7%)
+2025-05-01 03:27:20,717 - edupredict - INFO - Assessment cleaning progress: 3/3 (100.0%)
+2025-05-01 03:27:20,739 - edupredict - WARNING - Removed 173 rows with invalid scores
+2025-05-01 03:27:20,788 - edupredict - INFO - Creating data splits...
+2025-05-01 03:27:20,788 - edupredict - INFO - Initial protected attribute distributions:
+2025-05-01 03:27:20,791 - edupredict - INFO - gender distribution:
+gender
+m    0.548431
+f    0.451569
+Name: proportion, dtype: float64
+2025-05-01 03:27:20,795 - edupredict - INFO - region distribution:
+region
+scotland                0.117479
+east anglian region     0.113399
+south region            0.106004
+north western region    0.099346
+west midlands region    0.086859
+south west region       0.082932
+east midlands region    0.080999
+south east region       0.072255
+wales                   0.070935
+yorkshire region        0.067775
+north region            0.061731
+ireland                 0.040285
+Name: proportion, dtype: float64
+2025-05-01 03:27:20,798 - edupredict - INFO - age_band distribution:
+age_band
+0-35    1.0
+Name: proportion, dtype: float64
+2025-05-01 03:27:21,118 - edupredict - INFO - Train set: 19555 samples
+2025-05-01 03:27:21,118 - edupredict - INFO - Validation set: 6519 samples
+2025-05-01 03:27:21,118 - edupredict - INFO - Test set: 6519 samples
+2025-05-01 03:27:21,118 - edupredict - INFO - 
+Distribution of gender:
+2025-05-01 03:27:21,122 - edupredict - INFO - Train: {'m': 0.5484019432370237, 'f': 0.4515980567629762}
+2025-05-01 03:27:21,124 - edupredict - INFO - Validation: {'m': 0.548550391164289, 'f': 0.451449608835711}
+2025-05-01 03:27:21,125 - edupredict - INFO - Test: {'m': 0.5483969934038962, 'f': 0.4516030065961037}
+2025-05-01 03:27:21,125 - edupredict - INFO - 
+Distribution of region:
+2025-05-01 03:27:21,128 - edupredict - INFO - Train: {'scotland': 0.11746356430580414, 'east anglian region': 0.11332140117616978, 'south region': 0.10595755561237535, 'north western region': 0.09941191511122476, 'west midlands region': 0.08693428790590642, 'south west region': 0.082996676041933, 'east midlands region': 0.08095116338532345, 'south east region': 0.07225773459473281, 'wales': 0.07092815136793659, 'yorkshire region': 0.06775760675019177, 'north region': 0.061774482229608796, 'ireland': 0.04024546151879315}
+2025-05-01 03:27:21,130 - edupredict - INFO - Validation: {'scotland': 0.11750268446080687, 'east anglian region': 0.11351434269059672, 'south region': 0.1059978524313545, 'north western region': 0.09924835097407578, 'west midlands region': 0.08682313238226722, 'south west region': 0.08283479061205706, 'east midlands region': 0.08114741524773739, 'south east region': 0.07209694738456819, 'wales': 0.0710231630618193, 'yorkshire region': 0.06780181009357264, 'north region': 0.061665899677864705, 'ireland': 0.04034361098327965}
+2025-05-01 03:27:21,132 - edupredict - INFO - Test: {'scotland': 0.11750268446080687, 'east anglian region': 0.11351434269059672, 'south region': 0.1061512501917472, 'north western region': 0.09924835097407578, 'west midlands region': 0.08666973462187452, 'south west region': 0.08283479061205706, 'east midlands region': 0.08099401748734468, 'south east region': 0.07240374290535358, 'wales': 0.0708697653014266, 'yorkshire region': 0.06780181009357264, 'north region': 0.061665899677864705, 'ireland': 0.04034361098327965}
+2025-05-01 03:27:21,132 - edupredict - INFO - 
+Distribution of age_band:
+2025-05-01 03:27:21,137 - edupredict - INFO - Train: {'0-35': 1.0}
+2025-05-01 03:27:21,138 - edupredict - INFO - Validation: {'0-35': 1.0}
+2025-05-01 03:27:21,140 - edupredict - INFO - Test: {'0-35': 1.0}
+2025-05-01 03:27:21,239 - edupredict - INFO - Execution time: 20.97 seconds
+2025-05-01 03:27:21,239 - edupredict - INFO - Starting feature engineering workflow...
+2025-05-01 03:27:22,387 - edupredict - INFO - Creating demographic features...
+2025-05-01 03:27:22,397 - edupredict - INFO - 
+Distribution for gender:
+2025-05-01 03:27:22,398 - edupredict - INFO - gender
+m    17875
+f    14718
+2025-05-01 03:27:22,400 - edupredict - INFO - 
+Distribution for region:
+2025-05-01 03:27:22,401 - edupredict - INFO - region
+scotland                3829
+east anglian region     3696
+south region            3455
+north western region    3238
+west midlands region    2831
+south west region       2703
+east midlands region    2640
+south east region       2355
+wales                   2312
+yorkshire region        2209
+north region            2012
+ireland                 1313
+2025-05-01 03:27:22,403 - edupredict - INFO - 
+Distribution for age_band:
+2025-05-01 03:27:22,404 - edupredict - INFO - age_band
+0-35    32593
+2025-05-01 03:27:22,477 - edupredict - WARNING - High demographic disparity detected in studied_credits for region: 0.19
+2025-05-01 03:27:22,478 - edupredict - INFO - 
+Group statistics for studied_credits:
+2025-05-01 03:27:22,485 - edupredict - INFO -                           mean       std
+region                                  
+east anglian region   0.305804  0.683993
+east midlands region  0.350789  0.707637
+ireland               0.304075  0.628358
+north region          0.345510  0.687086
+north western region  0.347591  0.711368
+scotland              0.288914  0.630258
+south east region     0.327389  0.686338
+south region          0.313748  0.682821
+south west region     0.340270  0.705087
+wales                 0.354924  0.653045
+west midlands region  0.355734  0.712222
+yorkshire region      0.338766  0.704336
+2025-05-01 03:27:22,515 - edupredict - INFO - Exported demographic feature metadata to /Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/output/intermediate/features/metadata/demographic_features.json
+2025-05-01 03:27:22,515 - edupredict - INFO - Creating temporal features...
+2025-05-01 03:27:28,445 - edupredict - WARNING - High memory usage detected: 2581.66 MB
+2025-05-01 03:27:44,681 - edupredict - INFO - Window window_7 features shape: (627031, 9)
+2025-05-01 03:27:44,682 - edupredict - INFO - Window window_14 features shape: (376919, 9)
+2025-05-01 03:27:44,682 - edupredict - INFO - Window window_30 features shape: (204359, 9)
+2025-05-01 03:27:44,682 - edupredict - INFO - Creating sequential features...
+2025-05-01 03:28:59,998 - edupredict - INFO - Exported sequential feature metadata to /Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/output/intermediate/features/metadata/sequential_features.json
+2025-05-01 03:29:00,006 - edupredict - INFO - Analyzing features...
+2025-05-01 03:29:00,033 - edupredict - ERROR - Error analyzing feature importance: Input X contains NaN.
+2025-05-01 03:29:00,033 - edupredict - ERROR - Error in feature engineering workflow: Input X contains NaN.
+2025-05-01 03:29:00,033 - edupredict - ERROR - Pipeline failed: Input X contains NaN.
+Traceback (most recent call last):
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/main.py", line 447, in main
+    feature_results = run_feature_engineering_workflow(
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/utils/monitoring_utils.py", line 31, in wrapper
+    result = f(*args, **kwargs)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/main.py", line 339, in run_feature_engineering_workflow
+    feature_importance, importance_viz = analyze_feature_importance(
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/feature_engineering/feature_selector.py", line 573, in analyze_feature_importance
+    importance_scores = mutual_info_classif(numeric_features, target)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/utils/_param_validation.py", line 216, in wrapper
+    return func(*args, **kwargs)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/feature_selection/_mutual_info.py", line 571, in mutual_info_classif
+    return _estimate_mi(
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/feature_selection/_mutual_info.py", line 271, in _estimate_mi
+    X, y = check_X_y(X, y, accept_sparse="csc", y_numeric=not discrete_target)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/utils/validation.py", line 1370, in check_X_y
+    X = check_array(
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/utils/validation.py", line 1107, in check_array
+    _assert_all_finite(
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/utils/validation.py", line 120, in _assert_all_finite
+    _assert_all_finite_element_wise(
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/utils/validation.py", line 169, in _assert_all_finite_element_wise
+    raise ValueError(msg_err)
+ValueError: Input X contains NaN.
+2025-05-01 03:32:59,981 - edupredict - INFO - Starting EduPredict pipeline with chunk size: 10000
+2025-05-01 03:33:00,009 - edupredict - INFO - Starting data processing workflow...
+2025-05-01 03:33:00,011 - edupredict - INFO - Loading raw datasets...
+2025-05-01 03:33:00,012 - edupredict - INFO - Loading studentInfo.csv...
+2025-05-01 03:33:00,236 - edupredict - INFO - Loaded student_info with shape (32593, 12)
+2025-05-01 03:33:00,237 - edupredict - INFO - Loading vle.csv...
+2025-05-01 03:33:00,253 - edupredict - INFO - Loaded vle_materials with shape (6364, 6)
+2025-05-01 03:33:00,253 - edupredict - INFO - Loading studentVle.csv...
+2025-05-01 03:33:27,299 - edupredict - INFO - Loaded vle_interactions with shape (10655280, 6)
+2025-05-01 03:33:27,301 - edupredict - INFO - Loading assessments.csv...
+2025-05-01 03:33:27,308 - edupredict - INFO - Loaded assessments with shape (206, 6)
+2025-05-01 03:33:27,309 - edupredict - INFO - Loading studentAssessment.csv...
+2025-05-01 03:33:27,451 - edupredict - INFO - Loaded student_assessments with shape (173912, 5)
+2025-05-01 03:33:27,790 - edupredict - INFO - Validating data consistency...
+2025-05-01 03:33:31,246 - edupredict - INFO - Checking data quality...
+2025-05-01 03:33:31,487 - edupredict - INFO - Generated data quality report at /Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/output/reports/fairness/data_quality_report.json
+2025-05-01 03:33:31,488 - edupredict - WARNING - Data quality recommendations:
+2025-05-01 03:33:31,489 - edupredict - WARNING - - Address quality issues in protected attribute gender: ['invalid_values']
+2025-05-01 03:33:31,489 - edupredict - WARNING - - Address quality issues in protected attribute region: ['invalid_values']
+2025-05-01 03:33:31,490 - edupredict - WARNING - - Address quality issues in protected attribute age_band: ['invalid_values']
+2025-05-01 03:33:31,490 - edupredict - INFO - Cleaning datasets...
+2025-05-01 03:33:31,490 - edupredict - INFO - Demographic cleaning progress: 1/3 (33.3%)
+2025-05-01 03:33:31,498 - edupredict - INFO - Initial protected attribute distributions:
+2025-05-01 03:33:31,505 - edupredict - INFO - gender distribution:
+gender
+M    0.548431
+F    0.451569
+Name: proportion, dtype: float64
+2025-05-01 03:33:31,517 - edupredict - INFO - age_band distribution:
+age_band
+0-35     0.703955
+35-55    0.289418
+55<=     0.006627
+Name: proportion, dtype: float64
+2025-05-01 03:33:31,522 - edupredict - INFO - imd_band distribution:
+imd_band
+20-30%     0.116066
+30-40%     0.112413
+10-20      0.111683
+0-10%      0.105171
+40-50%     0.103424
+50-60%     0.099231
+60-70%     0.092275
+70-80%     0.091449
+80-90%     0.087733
+90-100%    0.080554
+Name: proportion, dtype: float64
+2025-05-01 03:33:31,530 - edupredict - INFO - region distribution:
+region
+Scotland                0.105728
+East Anglian Region     0.102476
+London Region           0.098671
+South Region            0.094867
+North Western Region    0.089160
+West Midlands Region    0.079219
+South West Region       0.074740
+East Midlands Region    0.072562
+South East Region       0.064769
+Wales                   0.064001
+Yorkshire Region        0.061547
+North Region            0.055932
+Ireland                 0.036327
+Name: proportion, dtype: float64
+2025-05-01 03:33:31,654 - edupredict - WARNING - Found 9649 invalid values in age_band
+2025-05-01 03:33:31,738 - edupredict - WARNING - Found 4627 invalid values in imd_band
+2025-05-01 03:33:31,785 - edupredict - WARNING - Found 3216 invalid values in region
+2025-05-01 03:33:31,815 - edupredict - INFO - Starting fairness-aware imputation for num_of_prev_attempts
+2025-05-01 03:33:32,158 - edupredict - INFO - Final protected attribute distributions:
+2025-05-01 03:33:32,163 - edupredict - INFO - gender distribution:
+gender
+m    0.548431
+f    0.451569
+Name: proportion, dtype: float64
+2025-05-01 03:33:32,168 - edupredict - INFO - age_band distribution:
+age_band
+0-35    1.0
+Name: proportion, dtype: float64
+2025-05-01 03:33:32,171 - edupredict - INFO - imd_band distribution:
+imd_band
+20-30%     0.131163
+30-40%     0.126039
+0-10%      0.120394
+40-50%     0.116375
+50-60%     0.112018
+70-80%     0.102752
+60-70%     0.102261
+80-90%     0.099070
+90-100%    0.089927
+Name: proportion, dtype: float64
+2025-05-01 03:33:32,174 - edupredict - INFO - region distribution:
+region
+scotland                0.116436
+east anglian region     0.113675
+south region            0.105299
+north western region    0.099346
+west midlands region    0.087074
+south west region       0.083484
+east midlands region    0.080539
+south east region       0.072500
+wales                   0.071518
+yorkshire region        0.067898
+north region            0.062191
+ireland                 0.040039
+Name: proportion, dtype: float64
+2025-05-01 03:33:32,198 - edupredict - WARNING - Feature studied_credits shows high disparity (0.207) for protected attribute imd_band
+2025-05-01 03:33:32,211 - edupredict - WARNING - Feature studied_credits shows high disparity (0.185) for protected attribute region
+2025-05-01 03:33:32,224 - edupredict - WARNING - Remaining null values after cleaning: {'num_of_prev_attempts': 32593}
+2025-05-01 03:33:32,225 - edupredict - INFO - VLE cleaning progress: 2/3 (66.7%)
+2025-05-01 03:33:40,690 - edupredict - INFO - Assessment cleaning progress: 3/3 (100.0%)
+2025-05-01 03:33:40,721 - edupredict - WARNING - Removed 173 rows with invalid scores
+2025-05-01 03:33:40,799 - edupredict - INFO - Creating data splits...
+2025-05-01 03:33:40,800 - edupredict - INFO - Initial protected attribute distributions:
+2025-05-01 03:33:40,807 - edupredict - INFO - gender distribution:
+gender
+m    0.548431
+f    0.451569
+Name: proportion, dtype: float64
+2025-05-01 03:33:40,812 - edupredict - INFO - region distribution:
+region
+scotland                0.116436
+east anglian region     0.113675
+south region            0.105299
+north western region    0.099346
+west midlands region    0.087074
+south west region       0.083484
+east midlands region    0.080539
+south east region       0.072500
+wales                   0.071518
+yorkshire region        0.067898
+north region            0.062191
+ireland                 0.040039
+Name: proportion, dtype: float64
+2025-05-01 03:33:40,817 - edupredict - INFO - age_band distribution:
+age_band
+0-35    1.0
+Name: proportion, dtype: float64
+2025-05-01 03:33:41,325 - edupredict - INFO - Train set: 19555 samples
+2025-05-01 03:33:41,326 - edupredict - INFO - Validation set: 6519 samples
+2025-05-01 03:33:41,327 - edupredict - INFO - Test set: 6519 samples
+2025-05-01 03:33:41,328 - edupredict - INFO - 
+Distribution of gender:
+2025-05-01 03:33:41,335 - edupredict - INFO - Train: {'m': 0.548453081053439, 'f': 0.45154691894656096}
+2025-05-01 03:33:41,341 - edupredict - INFO - Validation: {'m': 0.5483969934038962, 'f': 0.4516030065961037}
+2025-05-01 03:33:41,343 - edupredict - INFO - Test: {'m': 0.5483969934038962, 'f': 0.4516030065961037}
+2025-05-01 03:33:41,345 - edupredict - INFO - 
+Distribution of region:
+2025-05-01 03:33:41,349 - edupredict - INFO - Train: {'scotland': 0.11638967016108412, 'east anglian region': 0.11367936589107645, 'south region': 0.105241626182562, 'north western region': 0.09936077729480951, 'west midlands region': 0.08708770135515213, 'south west region': 0.0835080542060854, 'east midlands region': 0.08059319867041677, 'south east region': 0.072513423676809, 'wales': 0.07149066734850422, 'yorkshire region': 0.06785988238302225, 'north region': 0.06223472257734595, 'ireland': 0.04004091025313219}
+2025-05-01 03:33:41,351 - edupredict - INFO - Validation: {'scotland': 0.11642890013805798, 'east anglian region': 0.11366774045098942, 'south region': 0.10538426138978371, 'north western region': 0.09940174873446847, 'west midlands region': 0.08697653014265992, 'south west region': 0.08344838165362786, 'east midlands region': 0.0803804264457739, 'south east region': 0.07240374290535358, 'wales': 0.07163675410339009, 'yorkshire region': 0.06795520785396533, 'north region': 0.0622794907194355, 'ireland': 0.04003681546249425}
+2025-05-01 03:33:41,354 - edupredict - INFO - Test: {'scotland': 0.11658229789845068, 'east anglian region': 0.11366774045098942, 'south region': 0.10538426138978371, 'north western region': 0.09924835097407578, 'west midlands region': 0.08712992790305261, 'south west region': 0.08344838165362786, 'east midlands region': 0.08053382420616659, 'south east region': 0.07255714066574628, 'wales': 0.07148335634299739, 'yorkshire region': 0.06795520785396533, 'north region': 0.0619726951986501, 'ireland': 0.04003681546249425}
+2025-05-01 03:33:41,355 - edupredict - INFO - 
+Distribution of age_band:
+2025-05-01 03:33:41,361 - edupredict - INFO - Train: {'0-35': 1.0}
+2025-05-01 03:33:41,363 - edupredict - INFO - Validation: {'0-35': 1.0}
+2025-05-01 03:33:41,366 - edupredict - INFO - Test: {'0-35': 1.0}
+2025-05-01 03:33:41,513 - edupredict - INFO - Execution time: 41.50 seconds
+2025-05-01 03:33:41,514 - edupredict - INFO - Starting feature engineering workflow...
+2025-05-01 03:33:43,332 - edupredict - INFO - Creating demographic features...
+2025-05-01 03:33:43,349 - edupredict - INFO - 
+Distribution for gender:
+2025-05-01 03:33:43,349 - edupredict - INFO - gender
+m    17875
+f    14718
+2025-05-01 03:33:43,355 - edupredict - INFO - 
+Distribution for region:
+2025-05-01 03:33:43,358 - edupredict - INFO - region
+scotland                3795
+east anglian region     3705
+south region            3432
+north western region    3238
+west midlands region    2838
+south west region       2721
+east midlands region    2625
+south east region       2363
+wales                   2331
+yorkshire region        2213
+north region            2027
+ireland                 1305
+2025-05-01 03:33:43,362 - edupredict - INFO - 
+Distribution for age_band:
+2025-05-01 03:33:43,363 - edupredict - INFO - age_band
+0-35    32593
+2025-05-01 03:33:43,492 - edupredict - WARNING - High demographic disparity detected in studied_credits for region: 0.19
+2025-05-01 03:33:43,492 - edupredict - INFO - 
+Group statistics for studied_credits:
+2025-05-01 03:33:43,498 - edupredict - INFO -                           mean       std
+region                                  
+east anglian region   0.310414  0.696887
+east midlands region  0.352317  0.713837
+ireland               0.316667  0.622502
+north region          0.348216  0.689990
+north western region  0.346716  0.714205
+scotland              0.290931  0.627184
+south east region     0.318945  0.676603
+south region          0.304220  0.672383
+south west region     0.339030  0.698478
+wales                 0.356035  0.662226
+west midlands region  0.357176  0.707047
+yorkshire region      0.338304  0.707183
+2025-05-01 03:33:43,648 - edupredict - INFO - Exported demographic feature metadata to /Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/output/intermediate/features/metadata/demographic_features.json
+2025-05-01 03:33:43,649 - edupredict - INFO - Creating temporal features...
+2025-05-01 03:33:55,113 - edupredict - WARNING - High memory usage detected: 2227.28 MB
+2025-05-01 03:34:21,391 - edupredict - INFO - Window window_7 features shape: (627031, 9)
+2025-05-01 03:34:21,392 - edupredict - INFO - Window window_14 features shape: (376919, 9)
+2025-05-01 03:34:21,392 - edupredict - INFO - Window window_30 features shape: (204359, 9)
+2025-05-01 03:34:21,393 - edupredict - INFO - Creating sequential features...
+2025-05-01 03:36:02,265 - edupredict - INFO - Exported sequential feature metadata to /Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/output/intermediate/features/metadata/sequential_features.json
+2025-05-01 03:36:02,271 - edupredict - INFO - Analyzing features...
+2025-05-01 03:36:02,296 - edupredict - ERROR - Error analyzing feature importance: Input X contains NaN.
+2025-05-01 03:36:02,297 - edupredict - ERROR - Error in feature engineering workflow: Input X contains NaN.
+2025-05-01 03:36:02,297 - edupredict - ERROR - Pipeline failed: Input X contains NaN.
+Traceback (most recent call last):
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/main.py", line 447, in main
+    feature_results = run_feature_engineering_workflow(
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/utils/monitoring_utils.py", line 31, in wrapper
+    result = f(*args, **kwargs)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/main.py", line 339, in run_feature_engineering_workflow
+    feature_importance, importance_viz = analyze_feature_importance(
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/feature_engineering/feature_selector.py", line 573, in analyze_feature_importance
+    importance_scores = mutual_info_classif(numeric_features, target)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/utils/_param_validation.py", line 216, in wrapper
+    return func(*args, **kwargs)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/feature_selection/_mutual_info.py", line 571, in mutual_info_classif
+    return _estimate_mi(
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/feature_selection/_mutual_info.py", line 271, in _estimate_mi
+    X, y = check_X_y(X, y, accept_sparse="csc", y_numeric=not discrete_target)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/utils/validation.py", line 1370, in check_X_y
+    X = check_array(
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/utils/validation.py", line 1107, in check_array
+    _assert_all_finite(
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/utils/validation.py", line 120, in _assert_all_finite
+    _assert_all_finite_element_wise(
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/utils/validation.py", line 169, in _assert_all_finite_element_wise
+    raise ValueError(msg_err)
+ValueError: Input X contains NaN.
+2025-05-01 03:42:24,831 - edupredict - INFO - Starting EduPredict pipeline with chunk size: 10000
+2025-05-01 03:42:24,850 - edupredict - INFO - Starting data processing workflow...
+2025-05-01 03:42:24,851 - edupredict - INFO - Loading raw datasets...
+2025-05-01 03:42:24,852 - edupredict - INFO - Loading studentInfo.csv...
+2025-05-01 03:42:24,935 - edupredict - INFO - Loaded student_info with shape (32593, 12)
+2025-05-01 03:42:24,935 - edupredict - INFO - Loading vle.csv...
+2025-05-01 03:42:24,946 - edupredict - INFO - Loaded vle_materials with shape (6364, 6)
+2025-05-01 03:42:24,946 - edupredict - INFO - Loading studentVle.csv...
+2025-05-01 03:42:39,463 - edupredict - INFO - Loaded vle_interactions with shape (10655280, 6)
+2025-05-01 03:42:39,464 - edupredict - INFO - Loading assessments.csv...
+2025-05-01 03:42:39,475 - edupredict - INFO - Loaded assessments with shape (206, 6)
+2025-05-01 03:42:39,475 - edupredict - INFO - Loading studentAssessment.csv...
+2025-05-01 03:42:39,694 - edupredict - INFO - Loaded student_assessments with shape (173912, 5)
+2025-05-01 03:42:39,915 - edupredict - INFO - Validating data consistency...
+2025-05-01 03:42:45,653 - edupredict - INFO - Checking data quality...
+2025-05-01 03:42:46,258 - edupredict - INFO - Generated data quality report at /Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/output/reports/fairness/data_quality_report.json
+2025-05-01 03:42:46,259 - edupredict - WARNING - Data quality recommendations:
+2025-05-01 03:42:46,259 - edupredict - WARNING - - Address quality issues in protected attribute gender: ['invalid_values']
+2025-05-01 03:42:46,259 - edupredict - WARNING - - Address quality issues in protected attribute region: ['invalid_values']
+2025-05-01 03:42:46,260 - edupredict - WARNING - - Address quality issues in protected attribute age_band: ['invalid_values']
+2025-05-01 03:42:46,260 - edupredict - INFO - Cleaning datasets...
+2025-05-01 03:42:46,261 - edupredict - INFO - Demographic cleaning progress: 1/3 (33.3%)
+2025-05-01 03:42:46,267 - edupredict - INFO - Initial protected attribute distributions:
+2025-05-01 03:42:46,276 - edupredict - INFO - gender distribution:
+gender
+M    0.548431
+F    0.451569
+Name: proportion, dtype: float64
+2025-05-01 03:42:46,367 - edupredict - INFO - age_band distribution:
+age_band
+0-35     0.703955
+35-55    0.289418
+55<=     0.006627
+Name: proportion, dtype: float64
+2025-05-01 03:42:46,383 - edupredict - INFO - imd_band distribution:
+imd_band
+20-30%     0.116066
+30-40%     0.112413
+10-20      0.111683
+0-10%      0.105171
+40-50%     0.103424
+50-60%     0.099231
+60-70%     0.092275
+70-80%     0.091449
+80-90%     0.087733
+90-100%    0.080554
+Name: proportion, dtype: float64
+2025-05-01 03:42:46,393 - edupredict - INFO - region distribution:
+region
+Scotland                0.105728
+East Anglian Region     0.102476
+London Region           0.098671
+South Region            0.094867
+North Western Region    0.089160
+West Midlands Region    0.079219
+South West Region       0.074740
+East Midlands Region    0.072562
+South East Region       0.064769
+Wales                   0.064001
+Yorkshire Region        0.061547
+North Region            0.055932
+Ireland                 0.036327
+Name: proportion, dtype: float64
+2025-05-01 03:42:46,603 - edupredict - WARNING - Found 9649 invalid values in age_band
+2025-05-01 03:42:46,652 - edupredict - WARNING - Found 4627 invalid values in imd_band
+2025-05-01 03:42:46,737 - edupredict - WARNING - Found 3216 invalid values in region
+2025-05-01 03:42:46,765 - edupredict - INFO - Starting fairness-aware imputation for num_of_prev_attempts
+2025-05-01 03:42:46,845 - edupredict - ERROR - Error cleaning demographic data: name 'null_mask' is not defined
+2025-05-01 03:42:46,846 - edupredict - ERROR - Error in data processing workflow: name 'null_mask' is not defined
+2025-05-01 03:42:46,846 - edupredict - ERROR - Pipeline failed: name 'null_mask' is not defined
+Traceback (most recent call last):
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/main.py", line 443, in main
+    data_results = run_data_processing_workflow(args, dirs, logger)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/utils/monitoring_utils.py", line 31, in wrapper
+    result = f(*args, **kwargs)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/main.py", line 220, in run_data_processing_workflow
+    clean_data['demographics'] = clean_demographic_data(
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/data_processing/data_cleaner.py", line 165, in clean_demographic_data
+    remaining_null = null_mask & imputed_values.isnull()
+NameError: name 'null_mask' is not defined
+2025-05-01 03:44:06,921 - edupredict - INFO - Starting EduPredict pipeline with chunk size: 10000
+2025-05-01 03:44:06,941 - edupredict - INFO - Starting data processing workflow...
+2025-05-01 03:44:06,942 - edupredict - INFO - Loading raw datasets...
+2025-05-01 03:44:06,943 - edupredict - INFO - Loading studentInfo.csv...
+2025-05-01 03:44:07,028 - edupredict - INFO - Loaded student_info with shape (32593, 12)
+2025-05-01 03:44:07,028 - edupredict - INFO - Loading vle.csv...
+2025-05-01 03:44:07,038 - edupredict - INFO - Loaded vle_materials with shape (6364, 6)
+2025-05-01 03:44:07,038 - edupredict - INFO - Loading studentVle.csv...
+2025-05-01 03:44:21,944 - edupredict - INFO - Loaded vle_interactions with shape (10655280, 6)
+2025-05-01 03:44:21,948 - edupredict - INFO - Loading assessments.csv...
+2025-05-01 03:44:21,967 - edupredict - INFO - Loaded assessments with shape (206, 6)
+2025-05-01 03:44:21,968 - edupredict - INFO - Loading studentAssessment.csv...
+2025-05-01 03:44:22,086 - edupredict - INFO - Loaded student_assessments with shape (173912, 5)
+2025-05-01 03:44:22,559 - edupredict - INFO - Validating data consistency...
+2025-05-01 03:44:29,463 - edupredict - INFO - Checking data quality...
+2025-05-01 03:44:30,086 - edupredict - INFO - Generated data quality report at /Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/output/reports/fairness/data_quality_report.json
+2025-05-01 03:44:30,088 - edupredict - WARNING - Data quality recommendations:
+2025-05-01 03:44:30,089 - edupredict - WARNING - - Address quality issues in protected attribute gender: ['invalid_values']
+2025-05-01 03:44:30,089 - edupredict - WARNING - - Address quality issues in protected attribute region: ['invalid_values']
+2025-05-01 03:44:30,090 - edupredict - WARNING - - Address quality issues in protected attribute age_band: ['invalid_values']
+2025-05-01 03:44:30,091 - edupredict - INFO - Cleaning datasets...
+2025-05-01 03:44:30,092 - edupredict - INFO - Demographic cleaning progress: 1/3 (33.3%)
+2025-05-01 03:44:30,098 - edupredict - INFO - Initial protected attribute distributions:
+2025-05-01 03:44:30,109 - edupredict - INFO - gender distribution:
+gender
+M    0.548431
+F    0.451569
+Name: proportion, dtype: float64
+2025-05-01 03:44:30,115 - edupredict - INFO - age_band distribution:
+age_band
+0-35     0.703955
+35-55    0.289418
+55<=     0.006627
+Name: proportion, dtype: float64
+2025-05-01 03:44:30,122 - edupredict - INFO - imd_band distribution:
+imd_band
+20-30%     0.116066
+30-40%     0.112413
+10-20      0.111683
+0-10%      0.105171
+40-50%     0.103424
+50-60%     0.099231
+60-70%     0.092275
+70-80%     0.091449
+80-90%     0.087733
+90-100%    0.080554
+Name: proportion, dtype: float64
+2025-05-01 03:44:30,129 - edupredict - INFO - region distribution:
+region
+Scotland                0.105728
+East Anglian Region     0.102476
+London Region           0.098671
+South Region            0.094867
+North Western Region    0.089160
+West Midlands Region    0.079219
+South West Region       0.074740
+East Midlands Region    0.072562
+South East Region       0.064769
+Wales                   0.064001
+Yorkshire Region        0.061547
+North Region            0.055932
+Ireland                 0.036327
+Name: proportion, dtype: float64
+2025-05-01 03:44:30,229 - edupredict - WARNING - Found 9649 invalid values in age_band
+2025-05-01 03:44:30,282 - edupredict - WARNING - Found 4627 invalid values in imd_band
+2025-05-01 03:44:30,373 - edupredict - WARNING - Found 3216 invalid values in region
+2025-05-01 03:44:30,415 - edupredict - INFO - Starting fairness-aware imputation for num_of_prev_attempts
+2025-05-01 03:44:31,031 - edupredict - INFO - Final protected attribute distributions:
+2025-05-01 03:44:31,037 - edupredict - INFO - gender distribution:
+gender
+m    0.548431
+f    0.451569
+Name: proportion, dtype: float64
+2025-05-01 03:44:31,043 - edupredict - INFO - age_band distribution:
+age_band
+0-35    1.0
+Name: proportion, dtype: float64
+2025-05-01 03:44:31,135 - edupredict - INFO - imd_band distribution:
+imd_band
+20-30%     0.130795
+30-40%     0.126806
+0-10%      0.118584
+40-50%     0.116007
+50-60%     0.111619
+60-70%     0.104808
+70-80%     0.102936
+80-90%     0.098549
+90-100%    0.089897
+Name: proportion, dtype: float64
+2025-05-01 03:44:31,147 - edupredict - INFO - region distribution:
+region
+scotland                0.117602
+east anglian region     0.113276
+south region            0.104470
+north western region    0.098917
+west midlands region    0.088148
+south west region       0.082840
+east midlands region    0.080907
+south east region       0.071672
+wales                   0.071365
+yorkshire region        0.067806
+north region            0.062498
+ireland                 0.040499
+Name: proportion, dtype: float64
+2025-05-01 03:44:31,190 - edupredict - WARNING - Feature studied_credits shows high disparity (0.233) for protected attribute imd_band
+2025-05-01 03:44:31,204 - edupredict - WARNING - Feature studied_credits shows high disparity (0.150) for protected attribute region
+2025-05-01 03:44:31,224 - edupredict - WARNING - Remaining null values after cleaning: {'num_of_prev_attempts': 32593}
+2025-05-01 03:44:31,225 - edupredict - INFO - VLE cleaning progress: 2/3 (66.7%)
+2025-05-01 03:44:39,300 - edupredict - INFO - Assessment cleaning progress: 3/3 (100.0%)
+2025-05-01 03:44:39,338 - edupredict - WARNING - Removed 173 rows with invalid scores
+2025-05-01 03:44:39,413 - edupredict - INFO - Creating data splits...
+2025-05-01 03:44:39,419 - edupredict - INFO - Initial protected attribute distributions:
+2025-05-01 03:44:39,425 - edupredict - INFO - gender distribution:
+gender
+m    0.548431
+f    0.451569
+Name: proportion, dtype: float64
+2025-05-01 03:44:39,429 - edupredict - INFO - region distribution:
+region
+scotland                0.117602
+east anglian region     0.113276
+south region            0.104470
+north western region    0.098917
+west midlands region    0.088148
+south west region       0.082840
+east midlands region    0.080907
+south east region       0.071672
+wales                   0.071365
+yorkshire region        0.067806
+north region            0.062498
+ireland                 0.040499
+Name: proportion, dtype: float64
+2025-05-01 03:44:39,435 - edupredict - INFO - age_band distribution:
+age_band
+0-35    1.0
+Name: proportion, dtype: float64
+2025-05-01 03:44:39,924 - edupredict - INFO - Train set: 19555 samples
+2025-05-01 03:44:39,924 - edupredict - INFO - Validation set: 6519 samples
+2025-05-01 03:44:39,925 - edupredict - INFO - Test set: 6519 samples
+2025-05-01 03:44:39,925 - edupredict - INFO - 
+Distribution of gender:
+2025-05-01 03:44:39,928 - edupredict - INFO - Train: {'m': 0.5484019432370237, 'f': 0.4515980567629762}
+2025-05-01 03:44:39,931 - edupredict - INFO - Validation: {'m': 0.548550391164289, 'f': 0.451449608835711}
+2025-05-01 03:44:39,936 - edupredict - INFO - Test: {'m': 0.5483969934038962, 'f': 0.4516030065961037}
+2025-05-01 03:44:39,937 - edupredict - INFO - 
+Distribution of region:
+2025-05-01 03:44:39,943 - edupredict - INFO - Train: {'scotland': 0.11761697775504985, 'east anglian region': 0.1132191255433393, 'south region': 0.10442342111991817, 'north western region': 0.09890053694707236, 'west midlands region': 0.08816159549987215, 'south west region': 0.08284326259268729, 'east midlands region': 0.08100230120173868, 'south east region': 0.07169521861416518, 'wales': 0.0713372538992585, 'yorkshire region': 0.067808744566607, 'north region': 0.062439273843006904, 'ireland': 0.04055228841728458}
+2025-05-01 03:44:39,945 - edupredict - INFO - Validation: {'scotland': 0.11765608222119957, 'east anglian region': 0.11336094493020402, 'south region': 0.10446387482742751, 'north western region': 0.09894155545329038, 'west midlands region': 0.0880503144654088, 'south west region': 0.08283479061205706, 'east midlands region': 0.08084061972695199, 'south east region': 0.07163675410339009, 'wales': 0.07148335634299739, 'yorkshire region': 0.06780181009357264, 'north region': 0.06258628624022089, 'ireland': 0.04034361098327965}
+2025-05-01 03:44:39,946 - edupredict - INFO - Test: {'scotland': 0.11750268446080687, 'east anglian region': 0.11336094493020402, 'south region': 0.10461727258782022, 'north western region': 0.09894155545329038, 'west midlands region': 0.0882037122258015, 'south west region': 0.08283479061205706, 'east midlands region': 0.0806872219665593, 'south east region': 0.07163675410339009, 'wales': 0.0713299585826047, 'yorkshire region': 0.06780181009357264, 'north region': 0.06258628624022089, 'ireland': 0.04049700874367234}
+2025-05-01 03:44:39,947 - edupredict - INFO - 
+Distribution of age_band:
+2025-05-01 03:44:39,953 - edupredict - INFO - Train: {'0-35': 1.0}
+2025-05-01 03:44:39,956 - edupredict - INFO - Validation: {'0-35': 1.0}
+2025-05-01 03:44:39,958 - edupredict - INFO - Test: {'0-35': 1.0}
+2025-05-01 03:44:40,103 - edupredict - INFO - Execution time: 33.16 seconds
+2025-05-01 03:44:40,104 - edupredict - INFO - Starting feature engineering workflow...
+2025-05-01 03:44:41,507 - edupredict - INFO - Creating demographic features...
+2025-05-01 03:44:41,527 - edupredict - INFO - 
+Distribution for gender:
+2025-05-01 03:44:41,530 - edupredict - INFO - gender
+m    17875
+f    14718
+2025-05-01 03:44:41,536 - edupredict - INFO - 
+Distribution for region:
+2025-05-01 03:44:41,537 - edupredict - INFO - region
+scotland                3833
+east anglian region     3692
+south region            3405
+north western region    3224
+west midlands region    2873
+south west region       2700
+east midlands region    2637
+south east region       2336
+wales                   2326
+yorkshire region        2210
+north region            2037
+ireland                 1320
+2025-05-01 03:44:41,540 - edupredict - INFO - 
+Distribution for age_band:
+2025-05-01 03:44:41,541 - edupredict - INFO - age_band
+0-35    32593
+2025-05-01 03:44:41,651 - edupredict - WARNING - High demographic disparity detected in studied_credits for region: 0.15
+2025-05-01 03:44:41,652 - edupredict - INFO - 
+Group statistics for studied_credits:
+2025-05-01 03:44:41,670 - edupredict - INFO -                           mean       std
+region                                  
+east anglian region   0.310672  0.697037
+east midlands region  0.342782  0.700310
+ireland               0.309848  0.616311
+north region          0.339920  0.676807
+north western region  0.351375  0.711373
+scotland              0.299700  0.641378
+south east region     0.328089  0.684069
+south region          0.301884  0.678196
+south west region     0.341389  0.701282
+wales                 0.352716  0.656120
+west midlands region  0.350418  0.704167
+yorkshire region      0.342119  0.712374
+2025-05-01 03:44:41,712 - edupredict - INFO - Exported demographic feature metadata to /Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/output/intermediate/features/metadata/demographic_features.json
+2025-05-01 03:44:41,713 - edupredict - INFO - Creating temporal features...
+2025-05-01 03:44:50,968 - edupredict - WARNING - High memory usage detected: 2199.55 MB
+2025-05-01 03:45:23,748 - edupredict - INFO - Window window_7 features shape: (627031, 9)
+2025-05-01 03:45:23,749 - edupredict - INFO - Window window_14 features shape: (376919, 9)
+2025-05-01 03:45:23,749 - edupredict - INFO - Window window_30 features shape: (204359, 9)
+2025-05-01 03:45:23,749 - edupredict - INFO - Creating sequential features...
+2025-05-01 03:47:46,344 - edupredict - INFO - Exported sequential feature metadata to /Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/output/intermediate/features/metadata/sequential_features.json
+2025-05-01 03:47:46,359 - edupredict - INFO - Analyzing features...
+2025-05-01 03:47:46,403 - edupredict - ERROR - Error analyzing feature importance: Input X contains NaN.
+2025-05-01 03:47:46,408 - edupredict - ERROR - Error in feature engineering workflow: Input X contains NaN.
+2025-05-01 03:47:46,408 - edupredict - ERROR - Pipeline failed: Input X contains NaN.
+Traceback (most recent call last):
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/main.py", line 447, in main
+    feature_results = run_feature_engineering_workflow(
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/utils/monitoring_utils.py", line 31, in wrapper
+    result = f(*args, **kwargs)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/main.py", line 339, in run_feature_engineering_workflow
+    feature_importance, importance_viz = analyze_feature_importance(
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/feature_engineering/feature_selector.py", line 585, in analyze_feature_importance
+    importance_scores = mutual_info_classif(numeric_features, target)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/utils/_param_validation.py", line 216, in wrapper
+    return func(*args, **kwargs)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/feature_selection/_mutual_info.py", line 571, in mutual_info_classif
+    return _estimate_mi(
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/feature_selection/_mutual_info.py", line 271, in _estimate_mi
+    X, y = check_X_y(X, y, accept_sparse="csc", y_numeric=not discrete_target)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/utils/validation.py", line 1370, in check_X_y
+    X = check_array(
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/utils/validation.py", line 1107, in check_array
+    _assert_all_finite(
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/utils/validation.py", line 120, in _assert_all_finite
+    _assert_all_finite_element_wise(
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/sklearn/utils/validation.py", line 169, in _assert_all_finite_element_wise
+    raise ValueError(msg_err)
+ValueError: Input X contains NaN.
+2025-05-01 03:51:15,344 - edupredict - INFO - Starting EduPredict pipeline with chunk size: 10000
+2025-05-01 03:51:15,369 - edupredict - INFO - Starting data processing workflow...
+2025-05-01 03:51:15,370 - edupredict - INFO - Loading raw datasets...
+2025-05-01 03:51:15,371 - edupredict - INFO - Loading studentInfo.csv...
+2025-05-01 03:51:15,499 - edupredict - INFO - Loaded student_info with shape (32593, 12)
+2025-05-01 03:51:15,500 - edupredict - INFO - Loading vle.csv...
+2025-05-01 03:51:15,514 - edupredict - INFO - Loaded vle_materials with shape (6364, 6)
+2025-05-01 03:51:15,515 - edupredict - INFO - Loading studentVle.csv...
+2025-05-01 03:51:38,765 - edupredict - INFO - Loaded vle_interactions with shape (10655280, 6)
+2025-05-01 03:51:38,770 - edupredict - INFO - Loading assessments.csv...
+2025-05-01 03:51:38,774 - edupredict - INFO - Loaded assessments with shape (206, 6)
+2025-05-01 03:51:38,774 - edupredict - INFO - Loading studentAssessment.csv...
+2025-05-01 03:51:38,910 - edupredict - INFO - Loaded student_assessments with shape (173912, 5)
+2025-05-01 03:51:39,164 - edupredict - INFO - Validating data consistency...
+2025-05-01 03:51:41,846 - edupredict - INFO - Checking data quality...
+2025-05-01 03:51:42,034 - edupredict - INFO - Generated data quality report at /Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/output/reports/fairness/data_quality_report.json
+2025-05-01 03:51:42,035 - edupredict - WARNING - Data quality recommendations:
+2025-05-01 03:51:42,036 - edupredict - WARNING - - Address quality issues in protected attribute gender: ['invalid_values']
+2025-05-01 03:51:42,036 - edupredict - WARNING - - Address quality issues in protected attribute region: ['invalid_values']
+2025-05-01 03:51:42,037 - edupredict - WARNING - - Address quality issues in protected attribute age_band: ['invalid_values']
+2025-05-01 03:51:42,037 - edupredict - INFO - Cleaning datasets...
+2025-05-01 03:51:42,037 - edupredict - INFO - Demographic cleaning progress: 1/3 (33.3%)
+2025-05-01 03:51:42,042 - edupredict - INFO - Initial null values in num_of_prev_attempts: 0
+2025-05-01 03:51:42,059 - edupredict - INFO - Remaining nulls after gender group imputation: 0
+2025-05-01 03:51:42,069 - edupredict - INFO - Remaining nulls after age_band group imputation: 0
+2025-05-01 03:51:42,075 - edupredict - INFO - Remaining nulls after imd_band group imputation: 0
+2025-05-01 03:51:42,087 - edupredict - INFO - Remaining nulls after region group imputation: 0
+2025-05-01 03:51:42,150 - edupredict - INFO - Successfully imputed all null values in num_of_prev_attempts
+2025-05-01 03:51:42,151 - edupredict - INFO - Initial protected attribute distributions:
+2025-05-01 03:51:42,156 - edupredict - INFO - gender distribution:
+gender
+M    0.548431
+F    0.451569
+Name: proportion, dtype: float64
+2025-05-01 03:51:42,160 - edupredict - INFO - age_band distribution:
+age_band
+0-35     0.703955
+35-55    0.289418
+55<=     0.006627
+Name: proportion, dtype: float64
+2025-05-01 03:51:42,205 - edupredict - INFO - imd_band distribution:
+imd_band
+20-30%     0.116066
+30-40%     0.112413
+10-20      0.111683
+0-10%      0.105171
+40-50%     0.103424
+50-60%     0.099231
+60-70%     0.092275
+70-80%     0.091449
+80-90%     0.087733
+90-100%    0.080554
+Name: proportion, dtype: float64
+2025-05-01 03:51:42,209 - edupredict - INFO - region distribution:
+region
+Scotland                0.105728
+East Anglian Region     0.102476
+London Region           0.098671
+South Region            0.094867
+North Western Region    0.089160
+West Midlands Region    0.079219
+South West Region       0.074740
+East Midlands Region    0.072562
+South East Region       0.064769
+Wales                   0.064001
+Yorkshire Region        0.061547
+North Region            0.055932
+Ireland                 0.036327
+Name: proportion, dtype: float64
+2025-05-01 03:51:42,294 - edupredict - WARNING - Found 9649 invalid values in age_band
+2025-05-01 03:51:42,332 - edupredict - WARNING - Found 4627 invalid values in imd_band
+2025-05-01 03:51:42,364 - edupredict - WARNING - Found 3216 invalid values in region
+2025-05-01 03:51:42,589 - edupredict - INFO - Final protected attribute distributions:
+2025-05-01 03:51:42,593 - edupredict - INFO - gender distribution:
+gender
+m    0.548431
+f    0.451569
+Name: proportion, dtype: float64
+2025-05-01 03:51:42,599 - edupredict - INFO - age_band distribution:
+age_band
+0-35    1.0
+Name: proportion, dtype: float64
+2025-05-01 03:51:42,604 - edupredict - INFO - imd_band distribution:
+imd_band
+20-30%     0.131286
+30-40%     0.126162
+0-10%      0.117203
+40-50%     0.117050
+50-60%     0.111312
+60-70%     0.104532
+70-80%     0.102813
+80-90%     0.098457
+90-100%    0.091185
+Name: proportion, dtype: float64
+2025-05-01 03:51:42,609 - edupredict - INFO - region distribution:
+region
+scotland                0.116896
+east anglian region     0.113675
+south region            0.104992
+north western region    0.099715
+west midlands region    0.088086
+south west region       0.082104
+east midlands region    0.080539
+south east region       0.071917
+wales                   0.071518
+yorkshire region        0.068051
+north region            0.062406
+ireland                 0.040101
+Name: proportion, dtype: float64
+2025-05-01 03:51:42,630 - edupredict - WARNING - Feature studied_credits shows high disparity (0.233) for protected attribute imd_band
+2025-05-01 03:51:42,638 - edupredict - WARNING - Feature studied_credits shows high disparity (0.182) for protected attribute region
+2025-05-01 03:51:42,652 - edupredict - WARNING - Remaining null values after cleaning: {'num_of_prev_attempts': 32593}
+2025-05-01 03:51:42,653 - edupredict - INFO - VLE cleaning progress: 2/3 (66.7%)
+2025-05-01 03:51:50,703 - edupredict - INFO - Assessment cleaning progress: 3/3 (100.0%)
+2025-05-01 03:51:50,734 - edupredict - WARNING - Removed 173 rows with invalid scores
+2025-05-01 03:51:50,799 - edupredict - INFO - Creating data splits...
+2025-05-01 03:51:50,800 - edupredict - INFO - Initial protected attribute distributions:
+2025-05-01 03:51:50,804 - edupredict - INFO - gender distribution:
+gender
+m    0.548431
+f    0.451569
+Name: proportion, dtype: float64
+2025-05-01 03:51:50,812 - edupredict - INFO - region distribution:
+region
+scotland                0.116896
+east anglian region     0.113675
+south region            0.104992
+north western region    0.099715
+west midlands region    0.088086
+south west region       0.082104
+east midlands region    0.080539
+south east region       0.071917
+wales                   0.071518
+yorkshire region        0.068051
+north region            0.062406
+ireland                 0.040101
+Name: proportion, dtype: float64
+2025-05-01 03:51:50,817 - edupredict - INFO - age_band distribution:
+age_band
+0-35    1.0
+Name: proportion, dtype: float64
+2025-05-01 03:51:51,397 - edupredict - INFO - Train set: 19555 samples
+2025-05-01 03:51:51,398 - edupredict - INFO - Validation set: 6519 samples
+2025-05-01 03:51:51,399 - edupredict - INFO - Test set: 6519 samples
+2025-05-01 03:51:51,399 - edupredict - INFO - 
+Distribution of gender:
+2025-05-01 03:51:51,407 - edupredict - INFO - Train: {'m': 0.5483508054206085, 'f': 0.45164919457939146}
+2025-05-01 03:51:51,411 - edupredict - INFO - Validation: {'m': 0.5482435956435036, 'f': 0.4517564043564964}
+2025-05-01 03:51:51,412 - edupredict - INFO - Test: {'m': 0.5488571866850744, 'f': 0.4511428133149256}
+2025-05-01 03:51:51,413 - edupredict - INFO - 
+Distribution of region:
+2025-05-01 03:51:51,416 - edupredict - INFO - Train: {'scotland': 0.11690104832523651, 'east anglian region': 0.11367936589107645, 'south region': 0.10503707491690105, 'north western region': 0.09971874200971619, 'west midlands region': 0.08811045768345692, 'south west region': 0.08212733316287395, 'east midlands region': 0.0804909230375863, 'south east region': 0.07179749424699565, 'wales': 0.07154180516491945, 'yorkshire region': 0.06801329583226796, 'north region': 0.06238813602659166, 'ireland': 0.04019432370237791}
+2025-05-01 03:51:51,419 - edupredict - INFO - Validation: {'scotland': 0.11688909341923608, 'east anglian region': 0.11366774045098942, 'south region': 0.10492406810860562, 'north western region': 0.09970854425525387, 'west midlands region': 0.0880503144654088, 'south west region': 0.08206780181009357, 'east midlands region': 0.0806872219665593, 'south east region': 0.07209694738456819, 'wales': 0.07148335634299739, 'yorkshire region': 0.06810860561435803, 'north region': 0.0624328884798282, 'ireland': 0.03988341770210155}
+2025-05-01 03:51:51,422 - edupredict - INFO - Test: {'scotland': 0.11688909341923608, 'east anglian region': 0.11366774045098942, 'south region': 0.10492406810860562, 'north western region': 0.09970854425525387, 'west midlands region': 0.0880503144654088, 'south west region': 0.08206780181009357, 'east midlands region': 0.08053382420616659, 'south east region': 0.07209694738456819, 'wales': 0.07148335634299739, 'yorkshire region': 0.06810860561435803, 'north region': 0.0624328884798282, 'ireland': 0.04003681546249425}
+2025-05-01 03:51:51,423 - edupredict - INFO - 
+Distribution of age_band:
+2025-05-01 03:51:51,428 - edupredict - INFO - Train: {'0-35': 1.0}
+2025-05-01 03:51:51,431 - edupredict - INFO - Validation: {'0-35': 1.0}
+2025-05-01 03:51:51,432 - edupredict - INFO - Test: {'0-35': 1.0}
+2025-05-01 03:51:51,564 - edupredict - INFO - Execution time: 36.19 seconds
+2025-05-01 03:51:51,564 - edupredict - INFO - Starting feature engineering workflow...
+2025-05-01 03:51:53,005 - edupredict - INFO - Creating demographic features...
+2025-05-01 03:51:53,026 - edupredict - INFO - 
+Distribution for gender:
+2025-05-01 03:51:53,027 - edupredict - INFO - gender
+m    17875
+f    14718
+2025-05-01 03:51:53,030 - edupredict - INFO - 
+Distribution for region:
+2025-05-01 03:51:53,031 - edupredict - INFO - region
+scotland                3810
+east anglian region     3705
+south region            3422
+north western region    3250
+west midlands region    2871
+south west region       2676
+east midlands region    2625
+south east region       2344
+wales                   2331
+yorkshire region        2218
+north region            2034
+ireland                 1307
+2025-05-01 03:51:53,035 - edupredict - INFO - 
+Distribution for age_band:
+2025-05-01 03:51:53,036 - edupredict - INFO - age_band
+0-35    32593
+2025-05-01 03:51:53,136 - edupredict - WARNING - High demographic disparity detected in studied_credits for region: 0.18
+2025-05-01 03:51:53,136 - edupredict - INFO - 
+Group statistics for studied_credits:
+2025-05-01 03:51:53,141 - edupredict - INFO -                           mean       std
+region                                  
+east anglian region   0.307445  0.690205
+east midlands region  0.346032  0.697799
+ireland               0.297309  0.609469
+north region          0.349435  0.679625
+north western region  0.350821  0.717145
+scotland              0.295319  0.642870
+south east region     0.319326  0.679742
+south region          0.303283  0.673680
+south west region     0.338908  0.697282
+wales                 0.359610  0.662769
+west midlands region  0.361227  0.717436
+yorkshire region      0.339307  0.706131
+2025-05-01 03:51:53,178 - edupredict - INFO - Exported demographic feature metadata to /Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/output/intermediate/features/metadata/demographic_features.json
+2025-05-01 03:51:53,179 - edupredict - INFO - Creating temporal features...
+2025-05-01 03:52:08,403 - edupredict - WARNING - High memory usage detected: 2252.04 MB
+2025-05-01 03:52:38,505 - edupredict - INFO - Window window_7 features shape: (627031, 9)
+2025-05-01 03:52:38,507 - edupredict - INFO - Window window_14 features shape: (376919, 9)
+2025-05-01 03:52:38,508 - edupredict - INFO - Window window_30 features shape: (204359, 9)
+2025-05-01 03:52:38,509 - edupredict - INFO - Creating sequential features...
+2025-05-01 03:54:36,202 - edupredict - INFO - Exported sequential feature metadata to /Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/output/intermediate/features/metadata/sequential_features.json
+2025-05-01 03:54:36,209 - edupredict - INFO - Analyzing features...
+2025-05-01 03:54:36,209 - edupredict - ERROR - Error in feature engineering workflow: analyze_feature_importance() got an unexpected keyword argument 'save_path'
+2025-05-01 03:54:36,210 - edupredict - ERROR - Pipeline failed: analyze_feature_importance() got an unexpected keyword argument 'save_path'
+Traceback (most recent call last):
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/main.py", line 447, in main
+    feature_results = run_feature_engineering_workflow(
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/utils/monitoring_utils.py", line 31, in wrapper
+    result = f(*args, **kwargs)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/main.py", line 339, in run_feature_engineering_workflow
+    feature_importance, importance_viz = analyze_feature_importance(
+TypeError: analyze_feature_importance() got an unexpected keyword argument 'save_path'
+2025-05-01 04:05:54,193 - edupredict - INFO - Starting EduPredict pipeline with chunk size: 10000
+2025-05-01 04:05:54,218 - edupredict - INFO - Starting data processing workflow...
+2025-05-01 04:05:54,219 - edupredict - INFO - Loading raw datasets...
+2025-05-01 04:05:54,220 - edupredict - INFO - Loading studentInfo.csv...
+2025-05-01 04:05:54,293 - edupredict - INFO - Loaded student_info with shape (32593, 12)
+2025-05-01 04:05:54,294 - edupredict - INFO - Loading vle.csv...
+2025-05-01 04:05:54,303 - edupredict - INFO - Loaded vle_materials with shape (6364, 6)
+2025-05-01 04:05:54,303 - edupredict - INFO - Loading studentVle.csv...
+2025-05-01 04:06:10,777 - edupredict - INFO - Loaded vle_interactions with shape (10655280, 6)
+2025-05-01 04:06:10,779 - edupredict - INFO - Loading assessments.csv...
+2025-05-01 04:06:10,784 - edupredict - INFO - Loaded assessments with shape (206, 6)
+2025-05-01 04:06:10,785 - edupredict - INFO - Loading studentAssessment.csv...
+2025-05-01 04:06:10,914 - edupredict - INFO - Loaded student_assessments with shape (173912, 5)
+2025-05-01 04:06:11,281 - edupredict - INFO - Validating data consistency...
+2025-05-01 04:06:19,254 - edupredict - INFO - Checking data quality...
+2025-05-01 04:06:19,593 - edupredict - INFO - Generated data quality report at /Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/output/reports/fairness/data_quality_report.json
+2025-05-01 04:06:19,593 - edupredict - WARNING - Data quality recommendations:
+2025-05-01 04:06:19,594 - edupredict - WARNING - - Address quality issues in protected attribute gender: ['invalid_values']
+2025-05-01 04:06:19,595 - edupredict - WARNING - - Address quality issues in protected attribute region: ['invalid_values']
+2025-05-01 04:06:19,596 - edupredict - WARNING - - Address quality issues in protected attribute age_band: ['invalid_values']
+2025-05-01 04:06:19,596 - edupredict - INFO - Cleaning datasets...
+2025-05-01 04:06:19,597 - edupredict - INFO - Demographic cleaning progress: 1/3 (33.3%)
+2025-05-01 04:06:19,603 - edupredict - INFO - Initial null values in num_of_prev_attempts: 0
+2025-05-01 04:06:19,621 - edupredict - INFO - Remaining nulls after gender group imputation: 0
+2025-05-01 04:06:19,628 - edupredict - INFO - Remaining nulls after age_band group imputation: 0
+2025-05-01 04:06:19,639 - edupredict - INFO - Remaining nulls after imd_band group imputation: 0
+2025-05-01 04:06:19,649 - edupredict - INFO - Remaining nulls after region group imputation: 0
+2025-05-01 04:06:19,650 - edupredict - INFO - Successfully imputed all null values in num_of_prev_attempts
+2025-05-01 04:06:19,651 - edupredict - INFO - Initial protected attribute distributions:
+2025-05-01 04:06:19,659 - edupredict - INFO - gender distribution:
+gender
+M    0.548431
+F    0.451569
+Name: proportion, dtype: float64
+2025-05-01 04:06:19,666 - edupredict - INFO - age_band distribution:
+age_band
+0-35     0.703955
+35-55    0.289418
+55<=     0.006627
+Name: proportion, dtype: float64
+2025-05-01 04:06:19,674 - edupredict - INFO - imd_band distribution:
+imd_band
+20-30%     0.116066
+30-40%     0.112413
+10-20      0.111683
+0-10%      0.105171
+40-50%     0.103424
+50-60%     0.099231
+60-70%     0.092275
+70-80%     0.091449
+80-90%     0.087733
+90-100%    0.080554
+Name: proportion, dtype: float64
+2025-05-01 04:06:19,681 - edupredict - INFO - region distribution:
+region
+Scotland                0.105728
+East Anglian Region     0.102476
+London Region           0.098671
+South Region            0.094867
+North Western Region    0.089160
+West Midlands Region    0.079219
+South West Region       0.074740
+East Midlands Region    0.072562
+South East Region       0.064769
+Wales                   0.064001
+Yorkshire Region        0.061547
+North Region            0.055932
+Ireland                 0.036327
+Name: proportion, dtype: float64
+2025-05-01 04:06:19,763 - edupredict - WARNING - Found 9649 invalid values in age_band
+2025-05-01 04:06:19,807 - edupredict - WARNING - Found 4627 invalid values in imd_band
+2025-05-01 04:06:19,850 - edupredict - WARNING - Found 3216 invalid values in region
+2025-05-01 04:06:20,276 - edupredict - INFO - Final protected attribute distributions:
+2025-05-01 04:06:20,285 - edupredict - INFO - gender distribution:
+gender
+m    0.548431
+f    0.451569
+Name: proportion, dtype: float64
+2025-05-01 04:06:20,342 - edupredict - INFO - age_band distribution:
+age_band
+0-35    1.0
+Name: proportion, dtype: float64
+2025-05-01 04:06:20,346 - edupredict - INFO - imd_band distribution:
+imd_band
+20-30%     0.130550
+30-40%     0.126193
+0-10%      0.118492
+40-50%     0.116467
+50-60%     0.111527
+60-70%     0.104163
+70-80%     0.102077
+80-90%     0.099224
+90-100%    0.091308
+Name: proportion, dtype: float64
+2025-05-01 04:06:20,352 - edupredict - INFO - region distribution:
+region
+scotland                0.117725
+east anglian region     0.113859
+south region            0.105053
+north western region    0.098641
+west midlands region    0.087994
+south west region       0.082686
+east midlands region    0.080754
+south east region       0.071488
+wales                   0.071273
+yorkshire region        0.068358
+north region            0.061455
+ireland                 0.040714
+Name: proportion, dtype: float64
+2025-05-01 04:06:20,465 - edupredict - WARNING - Feature studied_credits shows high disparity (0.238) for protected attribute imd_band
+2025-05-01 04:06:20,478 - edupredict - WARNING - Feature studied_credits shows high disparity (0.197) for protected attribute region
+2025-05-01 04:06:20,499 - edupredict - WARNING - Remaining null values after cleaning: {'num_of_prev_attempts': 32593}
+2025-05-01 04:06:20,499 - edupredict - INFO - VLE cleaning progress: 2/3 (66.7%)
+2025-05-01 04:06:34,154 - edupredict - INFO - Assessment cleaning progress: 3/3 (100.0%)
+2025-05-01 04:06:34,205 - edupredict - WARNING - Removed 173 rows with invalid scores
+2025-05-01 04:06:34,333 - edupredict - INFO - Creating data splits...
+2025-05-01 04:06:34,335 - edupredict - INFO - Initial protected attribute distributions:
+2025-05-01 04:06:34,343 - edupredict - INFO - gender distribution:
+gender
+m    0.548431
+f    0.451569
+Name: proportion, dtype: float64
+2025-05-01 04:06:34,356 - edupredict - INFO - region distribution:
+region
+scotland                0.117725
+east anglian region     0.113859
+south region            0.105053
+north western region    0.098641
+west midlands region    0.087994
+south west region       0.082686
+east midlands region    0.080754
+south east region       0.071488
+wales                   0.071273
+yorkshire region        0.068358
+north region            0.061455
+ireland                 0.040714
+Name: proportion, dtype: float64
+2025-05-01 04:06:34,360 - edupredict - INFO - age_band distribution:
+age_band
+0-35    1.0
+Name: proportion, dtype: float64
+2025-05-01 04:06:34,979 - edupredict - INFO - Train set: 19555 samples
+2025-05-01 04:06:34,979 - edupredict - INFO - Validation set: 6519 samples
+2025-05-01 04:06:34,980 - edupredict - INFO - Test set: 6519 samples
+2025-05-01 04:06:34,981 - edupredict - INFO - 
+Distribution of gender:
+2025-05-01 04:06:34,987 - edupredict - INFO - Train: {'m': 0.5484019432370237, 'f': 0.4515980567629762}
+2025-05-01 04:06:34,992 - edupredict - INFO - Validation: {'m': 0.548550391164289, 'f': 0.451449608835711}
+2025-05-01 04:06:34,995 - edupredict - INFO - Test: {'m': 0.5483969934038962, 'f': 0.4516030065961037}
+2025-05-01 04:06:34,996 - edupredict - INFO - 
+Distribution of region:
+2025-05-01 04:06:35,007 - edupredict - INFO - Train: {'scotland': 0.1176681155714651, 'east anglian region': 0.1138839171567374, 'south region': 0.10503707491690105, 'north western region': 0.09864484786499617, 'west midlands region': 0.08805931986704167, 'south west region': 0.08263871132702634, 'east midlands region': 0.08079774993607773, 'south east region': 0.07143952953208899, 'wales': 0.07128611608284326, 'yorkshire region': 0.06842239836358988, 'north region': 0.061416517514702125, 'ireland': 0.040705701866530296}
+2025-05-01 04:06:35,009 - edupredict - INFO - Validation: {'scotland': 0.11765608222119957, 'east anglian region': 0.11382113821138211, 'south region': 0.10507746586899831, 'north western region': 0.09863475993250499, 'west midlands region': 0.0878969167050161, 'south west region': 0.08283479061205706, 'east midlands region': 0.0806872219665593, 'south east region': 0.07148335634299739, 'wales': 0.0713299585826047, 'yorkshire region': 0.06826200337475073, 'north region': 0.061512501917472005, 'ireland': 0.04080380426445774}
+2025-05-01 04:06:35,011 - edupredict - INFO - Test: {'scotland': 0.11796287774198497, 'east anglian region': 0.11382113821138211, 'south region': 0.10507746586899831, 'north western region': 0.09863475993250499, 'west midlands region': 0.0878969167050161, 'south west region': 0.08268139285166437, 'east midlands region': 0.0806872219665593, 'south east region': 0.07163675410339009, 'wales': 0.07117656082221199, 'yorkshire region': 0.06826200337475073, 'north region': 0.061512501917472005, 'ireland': 0.04065040650406504}
+2025-05-01 04:06:35,012 - edupredict - INFO - 
+Distribution of age_band:
+2025-05-01 04:06:35,021 - edupredict - INFO - Train: {'0-35': 1.0}
+2025-05-01 04:06:35,025 - edupredict - INFO - Validation: {'0-35': 1.0}
+2025-05-01 04:06:35,027 - edupredict - INFO - Test: {'0-35': 1.0}
+2025-05-01 04:06:35,192 - edupredict - INFO - Execution time: 40.97 seconds
+2025-05-01 04:06:35,193 - edupredict - INFO - Starting feature engineering workflow...
+2025-05-01 04:06:35,194 - edupredict - INFO - Analyzing initial demographic distributions...
+2025-05-01 04:06:35,203 - edupredict - INFO - Initial gender distribution:
+gender
+m    0.548402
+f    0.451598
+Name: proportion, dtype: float64
+2025-05-01 04:06:35,208 - edupredict - INFO - Initial age_band distribution:
+age_band
+0-35    1.0
+Name: proportion, dtype: float64
+2025-05-01 04:06:35,215 - edupredict - INFO - Initial imd_band distribution:
+imd_band
+20-30%     0.130401
+30-40%     0.126413
+0-10%      0.120481
+50-60%     0.113577
+40-50%     0.112503
+60-70%     0.104065
+70-80%     0.102940
+80-90%     0.098645
+90-100%    0.090974
+Name: proportion, dtype: float64
+2025-05-01 04:06:35,219 - edupredict - INFO - Initial region distribution:
+region
+scotland                0.117668
+east anglian region     0.113884
+south region            0.105037
+north western region    0.098645
+west midlands region    0.088059
+south west region       0.082639
+east midlands region    0.080798
+south east region       0.071440
+wales                   0.071286
+yorkshire region        0.068422
+north region            0.061417
+ireland                 0.040706
+Name: proportion, dtype: float64
+2025-05-01 04:06:35,220 - edupredict - INFO - Creating demographic features...
+2025-05-01 04:06:35,222 - edupredict - ERROR - Error in feature engineering workflow: create_demographic_features() got an unexpected keyword argument 'protected_cols'
+2025-05-01 04:06:35,222 - edupredict - ERROR - Pipeline failed: create_demographic_features() got an unexpected keyword argument 'protected_cols'
+Traceback (most recent call last):
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/main.py", line 459, in main
+    feature_results = run_feature_engineering_workflow(
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/utils/monitoring_utils.py", line 31, in wrapper
+    result = f(*args, **kwargs)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/main.py", line 289, in run_feature_engineering_workflow
+    demographic_features = create_demographic_features(
+TypeError: create_demographic_features() got an unexpected keyword argument 'protected_cols'
+2025-05-01 04:12:11,666 - edupredict - INFO - Starting EduPredict pipeline with chunk size: 10000
+2025-05-01 04:12:11,683 - edupredict - INFO - Starting data processing workflow...
+2025-05-01 04:12:11,684 - edupredict - INFO - Loading raw datasets...
+2025-05-01 04:12:11,685 - edupredict - INFO - Loading studentInfo.csv...
+2025-05-01 04:12:11,751 - edupredict - INFO - Loaded student_info with shape (32593, 12)
+2025-05-01 04:12:11,752 - edupredict - INFO - Loading vle.csv...
+2025-05-01 04:12:11,763 - edupredict - INFO - Loaded vle_materials with shape (6364, 6)
+2025-05-01 04:12:11,764 - edupredict - INFO - Loading studentVle.csv...
+2025-05-01 04:12:24,030 - edupredict - INFO - Loaded vle_interactions with shape (10655280, 6)
+2025-05-01 04:12:24,030 - edupredict - INFO - Loading assessments.csv...
+2025-05-01 04:12:24,034 - edupredict - INFO - Loaded assessments with shape (206, 6)
+2025-05-01 04:12:24,034 - edupredict - INFO - Loading studentAssessment.csv...
+2025-05-01 04:12:24,120 - edupredict - INFO - Loaded student_assessments with shape (173912, 5)
+2025-05-01 04:12:24,289 - edupredict - INFO - Validating data consistency...
+2025-05-01 04:12:26,478 - edupredict - INFO - Checking data quality...
+2025-05-01 04:12:26,608 - edupredict - INFO - Generated data quality report at /Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/output/reports/fairness/data_quality_report.json
+2025-05-01 04:12:26,609 - edupredict - WARNING - Data quality recommendations:
+2025-05-01 04:12:26,609 - edupredict - WARNING - - Address quality issues in protected attribute gender: ['invalid_values']
+2025-05-01 04:12:26,609 - edupredict - WARNING - - Address quality issues in protected attribute region: ['invalid_values']
+2025-05-01 04:12:26,609 - edupredict - WARNING - - Address quality issues in protected attribute age_band: ['invalid_values']
+2025-05-01 04:12:26,609 - edupredict - INFO - Cleaning datasets...
+2025-05-01 04:12:26,610 - edupredict - INFO - Demographic cleaning progress: 1/3 (33.3%)
+2025-05-01 04:12:26,614 - edupredict - INFO - Initial null values in num_of_prev_attempts: 0
+2025-05-01 04:12:26,620 - edupredict - INFO - Remaining nulls after gender group imputation: 0
+2025-05-01 04:12:26,627 - edupredict - INFO - Remaining nulls after age_band group imputation: 0
+2025-05-01 04:12:26,632 - edupredict - INFO - Remaining nulls after imd_band group imputation: 0
+2025-05-01 04:12:26,637 - edupredict - INFO - Remaining nulls after region group imputation: 0
+2025-05-01 04:12:26,637 - edupredict - INFO - Successfully imputed all null values in num_of_prev_attempts
+2025-05-01 04:12:26,637 - edupredict - INFO - Initial protected attribute distributions:
+2025-05-01 04:12:26,641 - edupredict - INFO - gender distribution:
+gender
+M    0.548431
+F    0.451569
+Name: proportion, dtype: float64
+2025-05-01 04:12:26,644 - edupredict - INFO - age_band distribution:
+age_band
+0-35     0.703955
+35-55    0.289418
+55<=     0.006627
+Name: proportion, dtype: float64
+2025-05-01 04:12:26,647 - edupredict - INFO - imd_band distribution:
+imd_band
+20-30%     0.116066
+30-40%     0.112413
+10-20      0.111683
+0-10%      0.105171
+40-50%     0.103424
+50-60%     0.099231
+60-70%     0.092275
+70-80%     0.091449
+80-90%     0.087733
+90-100%    0.080554
+Name: proportion, dtype: float64
+2025-05-01 04:12:26,650 - edupredict - INFO - region distribution:
+region
+Scotland                0.105728
+East Anglian Region     0.102476
+London Region           0.098671
+South Region            0.094867
+North Western Region    0.089160
+West Midlands Region    0.079219
+South West Region       0.074740
+East Midlands Region    0.072562
+South East Region       0.064769
+Wales                   0.064001
+Yorkshire Region        0.061547
+North Region            0.055932
+Ireland                 0.036327
+Name: proportion, dtype: float64
+2025-05-01 04:12:26,692 - edupredict - WARNING - Found 9649 invalid values in age_band
+2025-05-01 04:12:26,716 - edupredict - WARNING - Found 4627 invalid values in imd_band
+2025-05-01 04:12:26,740 - edupredict - WARNING - Found 3216 invalid values in region
+2025-05-01 04:12:26,898 - edupredict - INFO - Final protected attribute distributions:
+2025-05-01 04:12:26,901 - edupredict - INFO - gender distribution:
+gender
+m    0.548431
+f    0.451569
+Name: proportion, dtype: float64
+2025-05-01 04:12:26,905 - edupredict - INFO - age_band distribution:
+age_band
+0-35    1.0
+Name: proportion, dtype: float64
+2025-05-01 04:12:26,910 - edupredict - INFO - imd_band distribution:
+imd_band
+20-30%     0.130795
+30-40%     0.126530
+0-10%      0.117970
+40-50%     0.116497
+50-60%     0.111312
+60-70%     0.104071
+70-80%     0.103028
+80-90%     0.098794
+90-100%    0.091001
+Name: proportion, dtype: float64
+2025-05-01 04:12:26,914 - edupredict - INFO - region distribution:
+region
+scotland                0.116436
+east anglian region     0.113797
+south region            0.105329
+north western region    0.099132
+west midlands region    0.087964
+south west region       0.082809
+east midlands region    0.080784
+south east region       0.072500
+wales                   0.071181
+yorkshire region        0.068082
+north region            0.062099
+ireland                 0.039886
+Name: proportion, dtype: float64
+2025-05-01 04:12:26,933 - edupredict - WARNING - Feature studied_credits shows high disparity (0.235) for protected attribute imd_band
+2025-05-01 04:12:26,940 - edupredict - WARNING - Feature studied_credits shows high disparity (0.193) for protected attribute region
+2025-05-01 04:12:26,953 - edupredict - WARNING - Remaining null values after cleaning: {'num_of_prev_attempts': 32593}
+2025-05-01 04:12:26,954 - edupredict - INFO - VLE cleaning progress: 2/3 (66.7%)
+2025-05-01 04:12:31,481 - edupredict - INFO - Assessment cleaning progress: 3/3 (100.0%)
+2025-05-01 04:12:31,501 - edupredict - WARNING - Removed 173 rows with invalid scores
+2025-05-01 04:12:31,560 - edupredict - INFO - Creating data splits...
+2025-05-01 04:12:31,561 - edupredict - INFO - Initial protected attribute distributions:
+2025-05-01 04:12:31,563 - edupredict - INFO - gender distribution:
+gender
+m    0.548431
+f    0.451569
+Name: proportion, dtype: float64
+2025-05-01 04:12:31,566 - edupredict - INFO - region distribution:
+region
+scotland                0.116436
+east anglian region     0.113797
+south region            0.105329
+north western region    0.099132
+west midlands region    0.087964
+south west region       0.082809
+east midlands region    0.080784
+south east region       0.072500
+wales                   0.071181
+yorkshire region        0.068082
+north region            0.062099
+ireland                 0.039886
+Name: proportion, dtype: float64
+2025-05-01 04:12:31,569 - edupredict - INFO - age_band distribution:
+age_band
+0-35    1.0
+Name: proportion, dtype: float64
+2025-05-01 04:12:31,895 - edupredict - INFO - Train set: 19555 samples
+2025-05-01 04:12:31,895 - edupredict - INFO - Validation set: 6519 samples
+2025-05-01 04:12:31,895 - edupredict - INFO - Test set: 6519 samples
+2025-05-01 04:12:31,895 - edupredict - INFO - 
+Distribution of gender:
+2025-05-01 04:12:31,899 - edupredict - INFO - Train: {'m': 0.548453081053439, 'f': 0.45154691894656096}
+2025-05-01 04:12:31,901 - edupredict - INFO - Validation: {'m': 0.5483969934038962, 'f': 0.4516030065961037}
+2025-05-01 04:12:31,903 - edupredict - INFO - Test: {'m': 0.5483969934038962, 'f': 0.4516030065961037}
+2025-05-01 04:12:31,904 - edupredict - INFO - 
+Distribution of region:
+2025-05-01 04:12:31,908 - edupredict - INFO - Train: {'scotland': 0.11638967016108412, 'east anglian region': 0.11378164152390693, 'south region': 0.10529276399897725, 'north western region': 0.09920736384556379, 'west midlands region': 0.08800818205062644, 'south west region': 0.08284326259268729, 'east midlands region': 0.08074661211966248, 'south east region': 0.072513423676809, 'wales': 0.07118384045001279, 'yorkshire region': 0.06801329583226796, 'north region': 0.06213244694451547, 'ireland': 0.03988749680388647}
+2025-05-01 04:12:31,909 - edupredict - INFO - Validation: {'scotland': 0.11642890013805798, 'east anglian region': 0.11382113821138211, 'south region': 0.10538426138978371, 'north western region': 0.09909495321368308, 'west midlands region': 0.0878969167050161, 'south west region': 0.08283479061205706, 'east midlands region': 0.08084061972695199, 'south east region': 0.07240374290535358, 'wales': 0.0713299585826047, 'yorkshire region': 0.06810860561435803, 'north region': 0.0619726951986501, 'ireland': 0.03988341770210155}
+2025-05-01 04:12:31,911 - edupredict - INFO - Test: {'scotland': 0.11658229789845068, 'east anglian region': 0.11382113821138211, 'south region': 0.10538426138978371, 'north western region': 0.09894155545329038, 'west midlands region': 0.0878969167050161, 'south west region': 0.08268139285166437, 'east midlands region': 0.08084061972695199, 'south east region': 0.07255714066574628, 'wales': 0.0710231630618193, 'yorkshire region': 0.06826200337475073, 'north region': 0.0621260929590428, 'ireland': 0.03988341770210155}
+2025-05-01 04:12:31,912 - edupredict - INFO - 
+Distribution of age_band:
+2025-05-01 04:12:31,915 - edupredict - INFO - Train: {'0-35': 1.0}
+2025-05-01 04:12:31,916 - edupredict - INFO - Validation: {'0-35': 1.0}
+2025-05-01 04:12:31,919 - edupredict - INFO - Test: {'0-35': 1.0}
+2025-05-01 04:12:32,018 - edupredict - INFO - Execution time: 20.33 seconds
+2025-05-01 04:12:32,018 - edupredict - INFO - Starting feature engineering workflow...
+2025-05-01 04:12:32,019 - edupredict - INFO - Analyzing initial demographic distributions...
+2025-05-01 04:12:32,021 - edupredict - INFO - Initial gender distribution:
+gender
+m    0.548453
+f    0.451547
+Name: proportion, dtype: float64
+2025-05-01 04:12:32,023 - edupredict - INFO - Initial age_band distribution:
+age_band
+0-35    1.0
+Name: proportion, dtype: float64
+2025-05-01 04:12:32,025 - edupredict - INFO - Initial imd_band distribution:
+imd_band
+20-30%     0.131987
+30-40%     0.128305
+0-10%      0.119202
+40-50%     0.113833
+50-60%     0.113066
+70-80%     0.103247
+60-70%     0.101304
+80-90%     0.099565
+90-100%    0.089491
+Name: proportion, dtype: float64
+2025-05-01 04:12:32,028 - edupredict - INFO - Initial region distribution:
+region
+scotland                0.116390
+east anglian region     0.113782
+south region            0.105293
+north western region    0.099207
+west midlands region    0.088008
+south west region       0.082843
+east midlands region    0.080747
+south east region       0.072513
+wales                   0.071184
+yorkshire region        0.068013
+north region            0.062132
+ireland                 0.039887
+Name: proportion, dtype: float64
+2025-05-01 04:12:32,028 - edupredict - INFO - Creating demographic features...
+2025-05-01 04:12:32,035 - edupredict - INFO - 
+Distribution for gender:
+2025-05-01 04:12:32,036 - edupredict - INFO - gender
+m    10725
+f     8830
+2025-05-01 04:12:32,038 - edupredict - INFO - 
+Distribution for region:
+2025-05-01 04:12:32,039 - edupredict - INFO - region
+scotland                2276
+east anglian region     2225
+south region            2059
+north western region    1940
+west midlands region    1721
+south west region       1620
+east midlands region    1579
+south east region       1418
+wales                   1392
+yorkshire region        1330
+north region            1215
+ireland                  780
+2025-05-01 04:12:32,041 - edupredict - INFO - 
+Distribution for age_band:
+2025-05-01 04:12:32,042 - edupredict - INFO - age_band
+0-35    19555
+2025-05-01 04:12:32,091 - edupredict - WARNING - High demographic disparity detected in studied_credits for region: 0.22
+2025-05-01 04:12:32,091 - edupredict - INFO - 
+Group statistics for studied_credits:
+2025-05-01 04:12:32,097 - edupredict - INFO -                           mean       std
+region                                  
+east anglian region   0.301498  0.673663
+east midlands region  0.359669  0.694280
+ireland               0.324679  0.640065
+north region          0.333813  0.681597
+north western region  0.333978  0.682942
+scotland              0.298513  0.658062
+south east region     0.341502  0.713439
+south region          0.288530  0.676015
+south west region     0.347582  0.694059
+wales                 0.372246  0.679419
+west midlands region  0.345874  0.699518
+yorkshire region      0.337155  0.703930
+2025-05-01 04:12:32,118 - edupredict - INFO - Exported demographic feature metadata to /Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/output/intermediate/features/metadata/demographic_features.json
+2025-05-01 04:12:32,119 - edupredict - INFO - Validating demographic feature fairness...
+2025-05-01 04:12:32,132 - edupredict - INFO - Creating temporal features...
+2025-05-01 04:12:32,154 - edupredict - ERROR - Error creating window features: 'date'
+2025-05-01 04:12:32,155 - edupredict - ERROR - Error creating temporal features: 'date'
+2025-05-01 04:12:32,155 - edupredict - ERROR - Error in feature engineering workflow: 'date'
+2025-05-01 04:12:32,155 - edupredict - ERROR - Pipeline failed: 'date'
+Traceback (most recent call last):
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/pandas/core/indexes/base.py", line 3805, in get_loc
+    return self._engine.get_loc(casted_key)
+  File "index.pyx", line 167, in pandas._libs.index.IndexEngine.get_loc
+  File "index.pyx", line 196, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7081, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7089, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'date'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/main.py", line 460, in main
+    feature_results = run_feature_engineering_workflow(
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/utils/monitoring_utils.py", line 31, in wrapper
+    result = f(*args, **kwargs)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/main.py", line 313, in run_feature_engineering_workflow
+    temporal_features = create_temporal_features(
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/feature_engineering/temporal_features.py", line 46, in create_temporal_features
+    window_features = _create_window_features(merged_data, window_size)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/feature_engineering/temporal_features.py", line 68, in _create_window_features
+    data['window'] = data['date'] // window_size
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/pandas/core/frame.py", line 4102, in __getitem__
+    indexer = self.columns.get_loc(key)
+  File "/opt/anaconda3/envs/edupredict/lib/python3.10/site-packages/pandas/core/indexes/base.py", line 3812, in get_loc
+    raise KeyError(key) from err
+KeyError: 'date'
+2025-05-01 04:58:34,294 - edupredict - INFO - Starting EduPredict pipeline with chunk size: 10000
+2025-05-01 04:58:34,318 - edupredict - INFO - Starting data processing workflow...
+2025-05-01 04:58:34,319 - edupredict - INFO - Loading raw datasets...
+2025-05-01 04:58:34,320 - edupredict - INFO - Loading studentInfo.csv...
+2025-05-01 04:58:34,412 - edupredict - INFO - Loaded student_info with shape (32593, 12)
+2025-05-01 04:58:34,413 - edupredict - INFO - Loading vle.csv...
+2025-05-01 04:58:34,422 - edupredict - INFO - Loaded vle_materials with shape (6364, 6)
+2025-05-01 04:58:34,423 - edupredict - INFO - Loading studentVle.csv...
+2025-05-01 04:58:46,304 - edupredict - INFO - Loaded vle_interactions with shape (10655280, 6)
+2025-05-01 04:58:46,305 - edupredict - INFO - Loading assessments.csv...
+2025-05-01 04:58:46,308 - edupredict - INFO - Loaded assessments with shape (206, 6)
+2025-05-01 04:58:46,309 - edupredict - INFO - Loading studentAssessment.csv...
+2025-05-01 04:58:46,412 - edupredict - INFO - Loaded student_assessments with shape (173912, 5)
+2025-05-01 04:58:46,561 - edupredict - WARNING - assessments: Short gap between assessments: 6.0 days between days 12.0 and 18.0
+2025-05-01 04:58:46,562 - edupredict - WARNING - assessments: Short gap between assessments: 1.0 days between days 18.0 and 19.0
+2025-05-01 04:58:46,562 - edupredict - WARNING - assessments: Short gap between assessments: 1.0 days between days 19.0 and 20.0
+2025-05-01 04:58:46,562 - edupredict - WARNING - assessments: Short gap between assessments: 3.0 days between days 20.0 and 23.0
+2025-05-01 04:58:46,562 - edupredict - WARNING - assessments: Short gap between assessments: 3.0 days between days 51.0 and 54.0
+2025-05-01 04:58:46,562 - edupredict - WARNING - assessments: Short gap between assessments: 1.0 days between days 24.0 and 25.0
+2025-05-01 04:58:46,562 - edupredict - WARNING - assessments: Short gap between assessments: 6.0 days between days 41.0 and 47.0
+2025-05-01 04:58:46,562 - edupredict - WARNING - assessments: Short gap between assessments: 5.0 days between days 47.0 and 52.0
+2025-05-01 04:58:46,562 - edupredict - WARNING - assessments: Short gap between assessments: 1.0 days between days 52.0 and 53.0
+2025-05-01 04:58:46,562 - edupredict - WARNING - assessments: Short gap between assessments: 1.0 days between days 61.0 and 62.0
+2025-05-01 04:58:46,563 - edupredict - WARNING - assessments: Short gap between assessments: 6.0 days between days 62.0 and 68.0
+2025-05-01 04:58:46,563 - edupredict - WARNING - assessments: Short gap between assessments: 6.0 days between days 68.0 and 74.0
+2025-05-01 04:58:46,563 - edupredict - WARNING - assessments: Short gap between assessments: 5.0 days between days 74.0 and 79.0
+2025-05-01 04:58:46,563 - edupredict - WARNING - assessments: Short gap between assessments: 2.0 days between days 79.0 and 81.0
+2025-05-01 04:58:46,563 - edupredict - WARNING - assessments: Short gap between assessments: 6.0 days between days 81.0 and 87.0
+2025-05-01 04:58:46,563 - edupredict - WARNING - assessments: Short gap between assessments: 1.0 days between days 87.0 and 88.0
+2025-05-01 04:58:46,563 - edupredict - WARNING - assessments: Short gap between assessments: 1.0 days between days 88.0 and 89.0
+2025-05-01 04:58:46,563 - edupredict - WARNING - assessments: Short gap between assessments: 5.0 days between days 89.0 and 94.0
+2025-05-01 04:58:46,563 - edupredict - WARNING - assessments: Short gap between assessments: 2.0 days between days 94.0 and 96.0
+2025-05-01 04:58:46,564 - edupredict - WARNING - assessments: Short gap between assessments: 6.0 days between days 96.0 and 102.0
+2025-05-01 04:58:46,564 - edupredict - WARNING - assessments: Short gap between assessments: 1.0 days between days 109.0 and 110.0
+2025-05-01 04:58:46,564 - edupredict - WARNING - assessments: Short gap between assessments: 1.0 days between days 110.0 and 111.0
+2025-05-01 04:58:46,564 - edupredict - WARNING - assessments: Short gap between assessments: 3.0 days between days 111.0 and 114.0
+2025-05-01 04:58:46,564 - edupredict - WARNING - assessments: Short gap between assessments: 2.0 days between days 114.0 and 116.0
+2025-05-01 04:58:46,564 - edupredict - WARNING - assessments: Short gap between assessments: 1.0 days between days 123.0 and 124.0
+2025-05-01 04:58:46,564 - edupredict - WARNING - assessments: Short gap between assessments: 5.0 days between days 124.0 and 129.0
+2025-05-01 04:58:46,564 - edupredict - WARNING - assessments: Short gap between assessments: 2.0 days between days 129.0 and 131.0
+2025-05-01 04:58:46,564 - edupredict - WARNING - assessments: Short gap between assessments: 5.0 days between days 131.0 and 136.0
+2025-05-01 04:58:46,565 - edupredict - WARNING - assessments: Short gap between assessments: 1.0 days between days 136.0 and 137.0
+2025-05-01 04:58:46,565 - edupredict - WARNING - assessments: Short gap between assessments: 2.0 days between days 144.0 and 146.0
+2025-05-01 04:58:46,565 - edupredict - WARNING - assessments: Short gap between assessments: 3.0 days between days 146.0 and 149.0
+2025-05-01 04:58:46,565 - edupredict - WARNING - assessments: Short gap between assessments: 2.0 days between days 149.0 and 151.0
+2025-05-01 04:58:46,565 - edupredict - WARNING - assessments: Short gap between assessments: 1.0 days between days 151.0 and 152.0
+2025-05-01 04:58:46,565 - edupredict - WARNING - assessments: Short gap between assessments: 6.0 days between days 152.0 and 158.0
+2025-05-01 04:58:46,565 - edupredict - WARNING - assessments: Short gap between assessments: 1.0 days between days 158.0 and 159.0
+2025-05-01 04:58:46,565 - edupredict - WARNING - assessments: Short gap between assessments: 6.0 days between days 159.0 and 165.0
+2025-05-01 04:58:46,565 - edupredict - WARNING - assessments: Short gap between assessments: 5.0 days between days 165.0 and 170.0
+2025-05-01 04:58:46,566 - edupredict - WARNING - assessments: Short gap between assessments: 1.0 days between days 170.0 and 171.0
+2025-05-01 04:58:46,566 - edupredict - WARNING - assessments: Short gap between assessments: 2.0 days between days 171.0 and 173.0
+2025-05-01 04:58:46,566 - edupredict - WARNING - assessments: Short gap between assessments: 1.0 days between days 194.0 and 195.0
+2025-05-01 04:58:46,566 - edupredict - WARNING - assessments: Short gap between assessments: 4.0 days between days 195.0 and 199.0
+2025-05-01 04:58:46,566 - edupredict - WARNING - assessments: Short gap between assessments: 1.0 days between days 199.0 and 200.0
+2025-05-01 04:58:46,566 - edupredict - WARNING - assessments: Short gap between assessments: 1.0 days between days 200.0 and 201.0
+2025-05-01 04:58:46,566 - edupredict - WARNING - assessments: Short gap between assessments: 5.0 days between days 201.0 and 206.0
+2025-05-01 04:58:46,566 - edupredict - WARNING - assessments: Short gap between assessments: 1.0 days between days 206.0 and 207.0
+2025-05-01 04:58:46,566 - edupredict - WARNING - assessments: Short gap between assessments: 1.0 days between days 207.0 and 208.0
+2025-05-01 04:58:46,567 - edupredict - WARNING - assessments: Short gap between assessments: 6.0 days between days 208.0 and 214.0
+2025-05-01 04:58:46,567 - edupredict - WARNING - assessments: Short gap between assessments: 5.0 days between days 222.0 and 227.0
+2025-05-01 04:58:46,567 - edupredict - WARNING - assessments: Short gap between assessments: 1.0 days between days 227.0 and 228.0
+2025-05-01 04:58:46,567 - edupredict - WARNING - assessments: Short gap between assessments: 1.0 days between days 228.0 and 229.0
+2025-05-01 04:58:46,567 - edupredict - WARNING - assessments: Short gap between assessments: 6.0 days between days 229.0 and 235.0
+2025-05-01 04:58:46,567 - edupredict - WARNING - assessments: Short gap between assessments: 1.0 days between days 235.0 and 236.0
+2025-05-01 04:58:46,567 - edupredict - WARNING - assessments: Short gap between assessments: 4.0 days between days 236.0 and 240.0
+2025-05-01 04:58:46,567 - edupredict - WARNING - assessments: Short gap between assessments: 1.0 days between days 240.0 and 241.0
+2025-05-01 04:58:46,568 - edupredict - WARNING - student_assessments: Found 92260 submissions before due date
+2025-05-01 04:58:46,568 - edupredict - WARNING - student_assessments: Found 471 submissions more than 30 days late
+2025-05-01 04:58:46,568 - edupredict - WARNING - timeline: Overall activity span (633 days) exceeds expected module length. Sources: VLE, Assessments, Submissions
+2025-05-01 04:58:46,737 - edupredict - INFO - Validating data consistency...
+2025-05-01 04:58:48,973 - edupredict - INFO - Checking data quality...
+2025-05-01 04:58:48,973 - edupredict - ERROR - Error in data processing workflow: detect_data_quality_issues() got an unexpected keyword argument 'protected_cols'
+2025-05-01 04:58:48,974 - edupredict - ERROR - Pipeline failed: detect_data_quality_issues() got an unexpected keyword argument 'protected_cols'
+Traceback (most recent call last):
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/main.py", line 456, in main
+    data_results = run_data_processing_workflow(args, dirs, logger)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/utils/monitoring_utils.py", line 31, in wrapper
+    result = f(*args, **kwargs)
+  File "/Users/dylantadas/Desktop/spring 25/i494- capstone project/EduPredict-Workspace/EduPredict_2.0/main.py", line 203, in run_data_processing_workflow
+    quality_report = detect_data_quality_issues(
+TypeError: detect_data_quality_issues() got an unexpected keyword argument 'protected_cols'

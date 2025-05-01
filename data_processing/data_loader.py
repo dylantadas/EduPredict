@@ -4,12 +4,124 @@ import hashlib
 from datetime import datetime
 import pandas as pd
 import numpy as np
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, Tuple
 import logging
+from collections import defaultdict
 from pathlib import Path
 from config import DATA_PROCESSING, DIRS
 
 logger = logging.getLogger('edupredict')
+
+def validate_date_fields(
+    datasets: Dict[str, pd.DataFrame],
+    logger: Optional[logging.Logger] = None
+) -> Tuple[bool, Dict[str, List[str]]]:
+    """
+    Validates date fields across all datasets for consistency and proper interpretation.
+    Ensures dates are properly interpreted relative to module start (day 0).
+    
+    Args:
+        datasets: Dictionary of DataFrames to validate
+        logger: Optional logger instance
+        
+    Returns:
+        Tuple of (is_valid, dict of validation issues by dataset)
+    """
+    logger = logger or logging.getLogger('edupredict')
+    issues = defaultdict(list)
+    
+    try:
+        # Validate VLE dates
+        if 'vle_interactions' in datasets:
+            vle = datasets['vle_interactions']
+            if 'date' not in vle.columns:
+                issues['vle_interactions'].append("Missing required date column")
+            else:
+                # Check date range
+                date_range = vle['date'].agg(['min', 'max'])
+                if date_range['min'] < -90:  # More than 90 days before module start
+                    issues['vle_interactions'].append(
+                        f"Unusually early activity detected: {date_range['min']} days"
+                    )
+                if date_range['max'] > 365:  # More than a year after start
+                    issues['vle_interactions'].append(
+                        f"Activity extends beyond expected module duration: {date_range['max']} days"
+                    )
+        
+        # Validate assessment dates
+        if 'assessments' in datasets:
+            assessments = datasets['assessments']
+            if 'date' not in assessments.columns:
+                issues['assessments'].append("Missing required date column")
+            else:
+                # Check assessment scheduling
+                date_range = assessments['date'].agg(['min', 'max'])
+                if date_range['min'] < -30:  # Assessments >30 days before start
+                    issues['assessments'].append(
+                        f"Assessment scheduled too early: {date_range['min']} days"
+                    )
+                
+                # Check for reasonable assessment spacing
+                assessment_dates = sorted(assessments['date'].unique())
+                for i in range(len(assessment_dates) - 1):
+                    gap = assessment_dates[i+1] - assessment_dates[i]
+                    if gap < 7:  # Less than a week between assessments
+                        issues['assessments'].append(
+                            f"Short gap between assessments: {gap} days between "
+                            f"days {assessment_dates[i]} and {assessment_dates[i+1]}"
+                        )
+        
+        # Validate submission dates
+        if all(k in datasets for k in ['assessments', 'student_assessments']):
+            merged = pd.merge(
+                datasets['student_assessments'],
+                datasets['assessments'][['id_assessment', 'date']],
+                on='id_assessment'
+            )
+            
+            # Check submission timing
+            submission_lag = merged['date_submitted'] - merged['date']
+            early_submissions = submission_lag[submission_lag < 0]
+            if len(early_submissions) > 0:
+                issues['student_assessments'].append(
+                    f"Found {len(early_submissions)} submissions before due date"
+                )
+            
+            very_late = submission_lag[submission_lag > 30]
+            if len(very_late) > 0:
+                issues['student_assessments'].append(
+                    f"Found {len(very_late)} submissions more than 30 days late"
+                )
+        
+        # Cross-dataset timeline validation
+        all_dates = []
+        date_sources = []
+        
+        if 'vle_interactions' in datasets:
+            all_dates.extend(datasets['vle_interactions']['date'].unique())
+            date_sources.append('VLE')
+        
+        if 'assessments' in datasets:
+            all_dates.extend(datasets['assessments']['date'].unique())
+            date_sources.append('Assessments')
+        
+        if 'student_assessments' in datasets:
+            all_dates.extend(datasets['student_assessments']['date_submitted'].unique())
+            date_sources.append('Submissions')
+        
+        if all_dates:
+            timeline_range = max(all_dates) - min(all_dates)
+            if timeline_range > 365:  # More than a year
+                issues['timeline'].append(
+                    f"Overall activity span ({timeline_range} days) exceeds expected "
+                    f"module length. Sources: {', '.join(date_sources)}"
+                )
+        
+        return len(issues) == 0, dict(issues)
+        
+    except Exception as e:
+        logger.error(f"Error validating date fields: {str(e)}")
+        return False, {'error': [str(e)]}
 
 def load_raw_datasets(
     data_path: str,
@@ -18,7 +130,8 @@ def load_raw_datasets(
     logger: Optional[logging.Logger] = None
 ) -> Dict[str, pd.DataFrame]:
     """
-    Loads OULAD dataset files with optimized memory usage.
+    Loads OULAD dataset files with optimized memory usage and enhanced validation.
+    Ensures proper interpretation of date fields relative to module start.
 
     Args:
         data_path: Path to dataset directory
@@ -59,6 +172,13 @@ def load_raw_datasets(
             datasets[dataset_key] = pd.read_csv(file_path, dtype=dtypes.get(file_name))
 
         logger.info(f"Loaded {dataset_key} with shape {datasets[dataset_key].shape}")
+
+    # Validate dates across datasets
+    is_valid, date_issues = validate_date_fields(datasets, logger)
+    if not is_valid:
+        for dataset, issues in date_issues.items():
+            for issue in issues:
+                logger.warning(f"{dataset}: {issue}")
 
     return datasets
 

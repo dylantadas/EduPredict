@@ -8,6 +8,7 @@ from sklearn.covariance import EllipticEnvelope
 import json
 import os
 from pathlib import Path
+from collections import defaultdict
 from config import DATA_PROCESSING, DIRS, FEATURE_ENGINEERING, FAIRNESS, PROTECTED_ATTRIBUTES
 
 logger = logging.getLogger('edupredict')
@@ -150,143 +151,188 @@ def check_distribution_shifts(
         raise
 
 def detect_data_quality_issues(
-    data: pd.DataFrame,
-    protected_cols: Optional[List[str]] = None,
-    output_dir: Optional[Path] = None,
+    datasets: Dict[str, pd.DataFrame],
+    logger: Optional[logging.Logger] = None
+) -> Dict[str, List[str]]:
+    """
+    Detects potential data quality issues, especially focusing on temporal consistency.
+    
+    Args:
+        datasets: Dictionary of DataFrames to check
+        logger: Optional logger instance
+        
+    Returns:
+        Dictionary mapping dataset names to lists of detected issues
+    """
+    logger = logger or logging.getLogger('edupredict')
+    issues = defaultdict(list)
+    
+    try:
+        # Check VLE data temporal consistency
+        if 'vle_interactions' in datasets:
+            vle_data = datasets['vle_interactions']
+            
+            # Check date range and distribution
+            date_range = vle_data['date'].agg(['min', 'max'])
+            if date_range['min'] < -60:  # More than 60 days before module start
+                issues['vle_interactions'].append(
+                    f"Unusually early activity detected: {date_range['min']} days before module start"
+                )
+            
+            # Check for activity gaps
+            vle_by_student = vle_data.sort_values(['id_student', 'date'])
+            time_gaps = vle_by_student.groupby('id_student')['date'].diff()
+            large_gaps = time_gaps[time_gaps > 30]  # Gaps > 30 days
+            if not large_gaps.empty:
+                issues['vle_interactions'].append(
+                    f"Found {len(large_gaps)} large activity gaps (>30 days)"
+                )
+            
+            # Check for unusual activity patterns
+            activity_by_day = vle_data.groupby('date')['sum_click'].sum()
+            zero_activity_days = activity_by_day[activity_by_day == 0]
+            if len(zero_activity_days) > 0:
+                issues['vle_interactions'].append(
+                    f"Found {len(zero_activity_days)} days with zero activity"
+                )
+        
+        # Check assessment submission timing
+        if 'student_assessments' in datasets and 'assessments' in datasets:
+            assessments = datasets['assessments']
+            submissions = datasets['student_assessments']
+            
+            merged = pd.merge(
+                submissions,
+                assessments[['id_assessment', 'date']],
+                on='id_assessment'
+            )
+            
+            # Check for submissions before due dates
+            early_submissions = merged[merged['date_submitted'] < merged['date']]
+            if len(early_submissions) > 0:
+                issues['student_assessments'].append(
+                    f"Found {len(early_submissions)} submissions before assessment date"
+                )
+            
+            # Check for extremely late submissions
+            very_late = merged[merged['date_submitted'] - merged['date'] > 30]
+            if len(very_late) > 0:
+                issues['student_assessments'].append(
+                    f"Found {len(very_late)} submissions more than 30 days late"
+                )
+        
+        # Check for timeline inconsistencies across datasets
+        if all(k in datasets for k in ['vle_interactions', 'student_assessments', 'assessments']):
+            vle_timeline = datasets['vle_interactions']['date']
+            assessment_timeline = datasets['assessments']['date']
+            submission_timeline = datasets['student_assessments']['date_submitted']
+            
+            # Create overall timeline bounds
+            min_date = min(vle_timeline.min(), assessment_timeline.min())
+            max_date = max(
+                vle_timeline.max(),
+                assessment_timeline.max(),
+                submission_timeline.max()
+            )
+            
+            # Check for activity outside module boundaries
+            module_length = 365  # Assume maximum module length of 1 year
+            if max_date - min_date > module_length:
+                issues['timeline'].append(
+                    f"Activity span ({max_date - min_date} days) exceeds expected module length"
+                )
+            
+            # Check for synchronized starting points
+            if abs(vle_timeline.min() - assessment_timeline.min()) > 30:
+                issues['timeline'].append(
+                    "VLE and assessment timelines have significantly different start points"
+                )
+        
+        return dict(issues)
+        
+    except Exception as e:
+        logger.error(f"Error detecting data quality issues: {str(e)}")
+        raise
+
+def analyze_temporal_patterns(
+    vle_data: pd.DataFrame,
+    assessment_data: Optional[pd.DataFrame] = None,
     logger: Optional[logging.Logger] = None
 ) -> Dict[str, Any]:
     """
-    Detects data quality issues with focus on protected attributes.
+    Analyzes temporal patterns in student activity data.
     
     Args:
-        data: DataFrame to analyze
-        protected_cols: List of protected attribute columns
-        output_dir: Directory to save the report
-        logger: Logger instance for logging messages
+        vle_data: DataFrame containing VLE interaction data
+        assessment_data: Optional DataFrame containing assessment data
+        logger: Optional logger instance
         
     Returns:
-        Dictionary with data quality report
+        Dictionary containing temporal pattern analysis
     """
     logger = logger or logging.getLogger('edupredict')
-    protected_cols = protected_cols or FAIRNESS['protected_attributes']
-    output_dir = output_dir or DIRS['reports']
+    patterns = {}
     
     try:
-        report = {
-            'timestamp': pd.Timestamp.now().isoformat(),
-            'dataset_info': {
-                'shape': data.shape,
-                'memory_usage': data.memory_usage(deep=True).sum() / 1024**2  # MB
-            },
-            'quality_metrics': {
-                'completeness': {},
-                'validity': {},
-                'consistency': {},
-                'protected_attributes': {}
-            },
-            'recommendations': []
+        # Analyze pre-module engagement
+        pre_module = vle_data[vle_data['date'] < 0]
+        patterns['pre_module_engagement'] = {
+            'total_activities': len(pre_module),
+            'unique_students': pre_module['id_student'].nunique(),
+            'avg_activities_per_student': len(pre_module) / pre_module['id_student'].nunique()
+            if pre_module['id_student'].nunique() > 0 else 0
         }
-
-        # Analyze protected attributes first
-        for col in protected_cols:
-            if col in data.columns:
-                col_stats = {
-                    'missing_rate': data[col].isnull().mean(),
-                    'value_counts': data[col].value_counts(normalize=True).to_dict(),
-                    'unique_values': data[col].nunique(),
-                    'issues': []
-                }
+        
+        # Analyze activity distribution
+        vle_by_day = vle_data.groupby('date')['sum_click'].agg(['sum', 'count'])
+        patterns['daily_patterns'] = {
+            'avg_daily_activities': vle_by_day['count'].mean(),
+            'std_daily_activities': vle_by_day['count'].std(),
+            'peak_activity_day': vle_by_day['sum'].idxmax(),
+            'zero_activity_days': (vle_by_day['count'] == 0).sum()
+        }
+        
+        # Analyze student engagement consistency
+        student_activity = vle_data.groupby('id_student').agg({
+            'date': ['min', 'max', 'count'],
+            'sum_click': 'sum'
+        })
+        
+        patterns['student_engagement'] = {
+            'avg_engagement_span': (
+                student_activity['date']['max'] - student_activity['date']['min']
+            ).mean(),
+            'avg_activities_per_student': student_activity['date']['count'].mean(),
+            'engagement_consistency': student_activity['date']['count'].std()
+        }
+        
+        # If assessment data is provided, analyze temporal relationships
+        if assessment_data is not None:
+            assessment_timeline = assessment_data.groupby('date').size()
+            
+            # Find activity spikes near assessment dates
+            for assessment_date in assessment_data['date'].unique():
+                window_start = assessment_date - 7
+                window_end = assessment_date + 1
                 
-                # Check against known valid values
-                if col in PROTECTED_ATTRIBUTES:
-                    valid_values = PROTECTED_ATTRIBUTES[col]['values']
-                    invalid_values = [
-                        v for v in data[col].unique() 
-                        if v not in valid_values and pd.notna(v)
-                    ]
-                    if invalid_values:
-                        col_stats['issues'].append({
-                            'type': 'invalid_values',
-                            'details': invalid_values
-                        })
+                window_activity = vle_data[
+                    (vle_data['date'] >= window_start) &
+                    (vle_data['date'] <= window_end)
+                ]
                 
-                # Check group sizes
-                group_sizes = data[col].value_counts()
-                small_groups = group_sizes[group_sizes < FAIRNESS['min_group_size']]
-                if not small_groups.empty:
-                    col_stats['issues'].append({
-                        'type': 'small_groups',
-                        'details': small_groups.to_dict()
+                if len(window_activity) > 0:
+                    avg_daily_activity = len(window_activity) / 8  # 7 days + assessment day
+                    patterns.setdefault('assessment_windows', []).append({
+                        'assessment_date': int(assessment_date),
+                        'pre_assessment_activity': len(window_activity),
+                        'avg_daily_activity': avg_daily_activity,
+                        'unique_active_students': window_activity['id_student'].nunique()
                     })
-                
-                report['quality_metrics']['protected_attributes'][col] = col_stats
-                
-                # Add recommendations if needed
-                if col_stats['missing_rate'] > 0:
-                    report['recommendations'].append(
-                        f"Handle missing values in protected attribute {col} "
-                        f"({col_stats['missing_rate']:.1%} missing)"
-                    )
-                if 'issues' in col_stats and col_stats['issues']:
-                    report['recommendations'].append(
-                        f"Address quality issues in protected attribute {col}: "
-                        f"{[issue['type'] for issue in col_stats['issues']]}"
-                    )
-
-        # General completeness checks
-        missing_stats = data.isnull().sum()
-        report['quality_metrics']['completeness'] = {
-            'missing_values': missing_stats[missing_stats > 0].to_dict(),
-            'missing_rate': (missing_stats / len(data)).to_dict()
-        }
-
-        # Validity checks for numeric columns
-        numeric_cols = data.select_dtypes(include=[np.number]).columns
-        report['quality_metrics']['validity']['numeric_ranges'] = {
-            col: {
-                'min': data[col].min(),
-                'max': data[col].max(),
-                'mean': data[col].mean(),
-                'std': data[col].std()
-            } for col in numeric_cols
-        }
-
-        # Consistency checks
-        categorical_cols = data.select_dtypes(include=['category', 'object']).columns
-        report['quality_metrics']['consistency']['value_counts'] = {
-            col: data[col].value_counts().to_dict()
-            for col in categorical_cols if col not in protected_cols
-        }
-
-        # Check for duplicate rows
-        duplicates = data.duplicated().sum()
-        report['quality_metrics']['consistency']['duplicate_rows'] = duplicates
-
-        # Generate summary
-        report['summary'] = {
-            'total_rows': len(data),
-            'total_columns': len(data.columns),
-            'complete_columns': sum(missing_stats == 0),
-            'columns_with_missing': sum(missing_stats > 0),
-            'duplicate_rows': duplicates,
-            'protected_attributes_with_issues': sum(
-                1 for col_stats in report['quality_metrics']['protected_attributes'].values()
-                if col_stats['issues']
-            )
-        }
-
-        # Save report
-        if output_dir:
-            os.makedirs(output_dir, exist_ok=True)
-            report_path = output_dir / 'data_quality_report.json'
-            with open(report_path, 'w') as f:
-                json.dump(report, f, indent=2, default=str)
-            logger.info(f"Generated data quality report at {report_path}")
-
-        return report
-
+        
+        return patterns
+        
     except Exception as e:
-        logger.error(f"Error generating data quality report: {str(e)}")
+        logger.error(f"Error analyzing temporal patterns: {str(e)}")
         raise
 
 def detect_anomalies(
