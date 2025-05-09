@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from typing import Dict, List, Optional, Any, Union
+from typing import Dict, List, Optional, Any, Union, Tuple
 import logging
 from scipy import stats
 from config import DATA_PROCESSING, PROTECTED_ATTRIBUTES, FAIRNESS, BIAS_MITIGATION, MODULE_CODES, PRESENTATION_CODES
@@ -358,7 +358,10 @@ def clean_vle_data(
 ) -> pd.DataFrame:
     """
     Cleans VLE interaction data and removes invalid entries.
-    The date field represents days relative to the module start date.
+    The date field represents days relative to the module start date, where:
+    - Negative values indicate interactions before module start
+    - Zero indicates the module start date
+    - Positive values indicate days after module start
     """
     logger = logger or logging.getLogger('edupredict')
     
@@ -385,10 +388,18 @@ def clean_vle_data(
         # Convert to integer type after validation
         clean_interactions['sum_click'] = clean_interactions['sum_click'].astype(int)
         
-        # Ensure date column exists
+        # Ensure date column exists and analyze temporal distribution
         if 'date' not in clean_interactions.columns:
             logger.error("Required 'date' column missing from VLE interactions")
             raise ValueError("Required 'date' column missing from VLE interactions")
+            
+        # Log temporal distribution information
+        pre_module = clean_interactions['date'] < 0
+        if pre_module.any():
+            logger.info(
+                f"Found {pre_module.sum()} interactions before module start "
+                f"(min: {clean_interactions['date'].min()} days)"
+            )
         
         # Sort by date to ensure temporal consistency
         clean_interactions = clean_interactions.sort_values(['id_student', 'date'])
@@ -416,9 +427,10 @@ def clean_vle_data(
             cleaned_data['activity_type'] = 'unknown'
             logger.warning("No VLE materials data provided, using default activity_type 'unknown'")
         
-        # Add additional temporal features if needed
-        cleaned_data['day_of_week'] = cleaned_data['date'].abs() % 7  # Use abs() for day of week calculation
-        cleaned_data['week_number'] = cleaned_data['date'] // 7  # Keep sign for week numbering
+        # Add temporal features properly handling negative dates
+        cleaned_data['day_of_week'] = cleaned_data['date'].abs() % 7  # Use abs() only for day of week
+        cleaned_data['week_number'] = cleaned_data['date'] // 7  # Preserve negative weeks for pre-module activity
+        cleaned_data['is_pre_module'] = cleaned_data['date'] < 0  # Flag pre-module activity
         
         logger.info(f"Final cleaned VLE data shape: {cleaned_data.shape}")
         return cleaned_data
@@ -428,150 +440,65 @@ def clean_vle_data(
         raise
 
 def clean_assessment_data(
-    assessments: pd.DataFrame,
+    assessment_info: pd.DataFrame,
     student_assessments: pd.DataFrame,
     logger: Optional[logging.Logger] = None
-) -> pd.DataFrame:
+) -> Tuple[pd.DataFrame, pd.DataFrame]:
     """
-    Cleans assessment data ensuring proper joins and weight handling.
-    Args:
-        assessments: DataFrame containing assessment definitions (weights, dates)
-        student_assessments: DataFrame containing student submission results
-        logger: Optional logger instance
-    Returns:
-        Cleaned and merged assessment data with timing metrics
+    Clean assessment data with enhanced validation.
     """
     logger = logger or logging.getLogger('edupredict')
     
     try:
-        if student_assessments.empty:
-            raise ValueError("Student assessment data cannot be empty")
-            
-        # Flag and remove final exams with no submissions
-        exams_without_submissions = assessments[
-            (assessments['assessment_type'] == 'Exam') &
-            (~assessments['id_assessment'].isin(student_assessments['id_assessment']))
-        ]
-        if not exams_without_submissions.empty:
-            logger.info(f"Removing {len(exams_without_submissions)} final exams with no submissions")
-            assessments = assessments[~assessments.index.isin(exams_without_submissions.index)]
+        # Clean assessment info
+        cleaned_assessments = assessment_info.copy()
+        cleaned_submissions = student_assessments.copy()
         
-        # Clean student assessments
-        clean_student_assessments = student_assessments.copy()
+        # Remove final exams with no submissions
+        exam_mask = cleaned_assessments['assessment_type'] == 'Exam'
+        exam_ids = cleaned_assessments[exam_mask]['id_assessment']
+        submissions_per_exam = cleaned_submissions[
+            cleaned_submissions['id_assessment'].isin(exam_ids)
+        ]['id_assessment'].value_counts()
         
-        # Remove invalid scores
-        original_count = len(clean_student_assessments)
-        clean_student_assessments = clean_student_assessments[
-            (clean_student_assessments['score'] >= 0) &
-            (clean_student_assessments['score'] <= 100)
-        ]
-        removed_count = original_count - len(clean_student_assessments)
-        if removed_count > 0:
-            logger.warning(f"Removed {removed_count} rows with invalid scores")
-
-        # Validate assessment data
-        if assessments.empty:
-            raise ValueError("Assessment data cannot be empty")
-            
-        # Handle zero weights
-        assessments_validated = assessments.copy()
-        zero_weights = assessments_validated['weight'] == 0
-        if zero_weights.any():
-            logger.warning(f"Found {zero_weights.sum()} assessments with zero weight, setting to default weight")
-            assessments_validated.loc[zero_weights, 'weight'] = 1.0
-
-        # Validate assessment IDs before merging
-        valid_assessment_ids = set(assessments_validated['id_assessment'])
-        invalid_submissions = clean_student_assessments[
-            ~clean_student_assessments['id_assessment'].isin(valid_assessment_ids)
-        ]
-        if not invalid_submissions.empty:
-            logger.warning(
-                f"Found {len(invalid_submissions)} submissions with invalid assessment IDs, "
-                "these will be excluded"
-            )
-            clean_student_assessments = clean_student_assessments[
-                clean_student_assessments['id_assessment'].isin(valid_assessment_ids)
+        exams_no_submissions = exam_ids[~exam_ids.isin(submissions_per_exam.index)]
+        if not exams_no_submissions.empty:
+            logger.info(f"Removing {len(exams_no_submissions)} final exams with no submissions")
+            cleaned_assessments = cleaned_assessments[
+                ~cleaned_assessments['id_assessment'].isin(exams_no_submissions)
             ]
-
-        # Log validation summary
-        initial_submission_count = len(student_assessments)
-        final_submission_count = len(clean_student_assessments)
-        if final_submission_count < initial_submission_count:
-            logger.info(
-                f"Total submissions removed in cleaning: "
-                f"{initial_submission_count - final_submission_count} "
-                f"({(initial_submission_count - final_submission_count) / initial_submission_count:.1%})"
-            )
-
-        # Merge assessment data with validated submissions
-        cleaned_data = pd.merge(
-            clean_student_assessments,
-            assessments_validated[['id_assessment', 'code_module', 'code_presentation', 
-                                'assessment_type', 'date', 'weight']],
-            on='id_assessment',
-            how='inner'
+        
+        # Handle invalid scores
+        score_mask = (
+            (cleaned_submissions['score'] < 0) |
+            (cleaned_submissions['score'] > 100)
         )
-
-        # Calculate timing metrics
-        cleaned_data['submission_time'] = cleaned_data['date_submitted'] - cleaned_data['date']
-        cleaned_data['is_late'] = cleaned_data['submission_time'] > 0
-        cleaned_data['days_late'] = cleaned_data['submission_time'].clip(lower=0)
-        cleaned_data['time_to_deadline'] = cleaned_data['date'] - cleaned_data['date_submitted']
-
-        # Calculate metrics efficiently using groupby operations
-        group_cols = ['id_student', 'code_module', 'code_presentation']
+        invalid_scores = cleaned_submissions[score_mask]
+        if not invalid_scores.empty:
+            logger.warning(f"Removed {len(invalid_scores)} rows with invalid scores")
+            cleaned_submissions = cleaned_submissions[~score_mask]
         
-        # Calculate weighted scores and other metrics using vectorized operations
-        student_metrics = cleaned_data.groupby(group_cols).agg({
-            'score': ['mean', 'std', 'min', 'max', 'count'],
-            'weight': 'sum',
-            'is_late': ['mean', 'sum'],
-            'days_late': ['mean', 'max'],
-            'time_to_deadline': ['mean', 'std'],
-            'date_submitted': ['min', 'max']
-        })
+        # Handle banked assessments
+        banked_mask = cleaned_submissions['is_banked'] == 1
+        banked_count = banked_mask.sum()
+        if banked_count > 0:
+            logger.info(f"Found {banked_count} banked assessment results")
         
-        # Flatten column names
-        student_metrics.columns = [f"{col[0]}_{col[1]}" for col in student_metrics.columns]
+        # Validate assessment weights
+        zero_weight_mask = cleaned_assessments['weight'] == 0
+        if zero_weight_mask.any():
+            n_zero_weights = zero_weight_mask.sum()
+            logger.warning(f"Found {n_zero_weights} assessments with zero weight, setting to default weight")
+            default_weight = 0.1  # 10% default weight
+            cleaned_assessments.loc[zero_weight_mask, 'weight'] = default_weight
         
-        # Add submission span
-        student_metrics['submission_span'] = (
-            student_metrics['date_submitted_max'] - 
-            student_metrics['date_submitted_min']
-        )
+        # Log cleaning summary
+        total_removed = len(student_assessments) - len(cleaned_submissions)
+        if total_removed > 0:
+            removal_pct = total_removed / len(student_assessments)
+            logger.info(f"Total submissions removed in cleaning: {total_removed} ({removal_pct:.1%})")
         
-        # Calculate weighted scores efficiently for each group
-        weighted_scores = cleaned_data.groupby(group_cols).apply(
-            lambda x: np.average(x['score'], weights=x['weight']) if x['weight'].sum() > 0 else x['score'].mean()
-        ).to_frame('weighted_score')
-
-        # Merge all metrics back
-        cleaned_data = cleaned_data.merge(
-            pd.concat([weighted_scores, student_metrics], axis=1),
-            on=group_cols,
-            how='left'
-        )
-
-        # Log statistics and warnings
-        early_submissions = cleaned_data[cleaned_data['date_submitted'] < cleaned_data['date']]
-        if not early_submissions.empty:
-            logger.warning(
-                f"Found {len(early_submissions)} submissions before due date "
-                "(may indicate data quality issues)"
-            )
-        
-        very_late = cleaned_data[cleaned_data['days_late'] > 30]
-        if not very_late.empty:
-            logger.warning(f"Found {len(very_late)} submissions more than 30 days late")
-        
-        logger.info("\nSubmission timing statistics:")
-        logger.info(f"Average days early/late: {cleaned_data['submission_time'].mean():.2f}")
-        logger.info(f"Percentage of late submissions: {(cleaned_data['is_late'].mean() * 100):.2f}%")
-        logger.info(f"Average score: {cleaned_data['score'].mean():.2f}")
-        logger.info(f"Score standard deviation: {cleaned_data['score'].std():.2f}")
-
-        return cleaned_data
+        return cleaned_assessments, cleaned_submissions
         
     except Exception as e:
         logger.error(f"Error in assessment data cleaning: {str(e)}")
@@ -582,12 +509,12 @@ def validate_data_consistency(
     logger: Optional[logging.Logger] = None
 ) -> Dict[str, Any]:
     """
-    Validates consistency across cleaned datasets.
-
+    Validates data consistency across datasets.
+    
     Args:
         datasets: Dictionary of cleaned datasets
         logger: Logger for tracking validation process
-
+        
     Returns:
         Dictionary of validation results and issues
     """
@@ -595,29 +522,28 @@ def validate_data_consistency(
     validation_results = {
         'is_valid': True,
         'warnings': [],
-        'issues': [],
-        'statistics': {}
+        'issues': []
     }
 
     try:
         # Check student ID consistency
-        student_ids = set(datasets['student_info']['id_student'])
-        student_count = len(student_ids)
-        validation_results['statistics']['total_students'] = student_count
+        if 'student_info' in datasets:
+            student_ids = set(datasets['student_info']['id_student'])
+            student_count = len(student_ids)
 
-        for name, df in datasets.items():
-            if 'id_student' in df.columns and name != 'student_info':
-                dataset_student_ids = set(df['id_student'])
-                unknown_ids = dataset_student_ids - student_ids
-                if unknown_ids:
-                    validation_results['issues'].append({
-                        'dataset': name,
-                        'issue': 'unknown_student_ids',
-                        'count': len(unknown_ids)
-                    })
-                    validation_results['is_valid'] = False
+            for name, df in datasets.items():
+                if 'id_student' in df.columns and name != 'student_info':
+                    dataset_student_ids = set(df['id_student'])
+                    unknown_ids = dataset_student_ids - student_ids
+                    if unknown_ids:
+                        validation_results['issues'].append({
+                            'dataset': name,
+                            'issue': 'unknown_student_ids',
+                            'count': len(unknown_ids)
+                        })
+                        validation_results['is_valid'] = False
 
-        # Check value ranges
+        # Check value ranges for assessment scores
         if 'student_assessments' in datasets:
             score_stats = datasets['student_assessments']['score'].describe()
             if score_stats['min'] < 0 or score_stats['max'] > 100:
@@ -628,15 +554,34 @@ def validate_data_consistency(
                 })
                 validation_results['is_valid'] = False
 
-        # Check for temporal consistency in VLE data
+        # Check VLE data - negative dates are allowed but warn about extreme values
         if 'vle_interactions' in datasets:
             vle_df = datasets['vle_interactions']
-            if (vle_df['date'] < 0).any():
-                validation_results['issues'].append({
+            very_early_mask = vle_df['date'] < -60  # More than 60 days before start
+            if very_early_mask.any():
+                validation_results['warnings'].append({
                     'dataset': 'vle_interactions',
-                    'issue': 'negative_dates'
+                    'warning': 'very_early_activity',
+                    'details': {
+                        'count': int(very_early_mask.sum()),
+                        'earliest_day': float(vle_df['date'].min())
+                    }
                 })
-                validation_results['is_valid'] = False
+                logger.warning(
+                    f"Found {very_early_mask.sum()} VLE interactions more than 60 days "
+                    f"before module start (earliest: {vle_df['date'].min()} days)"
+                )
+            
+            very_late_mask = vle_df['date'] > 180  # More than 180 days after start
+            if very_late_mask.any():
+                validation_results['warnings'].append({
+                    'dataset': 'vle_interactions',
+                    'warning': 'very_late_activity',
+                    'details': {
+                        'count': int(very_late_mask.sum()),
+                        'latest_day': float(vle_df['date'].max())
+                    }
+                })
 
         return validation_results
 
@@ -783,10 +728,11 @@ def detect_and_handle_outliers(
 
 def clean_registration_data(
     registration_data: pd.DataFrame,
+    vle_data: Optional[pd.DataFrame] = None,
     logger: Optional[logging.Logger] = None
 ) -> pd.DataFrame:
     """
-    Cleans student registration data.
+    Cleans student registration data with enhanced VLE activity analysis.
     Dates are in days relative to module start:
     - date_registration: Can be negative (registration before module start)
     - date_unregistration: Can be null (completed module) or positive (dropped out)
@@ -797,6 +743,22 @@ def clean_registration_data(
     try:
         # Validate module and presentation codes
         cleaned_data = validate_module_codes(cleaned_data, logger=logger)
+        
+        # Handle missing unregistration dates
+        # Null values indicate module completion
+        completed = cleaned_data['date_unregistration'].isnull()
+        if completed.any():
+            logger.info(f"Found {completed.sum()} students who completed the module")
+            # For completed students, set unregistration to module length or last VLE activity
+            if vle_data is not None:
+                # Use last VLE activity date for each student
+                last_activity = vle_data.groupby('id_student')['date'].max()
+                cleaned_data.loc[completed, 'date_unregistration'] = cleaned_data.loc[completed, 'id_student'].map(last_activity)
+                logger.info("Set unregistration dates to last VLE activity for completed students")
+            else:
+                # Default to typical module length if no VLE data
+                cleaned_data.loc[completed, 'date_unregistration'] = 180
+                logger.info("Set unregistration dates to default module length (180 days) for completed students")
         
         # Check registration timeline
         early_registrations = cleaned_data[cleaned_data['date_registration'] < -60]
@@ -813,10 +775,8 @@ def clean_registration_data(
                 "after module start"
             )
         
-        # Analyze unregistration patterns
-        completed = cleaned_data['date_unregistration'].isnull()
+        # Analyze unregistration patterns for dropouts
         dropped = ~completed
-        
         if dropped.any():
             dropout_times = cleaned_data.loc[dropped, 'date_unregistration']
             early_dropouts = dropout_times[dropout_times < 30]
@@ -838,11 +798,40 @@ def clean_registration_data(
         
         # Add derived features
         cleaned_data['completed_module'] = completed
+        cleaned_data['enrollment_duration'] = cleaned_data['date_unregistration'] - cleaned_data['date_registration']
         cleaned_data['registration_type'] = pd.cut(
             cleaned_data['date_registration'],
-            bins=[-float('inf'), -30.001, -7, 0, float('inf')],  # Adjusted first bin edge
+            bins=[-float('inf'), -30.001, -7, 0, float('inf')],
             labels=['very_early', 'early', 'on_time', 'late']
         )
+        
+        # Add VLE engagement windows if data available
+        if vle_data is not None:
+            # Calculate pre-module engagement
+            vle_by_student = vle_data.groupby('id_student').agg({
+                'date': ['min', 'max', 'count'],
+                'sum_click': 'sum'
+            })
+            vle_by_student.columns = ['first_activity', 'last_activity', 'total_activities', 'total_clicks']
+            
+            # Merge VLE statistics
+            cleaned_data = cleaned_data.merge(
+                vle_by_student,
+                left_on='id_student',
+                right_index=True,
+                how='left'
+            )
+            
+            # Fill missing VLE data with zeros
+            vle_cols = ['total_activities', 'total_clicks']
+            cleaned_data[vle_cols] = cleaned_data[vle_cols].fillna(0)
+            
+            # Calculate engagement metrics
+            cleaned_data['days_before_first_activity'] = cleaned_data['first_activity'] - cleaned_data['date_registration']
+            cleaned_data['engagement_span'] = cleaned_data['last_activity'] - cleaned_data['first_activity']
+            cleaned_data['avg_activities_per_day'] = cleaned_data['total_activities'] / cleaned_data['engagement_span'].clip(lower=1)
+            
+            logger.info("Added VLE engagement metrics to registration data")
         
         return cleaned_data
         

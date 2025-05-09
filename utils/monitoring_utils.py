@@ -6,8 +6,6 @@ from typing import Optional, Callable, Any
 from contextlib import contextmanager
 from tqdm import tqdm
 
-logger = logging.getLogger('edupredict')
-
 # Memory tracking state
 _last_warning_time = 0
 _warning_interval = 300  # 5 minutes between warnings
@@ -27,6 +25,23 @@ def track_execution_time(func: Optional[Callable] = None, context: Optional[str]
     def decorator(f: Callable) -> Callable:
         @functools.wraps(f)
         def wrapper(*args, **kwargs) -> Any:
+            # Get the first logger argument if one is passed, otherwise use the central logger
+            logger = None
+            for arg in args:
+                if isinstance(arg, logging.Logger):
+                    logger = arg
+                    break
+            
+            if logger is None:
+                for _, arg_val in kwargs.items():
+                    if isinstance(arg_val, logging.Logger):
+                        logger = arg_val
+                        break
+            
+            # If no logger was passed, use the central one
+            if logger is None:
+                logger = logging.getLogger('edupredict')
+            
             start_time = time.time()
             result = f(*args, **kwargs)
             end_time = time.time()
@@ -44,20 +59,94 @@ def track_execution_time(func: Optional[Callable] = None, context: Optional[str]
         return decorator
     return decorator(func)
 
-def monitor_memory_usage(func: Optional[Callable] = None, context: Optional[str] = None, force_gc: bool = False) -> Any:
+def monitor_memory_usage(func_or_context=None, force_gc: bool = False, logger: Optional[logging.Logger] = None) -> Any:
     """
-    Monitor memory usage. Can be used as both a decorator and a standalone function.
+    Monitor memory usage. Can be used as a decorator or called directly.
+    
+    When used as a decorator:
+        @monitor_memory_usage
+        def my_function():
+            ...
+    
+    When used as a function call:
+        monitor_memory_usage("Some context")
     
     Args:
-        func: Optional function to decorate
-        context: Optional string describing the current operation context
+        func_or_context: Either a function (when used as decorator) or a context string
         force_gc: Whether to force garbage collection if memory usage is high
+        logger: Optional logger instance to use
         
     Returns:
-        Decorated function if used as decorator, or current memory usage in MB if called directly
+        Decorator: The decorated function when used as a decorator
+        float: Current memory usage in MB when called directly
     """
-    def get_memory_mb() -> float:
+    # Check if this is being used as a decorator (func_or_context is a callable)
+    if callable(func_or_context):
+        # This is being used as a decorator
+        @functools.wraps(func_or_context)
+        def wrapper(*args, **kwargs):
+            # Get the first logger argument if one is passed, otherwise use the central logger
+            log = logger
+            if log is None:
+                for arg in args:
+                    if isinstance(arg, logging.Logger):
+                        log = arg
+                        break
+                
+                if log is None:
+                    for _, arg_val in kwargs.items():
+                        if isinstance(arg_val, logging.Logger):
+                            log = arg_val
+                            break
+            
+            # If no logger was passed, use the central one
+            if log is None:
+                log = logging.getLogger('edupredict')
+            
+            # Get memory usage before function execution
+            process = psutil.Process()
+            memory_before = process.memory_info().rss / 1024 / 1024
+            
+            # Execute the function
+            result = func_or_context(*args, **kwargs)
+            
+            # Get memory usage after function execution
+            memory_after = process.memory_info().rss / 1024 / 1024
+            memory_diff = memory_after - memory_before
+            
+            # Log memory usage
+            func_name = getattr(func_or_context, '__name__', 'function')
+            log.debug(f"Memory usage for {func_name}: {memory_after:.2f} MB (Change: {memory_diff:+.2f} MB)")
+            
+            # Handle high memory usage
+            global _last_warning_time
+            current_time = time.time()
+            if memory_after > _memory_threshold and (current_time - _last_warning_time) > _warning_interval:
+                log.warning(f"High memory usage detected in {func_name}: {memory_after:.2f} MB")
+                _last_warning_time = current_time
+                
+                if force_gc or memory_after > _memory_threshold * 1.5:
+                    import gc
+                    before_gc = memory_after
+                    gc.collect()
+                    # Get updated memory info after collection
+                    after_gc = process.memory_info().rss / 1024 / 1024
+                    if (before_gc - after_gc) > 100:  # Only log if significant memory was freed
+                        log.info(f"{func_name} - Memory reduced by {before_gc - after_gc:.2f} MB after garbage collection")
+            
+            return result
+        
+        return wrapper
+    
+    else:
+        # This is being called directly, not as a decorator
         try:
+            # Use provided logger or get the central one
+            if logger is None:
+                logger = logging.getLogger('edupredict')
+            
+            context = func_or_context  # In this case, func_or_context is the context string
+            
             global _last_warning_time
             process = psutil.Process()
             memory_info = process.memory_info()
@@ -86,21 +175,11 @@ def monitor_memory_usage(func: Optional[Callable] = None, context: Optional[str]
             return memory_usage_mb
             
         except Exception as e:
+            # Use provided logger or get the central one
+            if logger is None:
+                logger = logging.getLogger('edupredict')
             logger.error(f"Error monitoring memory usage: {str(e)}")
             return -1
-
-    # If used as decorator
-    if func is not None:
-        @functools.wraps(func)
-        def wrapper(*args, **kwargs):
-            get_memory_mb()  # Log memory before
-            result = func(*args, **kwargs)
-            get_memory_mb()  # Log memory after
-            return result
-        return wrapper
-    
-    # If called directly
-    return get_memory_mb()
 
 def track_progress(iterable, desc: str = None, total: Optional[int] = None) -> Any:
     """

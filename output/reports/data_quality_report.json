@@ -1,0 +1,393 @@
+{
+  "data_quality": {
+    "quality_metrics": {
+      "completeness": {
+        "vle_activity": {
+          "total_days": 295,
+          "total_interactions": 10655280,
+          "students_with_activity": 26074
+        },
+        "assessments": {
+          "total_submissions": 173912,
+          "students_with_submissions": 23369,
+          "submission_rate": 844.2330097087379
+        }
+      },
+      "validity": {
+        "student_info": {
+          "id_student": {
+            "count": 32593.0,
+            "mean": 706687.6691314086,
+            "std": 549167.3138552054,
+            "min": 3733.0,
+            "25%": 508573.0,
+            "50%": 590310.0,
+            "75%": 644453.0,
+            "max": 2716795.0
+          },
+          "num_of_prev_attempts": {
+            "count": 32593.0,
+            "mean": 0.16322523241186757,
+            "std": 0.47975847416297385,
+            "min": 0.0,
+            "25%": 0.0,
+            "50%": 0.0,
+            "75%": 0.0,
+            "max": 6.0
+          },
+          "studied_credits": {
+            "count": 32593.0,
+            "mean": 79.75869051636855,
+            "std": 41.07190026123349,
+            "min": 30.0,
+            "25%": 60.0,
+            "50%": 60.0,
+            "75%": 120.0,
+            "max": 655.0
+          }
+        },
+        "vle_materials": {
+          "id_site": {
+            "count": 6364.0,
+            "mean": 726099.094123193,
+            "std": 128315.13747347395,
+            "min": 526721.0,
+            "25%": 661592.75,
+            "50%": 730096.5,
+            "75%": 814016.25,
+            "max": 1077905.0
+          },
+          "week_from": {
+            "count": 1121.0,
+            "mean": 15.2042818911686,
+            "std": 8.79286538331151,
+            "min": 0.0,
+            "25%": 8.0,
+            "50%": 15.0,
+            "75%": 22.0,
+            "max": 29.0
+          },
+          "week_to": {
+            "count": 1121.0,
+            "mean": 15.214986619090098,
+            "std": 8.779805777261126,
+            "min": 0.0,
+            "25%": 8.0,
+            "50%": 15.0,
+            "75%": 22.0,
+            "max": 29.0
+          }
+        },
+        "vle_interactions": {
+          "id_student": {
+            "count": 10655280.0,
+            "mean": 733333.5668717293,
+            "std": 582705.9825111441,
+            "min": 6516.0,
+            "25%": 507743.0,
+            "50%": 588236.0,
+            "75%": 646484.0,
+            "max": 2698588.0
+          },
+          "id_site": {
+            "count": 10655280.0,
+            "mean": 738323.416399569,
+            "std": 131219.62216312313,
+            "min": 526721.0,
+            "25%": 673519.0,
+            "50%": 730069.0,
+            "75%": 877030.0,
+            "max": 1049562.0
+          },
+          "date": {
+            "count": 10655280.0,
+            "mean": 95.17399955702713,
+            "std": 76.0713008408721,
+            "min": -25.0,
+            "25%": 25.0,
+            "50%": 86.0,
+            "75%": 156.0,
+            "max": 269.0
+          },
+          "sum_click": {
+            "count": 10655280.0,
+            "mean": 3.7169458709672574,
+            "std": 8.849046654797062,
+            "min": 1.0,
+            "25%": 1.0,
+            "50%": 2.0,
+            "75%": 3.0,
+            "max": 6977.0
+          }
+        },
+        "assessments": {
+          "id_assessment": {
+            "count": 206.0,
+            "mean": 26473.97572815534,
+            "std": 10098.625521273687,
+            "min": 1752.0,
+            "25%": 15023.25,
+            "50%": 25364.5,
+            "75%": 34891.75,
+            "max": 40088.0
+          },
+          "date": {
+            "count": 195.0,
+            "mean": 145.00512820512822,
+            "std": 76.00111891714978,
+            "min": 12.0,
+            "25%": 71.0,
+            "50%": 152.0,
+            "75%": 222.0,
+            "max": 261.0
+          },
+          "weight": {
+            "count": 206.0,
+            "mean": 20.87378640776699,
+            "std": 30.38422395904127,
+            "min": 0.0,
+            "25%": 0.0,
+            "50%": 12.5,
+            "75%": 24.25,
+            "max": 100.0
+          }
+        },
+        "student_assessments": {
+          "id_assessment": {
+            "count": 173912.0,
+            "mean": 26553.803555821334,
+            "std": 8829.784253518274,
+            "min": 1752.0,
+            "25%": 15022.0,
+            "50%": 25359.0,
+            "75%": 34883.0,
+            "max": 37443.0
+          },
+          "id_student": {
+            "count": 173912.0,
+            "mean": 705150.7172248034,
+            "std": 552395.1909985029,
+            "min": 6516.0,
+            "25%": 504429.0,
+            "50%": 585208.0,
+            "75%": 634498.0,
+            "max": 2698588.0
+          },
+          "date_submitted": {
+            "count": 173912.0,
+            "mean": 116.03294194765168,
+            "std": 71.48414778039763,
+            "min": -11.0,
+            "25%": 51.0,
+            "50%": 116.0,
+            "75%": 173.0,
+            "max": 608.0
+          },
+          "is_banked": {
+            "count": 173912.0,
+            "mean": 0.010976815860895165,
+            "std": 0.10419399118521291,
+            "min": 0.0,
+            "25%": 0.0,
+            "50%": 0.0,
+            "75%": 0.0,
+            "max": 1.0
+          },
+          "score": {
+            "count": 173739.0,
+            "mean": 75.7995729226023,
+            "std": 18.798107229732548,
+            "min": 0.0,
+            "25%": 65.0,
+            "50%": 80.0,
+            "75%": 90.0,
+            "max": 100.0
+          }
+        },
+        "student_registration": {
+          "id_student": {
+            "count": 32593.0,
+            "mean": 706687.6691314086,
+            "std": 549167.3138552054,
+            "min": 3733.0,
+            "25%": 508573.0,
+            "50%": 590310.0,
+            "75%": 644453.0,
+            "max": 2716795.0
+          },
+          "date_registration": {
+            "count": 32548.0,
+            "mean": -69.4113002335013,
+            "std": 49.260522115018794,
+            "min": -322.0,
+            "25%": -100.0,
+            "50%": -57.0,
+            "75%": -29.0,
+            "max": 167.0
+          },
+          "date_unregistration": {
+            "count": 10072.0,
+            "mean": 49.757644956314536,
+            "std": 82.460889958136,
+            "min": -365.0,
+            "25%": -2.0,
+            "50%": 27.0,
+            "75%": 109.0,
+            "max": 444.0
+          }
+        }
+      },
+      "consistency": {
+        "timeline": {
+          "start_date": -25,
+          "end_date": 608,
+          "duration_days": 633
+        }
+      },
+      "protected_attributes": {
+        "gender": {
+          "missing_rate": 0.0,
+          "value_counts": {
+            "M": 0.5484306446169422,
+            "F": 0.4515693553830577
+          },
+          "unique_values": 2
+        },
+        "age_band": {
+          "missing_rate": 0.0,
+          "value_counts": {
+            "0-35": 0.7039548369281747,
+            "35-55": 0.2894179731844261,
+            "55<=": 0.0066271898873991346
+          },
+          "unique_values": 3
+        },
+        "imd_band": {
+          "missing_rate": 0.03408707391157611,
+          "value_counts": {
+            "20-30%": 0.11606632361349342,
+            "30-40%": 0.11241344260212184,
+            "10-20": 0.11168286639984754,
+            "0-10%": 0.10517120894479386,
+            "40-50%": 0.103424178895877,
+            "50-60%": 0.0992313067784766,
+            "60-70%": 0.0922749507655168,
+            "70-80%": 0.09144908201511975,
+            "80-90%": 0.08773267263833301,
+            "90-100%": 0.08055396734642017
+          },
+          "unique_values": 10
+        },
+        "region": {
+          "missing_rate": 0.0,
+          "value_counts": {
+            "Scotland": 0.10572822385174731,
+            "East Anglian Region": 0.10247599177737551,
+            "London Region": 0.09867149387905379,
+            "South Region": 0.09486699598073206,
+            "North Western Region": 0.08916024913324946,
+            "West Midlands Region": 0.07921946430215077,
+            "South West Region": 0.07473997484122358,
+            "East Midlands Region": 0.07256159298008776,
+            "South East Region": 0.06476850857546099,
+            "Wales": 0.06400147270886386,
+            "Yorkshire Region": 0.06154695793575308,
+            "North Region": 0.05593225539226214,
+            "Ireland": 0.0363268186420397
+          },
+          "unique_values": 13
+        },
+        "disability": {
+          "missing_rate": 0.0,
+          "value_counts": {
+            "N": 0.9029239407234683,
+            "Y": 0.09707605927653178
+          },
+          "unique_values": 2
+        }
+      }
+    },
+    "issues": {
+      "vle_interactions": [
+        "Found 9138 large activity gaps (>30 days)"
+      ],
+      "student_assessments": [
+        "Found 92260 submissions before assessment date",
+        "Found 471 submissions more than 30 days late"
+      ],
+      "timeline": [
+        "Activity span (633 days) exceeds expected module length",
+        "VLE and assessment timelines have significantly different start points"
+      ],
+      "demographics": [
+        "Found 1111 missing values in protected attribute imd_band"
+      ]
+    },
+    "recommendations": [
+      "Consider investigating patterns in activity gaps",
+      "Validate assessment submission dates against due dates",
+      "Review policy for handling extremely late submissions",
+      "Review and validate activity timestamps that exceed expected module duration",
+      "Investigate misalignment between VLE and assessment timelines",
+      "Address missing values in protected attribute imd_band using fairness-aware imputation"
+    ]
+  },
+  "data_splits": {
+    "train_size": 19555,
+    "val_size": 6519,
+    "test_size": 6519
+  },
+  "demographics": {
+    "gender": {
+      "m": 0.5484306446169422,
+      "f": 0.4515693553830577,
+      "unknown": 0.0
+    },
+    "age_band": {
+      "0-35": 0.7039548369281747,
+      "35+": 0.2960451630718252,
+      "unknown": 0.0
+    },
+    "imd_band": {
+      "20-30%": 0.13094836314546068,
+      "30-40%": 0.1258552449912558,
+      "0-10%": 0.1181235234559568,
+      "40-50%": 0.11646672598410701,
+      "50-60%": 0.1120485993925076,
+      "60-70%": 0.10428619642254472,
+      "70-80%": 0.10342711625195594,
+      "80-90%": 0.0984260424017427,
+      "90-100%": 0.09041818795446875,
+      "10-20%": 0.0,
+      "unknown": 0.0
+    },
+    "region": {
+      "scotland": 0.11806216058662904,
+      "east anglian region": 0.11315313104040745,
+      "south region": 0.10456232933451969,
+      "north western region": 0.09873285674838156,
+      "west midlands region": 0.08787162887736631,
+      "south west region": 0.08247169637652256,
+      "east midlands region": 0.08060012886202558,
+      "south east region": 0.07167183137483508,
+      "wales": 0.07090479550823796,
+      "yorkshire region": 0.06826619212714387,
+      "north region": 0.06283557819163624,
+      "ireland": 0.04086767097229466,
+      "unknown": 0.0
+    },
+    "disability": {
+      "unknown": 1.0,
+      "Y": 0.0,
+      "N": 0.0
+    }
+  },
+  "recommendations": [
+    "Consider investigating patterns in activity gaps",
+    "Validate assessment submission dates against due dates",
+    "Review policy for handling extremely late submissions",
+    "Review and validate activity timestamps that exceed expected module duration",
+    "Investigate misalignment between VLE and assessment timelines",
+    "Address missing values in protected attribute imd_band using fairness-aware imputation"
+  ]
+}

@@ -32,7 +32,8 @@ DIRS = {
     "viz_features": OUTPUT_DIR / "visualizations/features",
     "tableau": OUTPUT_DIR / "tableau",
     "tableau_data": OUTPUT_DIR / "tableau/data",
-    "tableau_workbooks": OUTPUT_DIR / "tableau/workbooks"
+    "tableau_workbooks": OUTPUT_DIR / "tableau/workbooks",
+    "logs": LOG_DIR
 }
 
 # Data processing configuration
@@ -123,6 +124,17 @@ FEATURE_ENGINEERING = {
 RANDOM_SEED = 0
 TEST_SIZE = 0.2
 VALIDATION_SIZE = 0.2
+
+RF_CONFIG = {
+    'n_estimators': 100,
+    'max_depth': None,
+    'min_samples_split': 2,
+    'min_samples_leaf': 1,
+    'max_features': 'sqrt',
+    'class_weight': 'balanced',
+    'random_state': RANDOM_SEED,
+    'n_jobs': -1
+}
 
 RF_PARAM_GRID = {
     'n_estimators': [50, 100, 200],

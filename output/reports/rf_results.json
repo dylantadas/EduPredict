@@ -1,0 +1,1023 @@
+{
+  "model_path": "output/models/random_forest_model.pkl",
+  "best_params": {
+    "n_estimators": 200,
+    "min_samples_split": 2,
+    "min_samples_leaf": 2,
+    "max_features": null,
+    "max_depth": 10
+  },
+  "optimal_threshold": 0.1,
+  "validation_metrics": {
+    "accuracy": 0.5319834330418776,
+    "precision": 0.5319834330418776,
+    "recall": 1.0,
+    "f1": 0.6945028537098228,
+    "auc": 0.5,
+    "threshold": 0.1,
+    "confusion_matrix": {
+      "tn": 0,
+      "fp": 3051,
+      "fn": 0,
+      "tp": 3468
+    }
+  },
+  "test_metrics": {
+    "accuracy": 0.5345911949685535,
+    "precision": 0.5345911949685535,
+    "recall": 1.0,
+    "f1": 0.6967213114754098,
+    "auc": 0.5,
+    "threshold": 0.1,
+    "confusion_matrix": {
+      "tn": 0,
+      "fp": 3034,
+      "fn": 0,
+      "tp": 3485
+    }
+  },
+  "fairness_results": {
+    "standard_metrics": {
+      "accuracy": 0.5345911949685535,
+      "precision": 0.5345911949685535,
+      "recall": 1.0,
+      "f1": 0.6967213114754098,
+      "auc": 0.5,
+      "threshold": 0.1,
+      "confusion_matrix": {
+        "tn": 0,
+        "fp": 3034,
+        "fn": 0,
+        "tp": 3485
+      }
+    },
+    "fairness_metrics": {},
+    "bias_analysis": {}
+  },
+  "feature_importance": [
+    {
+      "feature": "final_result_Pass",
+      "importance": 0.36937874397582193
+    },
+    {
+      "feature": "final_result_Withdrawn",
+      "importance": 0.24334085490669294
+    },
+    {
+      "feature": "final_result_Fail",
+      "importance": 0.16146458001173328
+    },
+    {
+      "feature": "final_result_Distinction",
+      "importance": 0.08042609707474888
+    },
+    {
+      "feature": "studied_credits_scaled",
+      "importance": 0.009677917645582693
+    },
+    {
+      "feature": "studied_credits",
+      "importance": 0.00838813550004164
+    },
+    {
+      "feature": "disability_by_education_unknown_lower than a level",
+      "importance": 0.007896832038562833
+    },
+    {
+      "feature": "num_of_prev_attempts",
+      "importance": 0.006401440014186391
+    },
+    {
+      "feature": "highest_education_lower than a level",
+      "importance": 0.005898937637808886
+    },
+    {
+      "feature": "num_of_prev_attempts_scaled",
+      "importance": 0.005435612804805045
+    },
+    {
+      "feature": "id_student",
+      "importance": 0.002852821312191356
+    },
+    {
+      "feature": "id_student_x",
+      "importance": 0.0028181906577884456
+    },
+    {
+      "feature": "window_7_click_std",
+      "importance": 0.002300825832896086
+    },
+    {
+      "feature": "transition_entropy",
+      "importance": 0.0022626429494469113
+    },
+    {
+      "feature": "window_7_window",
+      "importance": 0.0021372737894217297
+    },
+    {
+      "feature": "avg_time_between_activities",
+      "importance": 0.0021316983013295
+    },
+    {
+      "feature": "late_phase_intensity",
+      "importance": 0.002097431842507728
+    },
+    {
+      "feature": "activity_regularity",
+      "importance": 0.002081135991807017
+    },
+    {
+      "feature": "pre_module_activity_count",
+      "importance": 0.0019917077223237612
+    },
+    {
+      "feature": "num_sessions",
+      "importance": 0.0019823776404458166
+    },
+    {
+      "feature": "mid_phase_intensity",
+      "importance": 0.0019813150609838503
+    },
+    {
+      "feature": "code_module_CCC",
+      "importance": 0.001979817068896824
+    },
+    {
+      "feature": "avg_activities_per_session",
+      "importance": 0.0019437983426149298
+    },
+    {
+      "feature": "unique_transitions",
+      "importance": 0.0019261280070278744
+    },
+    {
+      "feature": "window_7_avg_clicks",
+      "importance": 0.0018857426043392307
+    },
+    {
+      "feature": "early_phase_activity_count",
+      "importance": 0.0018598865752169262
+    },
+    {
+      "feature": "early_phase_intensity",
+      "importance": 0.0018331209396353998
+    },
+    {
+      "feature": "disability_by_education_unknown_a level or equivalent",
+      "importance": 0.001759137076474032
+    },
+    {
+      "feature": "mid_phase_activity_count",
+      "importance": 0.0017515055279770236
+    },
+    {
+      "feature": "late_phase_activity_count",
+      "importance": 0.0017126625999694842
+    },
+    {
+      "feature": "highest_education_a level or equivalent",
+      "importance": 0.0016702216970774903
+    },
+    {
+      "feature": "window_14_click_std",
+      "importance": 0.0016689643948735312
+    },
+    {
+      "feature": "highest_education_he qualification",
+      "importance": 0.0016538521416645429
+    },
+    {
+      "feature": "window_30_window_span",
+      "importance": 0.0016430492817332127
+    },
+    {
+      "feature": "window_14_total_clicks",
+      "importance": 0.0016378284729851608
+    },
+    {
+      "feature": "id_student_y",
+      "importance": 0.0016247993826411726
+    },
+    {
+      "feature": "window_14_engagement_density",
+      "importance": 0.001597964054223931
+    },
+    {
+      "feature": "max_time_between_activities",
+      "importance": 0.0015617348058687536
+    },
+    {
+      "feature": "early_phase_ratio",
+      "importance": 0.0015417018345707098
+    },
+    {
+      "feature": "window_7_engagement_density",
+      "importance": 0.001537209619357017
+    },
+    {
+      "feature": "disability_by_education_unknown_he qualification",
+      "importance": 0.001522923609695716
+    },
+    {
+      "feature": "window_30_click_std",
+      "importance": 0.0015173940958371284
+    },
+    {
+      "feature": "window_30_total_clicks",
+      "importance": 0.0015067538148626752
+    },
+    {
+      "feature": "window_30_engagement_density",
+      "importance": 0.0014505316834805887
+    },
+    {
+      "feature": "window_14_avg_clicks",
+      "importance": 0.0013886632771196452
+    },
+    {
+      "feature": "code_module_AAA",
+      "importance": 0.0013757938719464206
+    },
+    {
+      "feature": "window_30_avg_clicks",
+      "importance": 0.001332983591900273
+    },
+    {
+      "feature": "late_phase_ratio",
+      "importance": 0.0013052532820794897
+    },
+    {
+      "feature": "window_14_window",
+      "importance": 0.0012850127587369785
+    },
+    {
+      "feature": "window_7_total_clicks",
+      "importance": 0.0012734411781681531
+    },
+    {
+      "feature": "window_14_unique_resources",
+      "importance": 0.0011677967216773132
+    },
+    {
+      "feature": "code_module_GGG",
+      "importance": 0.0011530464146217694
+    },
+    {
+      "feature": "window_7_unique_resources",
+      "importance": 0.0011006199392438961
+    },
+    {
+      "feature": "window_30_unique_resources",
+      "importance": 0.0010629606637101142
+    },
+    {
+      "feature": "window_14_window_span",
+      "importance": 0.0010380168920880797
+    },
+    {
+      "feature": "mid_phase_ratio",
+      "importance": 0.0010181136627921469
+    },
+    {
+      "feature": "credits_by_age_credits_60_35+",
+      "importance": 0.0009412306759219836
+    },
+    {
+      "feature": "window_30_window",
+      "importance": 0.0009204368434312699
+    },
+    {
+      "feature": "window_7_window_span",
+      "importance": 0.0008212946257862583
+    },
+    {
+      "feature": "window_30_unique_activities",
+      "importance": 0.0008143091191404788
+    },
+    {
+      "feature": "credits_by_age_credits_180_0-35",
+      "importance": 0.0008064514284078284
+    },
+    {
+      "feature": "window_14_unique_activities",
+      "importance": 0.0008064351405357584
+    },
+    {
+      "feature": "window_7_unique_activities",
+      "importance": 0.0007777159281993037
+    },
+    {
+      "feature": "code_module_FFF",
+      "importance": 0.0005916547366057348
+    },
+    {
+      "feature": "code_module_EEE",
+      "importance": 0.0005859656329605579
+    },
+    {
+      "feature": "code_module_DDD",
+      "importance": 0.0005683767517898636
+    },
+    {
+      "feature": "code_presentation_2014B",
+      "importance": 0.0005650408511410477
+    },
+    {
+      "feature": "education_by_region_lower than a level_north western region",
+      "importance": 0.000560607675598215
+    },
+    {
+      "feature": "code_presentation_2014J",
+      "importance": 0.000535222148467007
+    },
+    {
+      "feature": "credits_by_age_credits_120_0-35",
+      "importance": 0.0005329680612472829
+    },
+    {
+      "feature": "code_presentation_x_2013J",
+      "importance": 0.0004929740511227093
+    },
+    {
+      "feature": "credits_by_age_credits_60_0-35",
+      "importance": 0.0004850601430228367
+    },
+    {
+      "feature": "code_presentation_2013J",
+      "importance": 0.00047706693021023865
+    },
+    {
+      "feature": "education_by_region_lower than a level_wales",
+      "importance": 0.0004326202116969307
+    },
+    {
+      "feature": "highest_education_no formal quals",
+      "importance": 0.0004145283834193275
+    },
+    {
+      "feature": "disability_by_education_unknown_post graduate qualification",
+      "importance": 0.00039930862825142475
+    },
+    {
+      "feature": "highest_education_post graduate qualification",
+      "importance": 0.00038941371225861496
+    },
+    {
+      "feature": "code_module_x_AAA",
+      "importance": 0.0003751594972108589
+    },
+    {
+      "feature": "code_module_y_None",
+      "importance": 0.00035606832180024776
+    },
+    {
+      "feature": "credits_by_age_credits_30_35+",
+      "importance": 0.00034501161634433727
+    },
+    {
+      "feature": "credits_by_age_credits_90_0-35",
+      "importance": 0.0003279352105668151
+    },
+    {
+      "feature": "code_presentation_y_None",
+      "importance": 0.0003154603947217958
+    },
+    {
+      "feature": "credits_by_age_credits_30_0-35",
+      "importance": 0.0003132807464244893
+    },
+    {
+      "feature": "code_module_BBB",
+      "importance": 0.00030377958171882747
+    },
+    {
+      "feature": "window_7_pre_module_activities",
+      "importance": 0.00028803845265108817
+    },
+    {
+      "feature": "code_presentation_y_2013B",
+      "importance": 0.00027611997903852464
+    },
+    {
+      "feature": "code_presentation_y_2014J",
+      "importance": 0.0002756751708853
+    },
+    {
+      "feature": "code_module_y_DDD",
+      "importance": 0.00024894439317020534
+    },
+    {
+      "feature": "code_presentation_y_2013J",
+      "importance": 0.0002468732328758263
+    },
+    {
+      "feature": "code_presentation_2013B",
+      "importance": 0.00024144863486110768
+    },
+    {
+      "feature": "code_module_x_BBB",
+      "importance": 0.00022883439839866874
+    },
+    {
+      "feature": "disability_by_education_unknown_no formal quals",
+      "importance": 0.00021179456926652702
+    },
+    {
+      "feature": "credits_by_age_credits_90_35+",
+      "importance": 0.00020832562376667482
+    },
+    {
+      "feature": "education_by_region_lower than a level_east anglian region",
+      "importance": 0.00020687270146445402
+    },
+    {
+      "feature": "code_module_x_CCC",
+      "importance": 0.0001945962046202268
+    },
+    {
+      "feature": "code_module_y_CCC",
+      "importance": 0.00018862235221853559
+    },
+    {
+      "feature": "education_by_region_a level or equivalent_south west region",
+      "importance": 0.00018367328688268235
+    },
+    {
+      "feature": "education_by_region_he qualification_south east region",
+      "importance": 0.00018244775228762236
+    },
+    {
+      "feature": "education_by_region_lower than a level_west midlands region",
+      "importance": 0.00018064504242595593
+    },
+    {
+      "feature": "code_module_y_EEE",
+      "importance": 0.00017776263301150474
+    },
+    {
+      "feature": "code_module_x_DDD",
+      "importance": 0.0001730820630143268
+    },
+    {
+      "feature": "education_by_region_a level or equivalent_north western region",
+      "importance": 0.0001697661908445913
+    },
+    {
+      "feature": "code_module_y_GGG",
+      "importance": 0.00016970009034534268
+    },
+    {
+      "feature": "code_presentation_y_2014B",
+      "importance": 0.00016935720708051427
+    },
+    {
+      "feature": "code_presentation_x_2014J",
+      "importance": 0.0001687609985509462
+    },
+    {
+      "feature": "window_30_pre_module_activities",
+      "importance": 0.00016747851939066715
+    },
+    {
+      "feature": "education_by_region_lower than a level_ireland",
+      "importance": 0.00015098428435489188
+    },
+    {
+      "feature": "education_by_region_lower than a level_south region",
+      "importance": 0.0001451573370448339
+    },
+    {
+      "feature": "credits_by_age_credits_240_0-35",
+      "importance": 0.0001424208387668076
+    },
+    {
+      "feature": "education_by_region_a level or equivalent_south region",
+      "importance": 0.00013939627812046892
+    },
+    {
+      "feature": "code_module_y_BBB",
+      "importance": 0.00013868676078699293
+    },
+    {
+      "feature": "education_by_region_a level or equivalent_yorkshire region",
+      "importance": 0.00013630386578623776
+    },
+    {
+      "feature": "education_by_region_a level or equivalent_scotland",
+      "importance": 0.000134273636582056
+    },
+    {
+      "feature": "credits_by_age_credits_120_35+",
+      "importance": 0.00012889897933142006
+    },
+    {
+      "feature": "code_module_y_FFF",
+      "importance": 0.0001275687144187229
+    },
+    {
+      "feature": "education_by_region_lower than a level_south west region",
+      "importance": 0.00012734962539312112
+    },
+    {
+      "feature": "education_by_region_a level or equivalent_east anglian region",
+      "importance": 0.00012234748499070772
+    },
+    {
+      "feature": "education_by_region_lower than a level_east midlands region",
+      "importance": 0.0001196032030229021
+    },
+    {
+      "feature": "education_by_region_he qualification_scotland",
+      "importance": 0.00010028086179112365
+    },
+    {
+      "feature": "code_presentation_x_2014B",
+      "importance": 9.963928518676591e-05
+    },
+    {
+      "feature": "education_by_region_a level or equivalent_north region",
+      "importance": 9.8814709560144e-05
+    },
+    {
+      "feature": "education_by_region_lower than a level_scotland",
+      "importance": 9.828027026855321e-05
+    },
+    {
+      "feature": "education_by_region_a level or equivalent_south east region",
+      "importance": 9.704895507350358e-05
+    },
+    {
+      "feature": "education_by_region_a level or equivalent_west midlands region",
+      "importance": 9.629072217255417e-05
+    },
+    {
+      "feature": "education_by_region_lower than a level_north region",
+      "importance": 9.15311913413578e-05
+    },
+    {
+      "feature": "credits_by_age_credits_150_0-35",
+      "importance": 9.024099695519093e-05
+    },
+    {
+      "feature": "code_module_x_GGG",
+      "importance": 8.98664504159314e-05
+    },
+    {
+      "feature": "window_14_pre_module_activities",
+      "importance": 8.323759798474943e-05
+    },
+    {
+      "feature": "education_by_region_he qualification_west midlands region",
+      "importance": 8.30368023595759e-05
+    },
+    {
+      "feature": "education_by_region_he qualification_wales",
+      "importance": 8.015107466531725e-05
+    },
+    {
+      "feature": "education_by_region_post graduate qualification_north region",
+      "importance": 8.007912870091863e-05
+    },
+    {
+      "feature": "education_by_region_he qualification_east midlands region",
+      "importance": 7.921837396153166e-05
+    },
+    {
+      "feature": "education_by_region_a level or equivalent_wales",
+      "importance": 7.643610481815907e-05
+    },
+    {
+      "feature": "education_by_region_he qualification_south region",
+      "importance": 7.52087608918834e-05
+    },
+    {
+      "feature": "education_by_region_lower than a level_south east region",
+      "importance": 7.192440528242167e-05
+    },
+    {
+      "feature": "education_by_region_a level or equivalent_east midlands region",
+      "importance": 6.418099357190913e-05
+    },
+    {
+      "feature": "education_by_region_a level or equivalent_ireland",
+      "importance": 6.227316777442286e-05
+    },
+    {
+      "feature": "education_by_region_he qualification_north region",
+      "importance": 6.100011673370144e-05
+    },
+    {
+      "feature": "education_by_region_he qualification_yorkshire region",
+      "importance": 6.07741290830631e-05
+    },
+    {
+      "feature": "education_by_region_lower than a level_yorkshire region",
+      "importance": 5.556180112105011e-05
+    },
+    {
+      "feature": "credits_by_age_credits_150_35+",
+      "importance": 4.798594100208213e-05
+    },
+    {
+      "feature": "code_module_y_AAA",
+      "importance": 4.763205011042047e-05
+    },
+    {
+      "feature": "education_by_region_he qualification_east anglian region",
+      "importance": 4.3738421824077675e-05
+    },
+    {
+      "feature": "credits_by_age_credits_210_0-35",
+      "importance": 3.915409171663214e-05
+    },
+    {
+      "feature": "credits_by_age_credits_180_35+",
+      "importance": 3.860563275411653e-05
+    },
+    {
+      "feature": "education_by_region_he qualification_north western region",
+      "importance": 3.697054568766867e-05
+    },
+    {
+      "feature": "education_by_region_he qualification_ireland",
+      "importance": 2.80534003241697e-05
+    },
+    {
+      "feature": "education_by_region_post graduate qualification_scotland",
+      "importance": 2.723082536257886e-05
+    },
+    {
+      "feature": "education_by_region_he qualification_south west region",
+      "importance": 2.551264914361348e-05
+    },
+    {
+      "feature": "education_by_region_no formal quals_wales",
+      "importance": 2.3770193577241606e-05
+    },
+    {
+      "feature": "education_by_region_post graduate qualification_ireland",
+      "importance": 1.8587333413065897e-05
+    },
+    {
+      "feature": "education_by_region_no formal quals_east anglian region",
+      "importance": 1.6957160083912174e-05
+    },
+    {
+      "feature": "code_presentation_x_2013B",
+      "importance": 1.5354198135960725e-05
+    },
+    {
+      "feature": "education_by_region_post graduate qualification_south region",
+      "importance": 1.450366859286068e-05
+    },
+    {
+      "feature": "credits_by_age_credits_70_0-35",
+      "importance": 1.344938749207814e-05
+    },
+    {
+      "feature": "education_by_region_no formal quals_west midlands region",
+      "importance": 1.1014778018496311e-05
+    },
+    {
+      "feature": "education_by_region_post graduate qualification_south east region",
+      "importance": 9.375175233285552e-06
+    },
+    {
+      "feature": "education_by_region_no formal quals_yorkshire region",
+      "importance": 7.83893036560751e-06
+    },
+    {
+      "feature": "education_by_region_no formal quals_north western region",
+      "importance": 7.116147928159221e-06
+    },
+    {
+      "feature": "education_by_region_post graduate qualification_east anglian region",
+      "importance": 7.048393869517923e-06
+    },
+    {
+      "feature": "credits_by_age_credits_160_35+",
+      "importance": 5.8671376776138536e-06
+    },
+    {
+      "feature": "credits_by_age_credits_100_0-35",
+      "importance": 5.812388547195729e-06
+    },
+    {
+      "feature": "credits_by_age_credits_240_35+",
+      "importance": 5.785632602094473e-06
+    },
+    {
+      "feature": "credits_by_age_credits_110_0-35",
+      "importance": 5.778446559977586e-06
+    },
+    {
+      "feature": "credits_by_age_credits_75_0-35",
+      "importance": 5.210673642515417e-06
+    },
+    {
+      "feature": "credits_by_age_credits_75_35+",
+      "importance": 4.610161874867891e-06
+    },
+    {
+      "feature": "credits_by_age_credits_45_35+",
+      "importance": 4.5030740690478345e-06
+    },
+    {
+      "feature": "credits_by_age_credits_270_0-35",
+      "importance": 3.970181902384954e-06
+    },
+    {
+      "feature": "credits_by_age_credits_190_35+",
+      "importance": 3.8104932763008694e-06
+    },
+    {
+      "feature": "credits_by_age_credits_210_35+",
+      "importance": 3.3345806517620247e-06
+    },
+    {
+      "feature": "education_by_region_no formal quals_scotland",
+      "importance": 3.3121901219488983e-06
+    },
+    {
+      "feature": "credits_by_age_credits_80_0-35",
+      "importance": 3.262649713234488e-06
+    },
+    {
+      "feature": "credits_by_age_credits_80_35+",
+      "importance": 2.5472597143467333e-06
+    },
+    {
+      "feature": "credits_by_age_credits_45_0-35",
+      "importance": 2.113615301334587e-06
+    },
+    {
+      "feature": "credits_by_age_credits_300_0-35",
+      "importance": 2.063942318498244e-06
+    },
+    {
+      "feature": "education_by_region_no formal quals_south east region",
+      "importance": 7.027350180900379e-07
+    },
+    {
+      "feature": "education_by_region_post graduate qualification_east midlands region",
+      "importance": 1.4986277070818856e-07
+    },
+    {
+      "feature": "credits_by_age_credits_135_0-35",
+      "importance": 1.8290258456357517e-15
+    },
+    {
+      "feature": "credits_by_age_credits_220_0-35",
+      "importance": 6.246695441522453e-18
+    },
+    {
+      "feature": "education_by_region_no formal quals_north region",
+      "importance": 5.482474317361222e-18
+    },
+    {
+      "feature": "credits_by_age_credits_135_35+",
+      "importance": 5.086238278793803e-18
+    },
+    {
+      "feature": "credits_by_age_credits_70_35+",
+      "importance": 1.4244646405416065e-18
+    },
+    {
+      "feature": "education_by_region_no formal quals_south region",
+      "importance": 5.702496895584144e-19
+    },
+    {
+      "feature": "education_by_region_no formal quals_east midlands region",
+      "importance": 1.641754956241659e-20
+    },
+    {
+      "feature": "credits_by_age_credits_55_35+",
+      "importance": 0.0
+    },
+    {
+      "feature": "credits_by_age_credits_110_35+",
+      "importance": 0.0
+    },
+    {
+      "feature": "credits_by_age_credits_190_0-35",
+      "importance": 0.0
+    },
+    {
+      "feature": "credits_by_age_credits_175_35+",
+      "importance": 0.0
+    },
+    {
+      "feature": "credits_by_age_credits_170_35+",
+      "importance": 0.0
+    },
+    {
+      "feature": "credits_by_age_credits_170_0-35",
+      "importance": 0.0
+    },
+    {
+      "feature": "credits_by_age_credits_130_35+",
+      "importance": 0.0
+    },
+    {
+      "feature": "education_level",
+      "importance": 0.0
+    },
+    {
+      "feature": "credits_by_age_credits_655_35+",
+      "importance": 0.0
+    },
+    {
+      "feature": "credits_by_age_credits_205_0-35",
+      "importance": 0.0
+    },
+    {
+      "feature": "credits_by_age_credits_165_0-35",
+      "importance": 0.0
+    },
+    {
+      "feature": "credits_by_age_credits_195_35+",
+      "importance": 0.0
+    },
+    {
+      "feature": "credits_by_age_credits_200_35+",
+      "importance": 0.0
+    },
+    {
+      "feature": "credits_by_age_credits_145_35+",
+      "importance": 0.0
+    },
+    {
+      "feature": "credits_by_age_credits_145_0-35",
+      "importance": 0.0
+    },
+    {
+      "feature": "credits_by_age_credits_140_35+",
+      "importance": 0.0
+    },
+    {
+      "feature": "credits_by_age_credits_200_0-35",
+      "importance": 0.0
+    },
+    {
+      "feature": "credits_by_age_credits_160_0-35",
+      "importance": 0.0
+    },
+    {
+      "feature": "credits_by_age_credits_195_0-35",
+      "importance": 0.0
+    },
+    {
+      "feature": "credits_by_age_credits_225_35+",
+      "importance": 0.0
+    },
+    {
+      "feature": "credits_by_age_credits_250_0-35",
+      "importance": 0.0
+    },
+    {
+      "feature": "credits_by_age_credits_220_35+",
+      "importance": 0.0
+    },
+    {
+      "feature": "credits_by_age_credits_165_35+",
+      "importance": 0.0
+    },
+    {
+      "feature": "credits_by_age_credits_130_0-35",
+      "importance": 0.0
+    },
+    {
+      "feature": "credits_by_age_credits_115_35+",
+      "importance": 0.0
+    },
+    {
+      "feature": "credits_by_age_credits_300_35+",
+      "importance": 0.0
+    },
+    {
+      "feature": "credits_by_age_credits_310_0-35",
+      "importance": 0.0
+    },
+    {
+      "feature": "credits_by_age_credits_215_0-35",
+      "importance": 0.0
+    },
+    {
+      "feature": "credits_by_age_credits_280_0-35",
+      "importance": 0.0
+    },
+    {
+      "feature": "credits_by_age_credits_270_35+",
+      "importance": 0.0
+    },
+    {
+      "feature": "education_by_region_no formal quals_ireland",
+      "importance": 0.0
+    },
+    {
+      "feature": "credits_by_age_credits_40_0-35",
+      "importance": 0.0
+    },
+    {
+      "feature": "credits_by_age_credits_280_35+",
+      "importance": 0.0
+    },
+    {
+      "feature": "credits_by_age_credits_390_0-35",
+      "importance": 0.0
+    },
+    {
+      "feature": "credits_by_age_credits_360_35+",
+      "importance": 0.0
+    },
+    {
+      "feature": "credits_by_age_credits_355_0-35",
+      "importance": 0.0
+    },
+    {
+      "feature": "credits_by_age_credits_360_0-35",
+      "importance": 0.0
+    },
+    {
+      "feature": "credits_by_age_credits_345_0-35",
+      "importance": 0.0
+    },
+    {
+      "feature": "credits_by_age_credits_330_35+",
+      "importance": 0.0
+    },
+    {
+      "feature": "education_by_region_no formal quals_south west region",
+      "importance": 0.0
+    },
+    {
+      "feature": "education_by_region_post graduate qualification_north western region",
+      "importance": 0.0
+    },
+    {
+      "feature": "credits_by_age_credits_330_0-35",
+      "importance": 0.0
+    },
+    {
+      "feature": "credits_by_age_credits_540_0-35",
+      "importance": 0.0
+    },
+    {
+      "feature": "credits_by_age_credits_50_35+",
+      "importance": 0.0
+    },
+    {
+      "feature": "credits_by_age_credits_480_35+",
+      "importance": 0.0
+    },
+    {
+      "feature": "credits_by_age_credits_430_0-35",
+      "importance": 0.0
+    },
+    {
+      "feature": "credits_by_age_credits_95_0-35",
+      "importance": 0.0
+    },
+    {
+      "feature": "credits_by_age_credits_85_0-35",
+      "importance": 0.0
+    },
+    {
+      "feature": "education_by_region_post graduate qualification_yorkshire region",
+      "importance": 0.0
+    },
+    {
+      "feature": "education_by_region_post graduate qualification_west midlands region",
+      "importance": 0.0
+    },
+    {
+      "feature": "education_by_region_post graduate qualification_wales",
+      "importance": 0.0
+    },
+    {
+      "feature": "education_by_region_post graduate qualification_south west region",
+      "importance": 0.0
+    },
+    {
+      "feature": "credits_by_age_credits_420_35+",
+      "importance": 0.0
+    },
+    {
+      "feature": "credits_by_age_credits_40_35+",
+      "importance": 0.0
+    },
+    {
+      "feature": "credits_by_age_credits_105_35+",
+      "importance": 0.0
+    },
+    {
+      "feature": "credits_by_age_credits_105_0-35",
+      "importance": 0.0
+    },
+    {
+      "feature": "credits_by_age_credits_100_35+",
+      "importance": 0.0
+    }
+  ]
+}

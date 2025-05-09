@@ -1,0 +1,21 @@
+feature,importance
+final_result_Pass,0.36937874397582193
+final_result_Withdrawn,0.24334085490669294
+final_result_Fail,0.16146458001173328
+final_result_Distinction,0.08042609707474888
+studied_credits_scaled,0.009677917645582693
+studied_credits,0.00838813550004164
+disability_by_education_unknown_lower than a level,0.007896832038562833
+num_of_prev_attempts,0.006401440014186391
+highest_education_lower than a level,0.005898937637808886
+num_of_prev_attempts_scaled,0.005435612804805045
+id_student,0.002852821312191356
+id_student_x,0.0028181906577884456
+window_7_click_std,0.002300825832896086
+transition_entropy,0.0022626429494469113
+window_7_window,0.0021372737894217297
+avg_time_between_activities,0.0021316983013295
+late_phase_intensity,0.002097431842507728
+activity_regularity,0.002081135991807017
+pre_module_activity_count,0.0019917077223237612
+num_sessions,0.0019823776404458166

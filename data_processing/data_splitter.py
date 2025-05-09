@@ -21,18 +21,7 @@ def create_stratified_splits(
 ) -> Dict[str, pd.DataFrame]:
     """
     Creates stratified train/test/validation splits preserving demographic distributions.
-    
-    Args:
-        data: DataFrame to split
-        target_col: Target column for stratification
-        strat_cols: List of columns to use for stratification
-        test_size: Proportion of data to include in the test split
-        validation_size: Proportion of data to include in the validation split
-        random_state: Random seed for reproducibility
-        logger: Logger instance
-
-    Returns:
-        Dictionary with train, validation, and test splits"""
+    """
     logger = logger or logging.getLogger('edupredict')
     strat_cols = strat_cols or FAIRNESS['protected_attributes']
 
@@ -41,7 +30,8 @@ def create_stratified_splits(
         logger.info("Initial protected attribute distributions:")
         for col in strat_cols:
             if col in data.columns:
-                logger.info(f"{col} distribution:\n{data[col].value_counts(normalize=True)}")
+                dist = data[col].value_counts(normalize=True)
+                logger.info(f"{col} distribution:\n{dist}")
 
         # Create combined stratification label using protected attributes
         data['strat_label'] = data[strat_cols].astype(str).apply('_'.join, axis=1)
@@ -63,8 +53,8 @@ def create_stratified_splits(
         ).split(data, data['strat_label']))
         
         # Create train+val and test sets
-        train_val_data = data.iloc[train_val_idx]
-        test_data = data.iloc[test_idx]
+        train_val_data = data.iloc[train_val_idx].copy()
+        test_data = data.iloc[test_idx].copy()
         
         # Second split: train vs validation
         train_val_strat = train_val_data['strat_label']
@@ -77,13 +67,12 @@ def create_stratified_splits(
         ).split(train_val_data, train_val_strat))
         
         # Create final splits
-        train_data = train_val_data.iloc[train_idx]
-        val_data = train_val_data.iloc[val_idx]
+        train_data = train_val_data.iloc[train_idx].copy()
+        val_data = train_val_data.iloc[val_idx].copy()
         
         # Clean up temporary stratification column
         for df in [train_data, val_data, test_data]:
-            if 'strat_label' in df.columns:
-                df.drop('strat_label', axis=1, inplace=True)
+            df.drop('strat_label', axis=1, inplace=True)
         
         # Log split sizes
         logger.info(f"Train set: {len(train_data)} samples")
@@ -97,28 +86,19 @@ def create_stratified_splits(
             'Test': test_data
         }
         
-        imbalances_found = False
         for col in strat_cols:
             logger.info(f"\nDistribution of {col}:")
-            reference_dist = train_data[col].value_counts(normalize=True)
+            train_dist = train_data[col].value_counts(normalize=True).to_dict()
+            val_dist = val_data[col].value_counts(normalize=True).to_dict()
+            test_dist = test_data[col].value_counts(normalize=True).to_dict()
             
-            for name, split in splits.items():
-                split_dist = split[col].value_counts(normalize=True)
-                logger.info(f"{name}: {split_dist.to_dict()}")
-                
-                # Check distribution difference
-                max_diff = max(abs(reference_dist - split_dist))
-                if max_diff > FAIRNESS['threshold']:
-                    imbalances_found = True
-                    logger.warning(
-                        f"Large distribution difference in {col} for {name} split: {max_diff:.3f}"
-                    )
-
-        if imbalances_found:
-            logger.warning(
-                "Some splits show significant demographic imbalances. Consider adjusting "
-                "splitting strategy or using bias mitigation techniques."
-            )
+            logger.info(f"Train: {train_dist}")
+            logger.info(f"Validation: {val_dist}")
+            logger.info(f"Test: {test_dist}")
+            
+            # Validate distributions
+            if not validate_demographic_balance(train_dist, val_dist, test_dist, FAIRNESS['threshold']):
+                logger.warning(f"Demographic imbalance detected in {col}")
         
         return {
             'train': train_data,
@@ -316,98 +296,54 @@ def save_data_splits(
         raise
 
 def validate_demographic_balance(
-    data_splits: Dict[str, pd.DataFrame],
-    demographic_cols: Optional[List[str]] = None,
-    logger: Optional[logging.Logger] = None
-) -> Dict[str, Dict[str, float]]:
+    train_dist: Dict[str, float],
+    val_dist: Optional[Dict[str, float]] = None,
+    test_dist: Optional[Dict[str, float]] = None,
+    threshold: float = 0.05
+) -> bool:
     """
-    Validates demographic balance across data splits.
-    
-    Args:
-        data_splits: Dictionary of split DataFrames
-        demographic_cols: Demographic columns to check
-        logger: Logger instance
-    
-    Returns:
-        Dictionary with distribution differences for each demographic column
+    Validates that demographic distributions are similar across splits.
     """
-    logger = logger or logging.getLogger('edupredict')
-    demographic_cols = demographic_cols or FAIRNESS['protected_attributes']
-    threshold = FAIRNESS['threshold']
-    
     try:
-        validation_results = {
-            'is_balanced': True,
-            'differences': {},
-            'details': {}
-        }
-        
-        # Get distribution of each demographic column in each split
-        distributions = {}
-        for split_name, split_data in data_splits.items():
-            if len(split_data) > 0:
-                distributions[split_name] = {
-                    col: split_data[col].value_counts(normalize=True).to_dict()
-                    for col in demographic_cols if col in split_data.columns
-                }
-        
-        # Compare distributions between splits
-        for col in demographic_cols:
-            col_diffs = {}
-            max_diff = 0
-            
-            # Use train set as reference
-            if 'train' in distributions:
-                train_dist = distributions['train'][col]
-                
-                for split_name, split_dist in distributions.items():
-                    if split_name != 'train':
-                        # Calculate maximum absolute difference in proportions
-                        split_col_dist = split_dist[col]
-                        diffs = {
-                            cat: abs(train_dist.get(cat, 0) - split_col_dist.get(cat, 0))
-                            for cat in set(train_dist.keys()) | set(split_col_dist.keys())
-                        }
-                        max_cat_diff = max(diffs.values())
-                        col_diffs[split_name] = max_cat_diff
-                        max_diff = max(max_diff, max_cat_diff)
-                        
-                        # Log large differences
-                        if max_cat_diff > threshold:
-                            logger.warning(
-                                f"Large distribution difference in {col} between train and {split_name} "
-                                f"splits: {max_cat_diff:.3f} (threshold: {threshold})"
-                            )
-                            
-                            # Log specific category differences
-                            for cat, diff in diffs.items():
-                                if diff > threshold:
-                                    logger.warning(
-                                        f"  Category '{cat}' shows significant difference: "
-                                        f"train={train_dist.get(cat, 0):.3f}, "
-                                        f"{split_name}={split_col_dist.get(cat, 0):.3f}"
-                                    )
-            
-            validation_results['differences'][col] = col_diffs
-            validation_results['details'][col] = {
-                'max_difference': max_diff,
-                'is_balanced': max_diff <= threshold,
-                'threshold': threshold
-            }
-            
-            if max_diff > threshold:
-                validation_results['is_balanced'] = False
-                
-                # Add specific recommendations
-                if 'recommendations' not in validation_results:
-                    validation_results['recommendations'] = []
-                validation_results['recommendations'].append(
-                    f"Consider rebalancing {col} using stratified sampling or bias mitigation "
-                    f"techniques to reduce maximum difference ({max_diff:.3f}) below threshold ({threshold})"
-                )
-        
-        return validation_results
+        if not train_dist:
+            return False
+
+        # Get all unique categories across all distributions
+        all_categories = set(train_dist.keys())
+        if val_dist:
+            all_categories.update(val_dist.keys())
+        if test_dist:
+            all_categories.update(test_dist.keys())
+
+        # Normalize distributions by adding missing categories with 0 frequency
+        train_dist = {cat: train_dist.get(cat, 0.0) for cat in all_categories}
+        if val_dist:
+            val_dist = {cat: val_dist.get(cat, 0.0) for cat in all_categories}
+        if test_dist:
+            test_dist = {cat: test_dist.get(cat, 0.0) for cat in all_categories}
+
+        # Re-normalize proportions to ensure they sum to 1
+        train_sum = sum(train_dist.values())
+        train_dist = {k: v/train_sum for k, v in train_dist.items()}
+
+        if val_dist:
+            val_sum = sum(val_dist.values())
+            val_dist = {k: v/val_sum for k, v in val_dist.items()}
+            # Check validation set distribution
+            for category in all_categories:
+                if abs(train_dist[category] - val_dist[category]) > threshold:
+                    return False
+
+        if test_dist:
+            test_sum = sum(test_dist.values())
+            test_dist = {k: v/test_sum for k, v in test_dist.items()}
+            # Check test set distribution
+            for category in all_categories:
+                if abs(train_dist[category] - test_dist[category]) > threshold:
+                    return False
+
+        return True
 
     except Exception as e:
-        logger.error(f"Error validating demographic balance: {str(e)}")
-        raise
+        logging.error(f"Error in demographic balance validation: {str(e)}")
+        return False

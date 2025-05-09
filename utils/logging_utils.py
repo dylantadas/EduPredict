@@ -18,7 +18,7 @@ class TqdmLoggingHandler(logging.Handler):
 
 def setup_logger(log_dir: Path, log_level: str = "INFO") -> logging.Logger:
     """
-    Sets up the main logger for the EduPredict system.
+    Sets up the main logger for the EduPredict 2.0 system.
     
     Args:
         log_dir: Directory where log files will be stored
@@ -30,25 +30,31 @@ def setup_logger(log_dir: Path, log_level: str = "INFO") -> logging.Logger:
     # Create logs directory if it doesn't exist
     os.makedirs(log_dir, exist_ok=True)
     
-    # Initialize logger
-    logger = logging.getLogger('edupredict')
-    logger.setLevel(getattr(logging, log_level.upper()))
+    # Initialize logger with a specific name for EduPredict 2.0
+    logger = logging.getLogger('edupredict2')
+    try:
+        logger.setLevel(getattr(logging, log_level.upper()))
+    except AttributeError:
+        raise ValueError(f"Invalid log level: {log_level}. Valid levels are: DEBUG, INFO, WARNING, ERROR, CRITICAL.")
     
     # Clear any existing handlers
     if logger.hasHandlers():
         logger.handlers.clear()
     
-    # Create formatters
+    # Get absolute path of project for context
+    project_path = Path(__file__).parent.parent.absolute()
+    
+    # Create formatters with more specific context
     file_formatter = logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        '%(asctime)s - EduPredict2.0 - %(name)s - %(levelname)s - %(message)s'
     )
     console_formatter = logging.Formatter(
-        '%(levelname)s - %(message)s'
+        'EduPredict2.0 - %(levelname)s - %(message)s'
     )
     
     # Create and configure file handler with rotation
     file_handler = RotatingFileHandler(
-        log_dir / 'edupredict.log',
+        log_dir / 'edupredict2.log',  # Changed filename to be version-specific
         maxBytes=10*1024*1024,  # 10MB
         backupCount=5
     )
@@ -61,6 +67,9 @@ def setup_logger(log_dir: Path, log_level: str = "INFO") -> logging.Logger:
     # Add handlers to logger
     logger.addHandler(file_handler)
     logger.addHandler(console_handler)
+    
+    # Log startup information with project path for context
+    logger.info(f"EduPredict 2.0 logger initialized | Project path: {project_path}")
     
     return logger
 

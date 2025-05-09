@@ -1,234 +1,308 @@
 import pandas as pd
 import numpy as np
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Union
 import logging
-from pathlib import Path
 import json
-from datetime import datetime
-from config import FEATURE_ENGINEERING, FAIRNESS, DIRS
+from datetime import datetime, timedelta
+from pathlib import Path
+from config import FEATURE_ENGINEERING, DIRS, TEMPORAL_CONFIG
 from utils.monitoring_utils import monitor_memory_usage, track_progress
+from feature_engineering.feature_selector import NumpyJSONEncoder
 
 logger = logging.getLogger('edupredict')
 
-def create_temporal_features(
-    activity_data: pd.DataFrame,
-    demographic_data: pd.DataFrame,
-    window_sizes: List[int] = FEATURE_ENGINEERING['window_sizes']
-) -> Dict[str, pd.DataFrame]:
+class TemporalFeatureProcessor:
     """
-    Creates time-based engagement features with demographic fairness monitoring.
+    Processes and generates temporal features from time-series data.
+    """
+    
+    def __init__(
+        self,
+        time_windows: List[int],
+        aggregation_functions: List[str] = ['mean', 'std', 'max', 'min'],
+        enable_lag_features: bool = True,
+        max_lag: int = 3
+    ):
+        """
+        Initialize temporal feature processor.
+        
+        Args:
+            time_windows: List of time windows (in days) for rolling features
+            aggregation_functions: List of aggregation functions to apply
+            enable_lag_features: Whether to create lagged features
+            max_lag: Maximum number of lags to create
+        """
+        self.time_windows = time_windows
+        self.aggregation_functions = aggregation_functions
+        self.enable_lag_features = enable_lag_features
+        self.max_lag = max_lag
+        self.activity_windows = TEMPORAL_CONFIG['activity_windows']
+        
+        self.feature_names_: List[str] = []
+        self.temporal_statistics_: Dict = {}
+        
+    @monitor_memory_usage
+    def fit_transform(
+        self,
+        data: pd.DataFrame,
+        time_column: str,
+        target_columns: List[str],
+        group_columns: Optional[List[str]] = None
+    ) -> pd.DataFrame:
+        """
+        Generate temporal features from the data.
+        
+        Args:
+            data: Input DataFrame
+            time_column: Name of the timestamp column
+            target_columns: Columns to generate features for
+            group_columns: Columns to group by (e.g., student_id)
+            
+        Returns:
+            DataFrame with temporal features
+        """
+        try:
+            # Sort data by time
+            data = data.sort_values(time_column)
+            
+            # Initialize results DataFrame
+            result_features = pd.DataFrame(index=data.index)
+            
+            # Group data if group columns specified
+            if group_columns:
+                groups = data.groupby(group_columns)
+            else:
+                groups = [(None, data)]
+            
+            logger.info(f"Generating temporal features for {len(target_columns)} columns")
+            
+            for target_col in track_progress(target_columns):
+                # Create rolling window features
+                for window in self.time_windows:
+                    for group_key, group_data in groups:
+                        # Calculate rolling statistics
+                        rolling = group_data[target_col].rolling(
+                            window=window,
+                            min_periods=1
+                        )
+                        
+                        # Apply aggregation functions
+                        for func in self.aggregation_functions:
+                            feature_name = f"{target_col}_{func}_{window}d"
+                            if group_key is not None:
+                                feature_name = f"{feature_name}_{group_key}"
+                            
+                            if func == 'mean':
+                                result_features[feature_name] = rolling.mean()
+                            elif func == 'std':
+                                result_features[feature_name] = rolling.std()
+                            elif func == 'max':
+                                result_features[feature_name] = rolling.max()
+                            elif func == 'min':
+                                result_features[feature_name] = rolling.min()
+                            
+                            self.feature_names_.append(feature_name)
+                
+                # Create lag features if enabled
+                if self.enable_lag_features:
+                    for lag in range(1, self.max_lag + 1):
+                        for group_key, group_data in groups:
+                            feature_name = f"{target_col}_lag_{lag}"
+                            if group_key is not None:
+                                feature_name = f"{feature_name}_{group_key}"
+                                
+                            result_features[feature_name] = group_data[target_col].shift(lag)
+                            self.feature_names_.append(feature_name)
+                            
+            # Add activity window features
+            for window_name, (start, end) in self.activity_windows.items():
+                mask = (data[time_column] >= start) & (data[time_column] < end)
+                for target_col in target_columns:
+                    feature_name = f"{target_col}_{window_name}"
+                    result_features[feature_name] = data[mask][target_col].agg(self.aggregation_functions)
+                    self.feature_names_.append(feature_name)
+                    
+            # Calculate temporal statistics
+            self._calculate_temporal_statistics(result_features)
+            
+            return result_features
+            
+        except Exception as e:
+            logger.error(f"Error generating temporal features: {str(e)}")
+            raise
+            
+    def _calculate_temporal_statistics(self, features: pd.DataFrame) -> None:
+        """
+        Calculate and store statistics about temporal features.
+        """
+        try:
+            stats = {}
+            
+            for col in features.columns:
+                col_stats = features[col].describe()
+                stats[col] = {
+                    'mean': col_stats['mean'],
+                    'std': col_stats['std'],
+                    'min': col_stats['min'],
+                    'max': col_stats['max'],
+                    'missing_pct': features[col].isnull().mean() * 100
+                }
+                
+            self.temporal_statistics_ = stats
+            
+        except Exception as e:
+            logger.error(f"Error calculating temporal statistics: {str(e)}")
+            raise
+            
+    def export_feature_metadata(self, output_dir: Union[str, Path]) -> None:
+        """
+        Export metadata about temporal features.
+        """
+        try:
+            output_dir = Path(output_dir)
+            output_dir.mkdir(parents=True, exist_ok=True)
+            
+            metadata = {
+                'time_windows': self.time_windows,
+                'aggregation_functions': self.aggregation_functions,
+                'feature_names': self.feature_names_,
+                'temporal_statistics': self.temporal_statistics_,
+                'timestamp': datetime.now().isoformat()
+            }
+            
+            output_path = output_dir / 'temporal_features_metadata.json'
+            with open(output_path, 'w') as f:
+                json.dump(metadata, f, indent=2, cls=NumpyJSONEncoder)
+                
+            logger.info(f"Exported temporal feature metadata to {output_path}")
+            
+        except Exception as e:
+            logger.error(f"Error exporting temporal metadata: {str(e)}")
+            raise
+
+def calculate_time_based_statistics(
+    data: pd.DataFrame,
+    time_column: str,
+    value_column: str,
+    group_column: Optional[str] = None,
+    resample_freq: str = 'D'
+) -> pd.DataFrame:
+    """
+    Calculate time-based statistics for a given column.
     
     Args:
-        activity_data: DataFrame containing student activity data
-        demographic_data: DataFrame containing demographic data
-        window_sizes: List of time window sizes for feature creation
-
+        data: Input DataFrame
+        time_column: Name of timestamp column
+        value_column: Name of column to calculate statistics for
+        group_column: Optional column to group by
+        resample_freq: Frequency for resampling ('D' for daily, 'W' for weekly, etc.)
+        
     Returns:
-        Dictionary of DataFrames containing temporal features for each window size
+        DataFrame with time-based statistics
     """
     try:
-        temporal_features = {}
+        # Set timestamp as index
+        data = data.set_index(time_column)
         
-        # Monitor initial memory state
-        monitor_memory_usage("Starting temporal feature creation")
-        
-        # Log the number of windows being processed
-        logger.info(f"Creating temporal features for {len(window_sizes)} window sizes: {window_sizes}")
-        
-        # Log initial data shape
-        logger.info(f"Activity data shape: {activity_data.shape}, Demographic data shape: {demographic_data.shape}")
-        
-        # Use only necessary columns from demographic data to reduce memory
-        demographic_subset = demographic_data[['id_student'] + FAIRNESS['protected_attributes']].copy()
-        
-        # Optimize dtypes before merging
-        for col in activity_data.select_dtypes(include=['int64']).columns:
-            activity_data[col] = activity_data[col].astype(np.int32)
+        if group_column:
+            groups = data.groupby(group_column)
+        else:
+            groups = [(None, data)]
             
-        for col in activity_data.select_dtypes(include=['float64']).columns:
-            activity_data[col] = activity_data[col].astype(np.float32)
+        stats_dfs = []
         
-        # Merge demographic data for fairness monitoring - use smaller subset
-        merged_data = activity_data.merge(
-            demographic_subset,
-            on='id_student',
-            how='left'
-        )
-        logger.info(f"Merged data for temporal features: {merged_data.shape}")
-        
-        # Process each window size individually
-        for window_size in track_progress(window_sizes, desc="Processing time windows", total=len(window_sizes)):
-            monitor_memory_usage(f"Processing window size {window_size}")
+        for group_key, group_data in groups:
+            # Resample and calculate statistics
+            resampled = group_data[value_column].resample(resample_freq)
             
-            # Create a copy of necessary columns only to reduce memory footprint
-            window_data = merged_data[['id_student', 'code_module', 'code_presentation', 
-                                     'date', 'sum_click', 'id_site', 'activity_type'] + 
-                                    FAIRNESS['protected_attributes']].copy()
-            
-            # Create window-based features with reduced memory footprint
-            logger.info(f"Creating features for window size {window_size}")
-            window_features = _create_window_features(window_data, window_size)
-            logger.info(f"Created features for window size {window_size}: {window_features.shape}")
-            
-            # Monitor demographic distribution
-            _monitor_demographic_distribution(
-                window_features,
-                window_size,
-                FAIRNESS['protected_attributes']
-            )
-            
-            # Store to results dictionary
-            temporal_features[f'window_{window_size}'] = window_features
-            
-            # Force garbage collection after each window
-            import gc
-            gc.collect()
-        
-        monitor_memory_usage("Completed temporal feature creation")
-        return temporal_features
-        
-    except Exception as e:
-        logger.error(f"Error creating temporal features: {str(e)}")
-        raise
-
-def _create_window_features(data: pd.DataFrame, window_size: int) -> pd.DataFrame:
-    """
-    Creates features for a specific time window.
-    The date values are already in days relative to module start.
-    """
-    try:
-        # Create window boundaries using floor division of days
-        data['window'] = np.floor(data['date'] / window_size).astype(np.int32)
-        
-        # Get unique student-module-window combinations for groupby
-        unique_combinations = data[['id_student', 'code_module', 'code_presentation', 'window']].drop_duplicates()
-        total_groups = len(unique_combinations)
-        logger.debug(f"Processing {total_groups} student-module-window combinations")
-        
-        # Use more efficient groupby with observed=True where possible
-        # Use standard pandas aggregation functions without dtype parameter
-        metrics = data.groupby(['id_student', 'code_module', 'code_presentation', 'window'], observed=True).agg({
-            'sum_click': ['sum', 'mean', 'std'],
-            'id_site': ['nunique'],
-            'activity_type': ['nunique'],
-            'date': ['min', 'max']
-        }).reset_index()
-        
-        # Flatten column names
-        metrics.columns = [
-            f"{col[0]}_{col[1]}" if isinstance(col, tuple) and col[1] else col[0]
-            for col in metrics.columns
-        ]
-        
-        # Calculate derived metrics with controlled dtypes - conversion happens after calculation
-        metrics['window_span'] = (metrics['date_max'] - metrics['date_min'])
-        metrics['engagement_density'] = (metrics['sum_click_sum'] / metrics['window_span'].clip(1))
-        metrics['pre_module_activities'] = (metrics['date_min'] < 0).astype(np.int8)  # Use int8 for boolean flags
-        
-        # Rename for clarity and drop intermediate columns
-        metrics = metrics.rename(columns={
-            'sum_click_sum': 'total_clicks',
-            'sum_click_mean': 'avg_clicks',
-            'sum_click_std': 'click_std',
-            'id_site_nunique': 'unique_resources',
-            'activity_type_nunique': 'unique_activities'
-        })
-        
-        # Convert columns to efficient datatypes after aggregation
-        for col in metrics.select_dtypes(include=['float64']).columns:
-            metrics[col] = metrics[col].astype(np.float32)
-            
-        for col in metrics.select_dtypes(include=['int64']).columns:
-            if col != 'id_student':  # Preserve id_student as original type
-                metrics[col] = metrics[col].astype(np.int32)
-        
-        # Delete intermediate columns to save memory
-        del metrics['date_min']
-        del metrics['date_max']
-        
-        # Force garbage collection
-        import gc
-        gc.collect()
-        
-        return metrics
-        
-    except Exception as e:
-        logger.error(f"Error creating window features: {str(e)}")
-        raise
-
-def _monitor_demographic_distribution(
-    features: pd.DataFrame,
-    window_size: int,
-    protected_attributes: List[str]
-) -> None:
-    """Monitors feature distributions across demographic groups."""
-    try:
-        for attr in protected_attributes:
-            if attr not in features.columns:
-                continue
-                
-            # Calculate engagement metrics by group
-            group_metrics = features.groupby(attr).agg({
-                'total_clicks': ['mean', 'std'],
-                'avg_clicks': ['mean', 'std'],
-                'unique_resources': ['mean', 'std']
+            stats = pd.DataFrame({
+                'count': resampled.count(),
+                'mean': resampled.mean(),
+                'std': resampled.std(),
+                'min': resampled.min(),
+                'max': resampled.max()
             })
             
-            # Calculate disparity metrics
-            for metric in ['total_clicks', 'avg_clicks', 'unique_resources']:
-                max_mean = group_metrics[(metric, 'mean')].max()
-                min_mean = group_metrics[(metric, 'mean')].min()
-                disparity = (max_mean - min_mean) / max_mean if max_mean != 0 else 0
+            if group_key is not None:
+                stats['group'] = group_key
                 
-                if disparity > FAIRNESS['threshold']:
-                    logger.warning(
-                        f"High demographic disparity detected in window {window_size} "
-                        f"for {attr} in {metric}: {disparity:.2f}"
-                    )
-                    
-                    # Log group-specific statistics
-                    logger.info(
-                        f"Group statistics for {metric} in window {window_size}:\n"
-                        f"{group_metrics[metric]}"
-                    )
-                    
+            stats_dfs.append(stats)
+            
+        # Combine all statistics
+        combined_stats = pd.concat(stats_dfs)
+        
+        return combined_stats
+        
     except Exception as e:
-        logger.error(f"Error monitoring demographic distribution: {str(e)}")
+        logger.error(f"Error calculating time-based statistics: {str(e)}")
         raise
 
-def validate_temporal_parameters(params: Dict) -> bool:
+def create_temporal_features(
+    data: pd.DataFrame,
+    student_ids: Dict[str, List[str]],
+    window_sizes: Optional[List[int]] = None,
+    module_info: Optional[pd.DataFrame] = None,
+    logger: Optional[logging.Logger] = None
+) -> Dict[str, pd.DataFrame]:
     """
-    Validates temporal feature parameters.
+    Create temporal features for each data split.
     
     Args:
-        params: Dictionary containing parameters for temporal feature generation
+        data: DataFrame with VLE interaction data
+        student_ids: Dictionary mapping split names to lists of student IDs
+        window_sizes: List of window sizes for temporal features
+        module_info: Optional DataFrame with module registration info
+        logger: Logger instance
         
     Returns:
-        bool: True if parameters are valid, False otherwise
+        Dictionary containing temporal features for each split
     """
     try:
-        window_sizes = params.get('window_sizes', FEATURE_ENGINEERING['window_sizes'])
+        if logger is None:
+            logger = logging.getLogger('edupredict')
+            
+        if window_sizes is None:
+            window_sizes = FEATURE_ENGINEERING['window_sizes']
+            
+        # Initialize temporal processor
+        processor = TemporalFeatureProcessor(
+            time_windows=window_sizes,
+            enable_lag_features=TEMPORAL_CONFIG.get('enable_lag_features', True),
+            max_lag=TEMPORAL_CONFIG.get('max_lag', 3)
+        )
         
-        # Check window sizes are positive integers
-        if not all(isinstance(w, int) and w > 0 for w in window_sizes):
-            logger.error("Window sizes must be positive integers")
-            return False
+        # Process each split
+        results = {}
+        for split_name, split_ids in student_ids.items():
+            logger.info(f"Creating temporal features for {split_name} split...")
             
-        # Check window sizes are in ascending order
-        if sorted(window_sizes) != window_sizes:
-            logger.warning("Window sizes should be in ascending order")
+            # Filter data for this split
+            split_data = data[data['id_student'].isin(split_ids)].copy()
             
-        # Check for reasonable window size ranges
-        min_window = min(window_sizes)
-        max_window = max(window_sizes)
-        if min_window < 1 or max_window > 365:
-            logger.warning(
-                f"Window sizes ({min_window}, {max_window}) outside "
-                "recommended range (1-365 days)"
+            # Add module context if available
+            if module_info is not None:
+                split_data = pd.merge(
+                    split_data,
+                    module_info[['id_student', 'date_registration']],
+                    on='id_student',
+                    how='left'
+                )
+                split_data['time_since_registration'] = split_data['date'] - split_data['date_registration']
+            
+            # Generate temporal features
+            temporal_features = processor.fit_transform(
+                data=split_data,
+                time_column='date',
+                target_columns=['sum_click', 'time_since_registration'] if module_info is not None else ['sum_click'],
+                group_columns=['id_student', 'code_module']
             )
             
-        return True
+            results[split_name] = temporal_features
+            logger.info(f"Created {len(temporal_features.columns)} temporal features for {split_name}")
+            
+        return results
         
     except Exception as e:
-        logger.error(f"Error validating temporal parameters: {str(e)}")
-        return False
+        if logger:
+            logger.error(f"Error creating temporal features: {str(e)}")
+        raise
