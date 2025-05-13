@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import gc  # Add gc import
 from typing import Dict, List, Optional, Union
 import logging
 import json
@@ -50,80 +51,136 @@ class TemporalFeatureProcessor:
         group_columns: Optional[List[str]] = None
     ) -> pd.DataFrame:
         """
-        Generate temporal features from the data.
-        
-        Args:
-            data: Input DataFrame
-            time_column: Name of the timestamp column
-            target_columns: Columns to generate features for
-            group_columns: Columns to group by (e.g., student_id)
-            
-        Returns:
-            DataFrame with temporal features
+        Generate temporal features from the data with optimized memory usage.
+        Properly handles pre-module dates (negative values) and post-module dates.
         """
         try:
-            # Sort data by time
-            data = data.sort_values(time_column)
+            # Sort data by time while preserving negative dates
+            data = data.sort_values([time_column])
             
-            # Initialize results DataFrame
+            # Initialize results DataFrame with index only
             result_features = pd.DataFrame(index=data.index)
             
             # Group data if group columns specified
             if group_columns:
-                groups = data.groupby(group_columns)
+                groups = data.groupby(group_columns, observed=True)  # Add observed=True for categorical columns
+                total_groups = len(groups)
             else:
                 groups = [(None, data)]
+                total_groups = 1
+                
+            total_steps = len(target_columns) * len(self.time_windows) * total_groups
+            logger.info(f"Generating temporal features: {total_steps} total operations")
             
-            logger.info(f"Generating temporal features for {len(target_columns)} columns")
-            
-            for target_col in track_progress(target_columns):
-                # Create rolling window features
-                for window in self.time_windows:
-                    for group_key, group_data in groups:
-                        # Calculate rolling statistics
-                        rolling = group_data[target_col].rolling(
-                            window=window,
-                            min_periods=1
-                        )
-                        
-                        # Apply aggregation functions
-                        for func in self.aggregation_functions:
-                            feature_name = f"{target_col}_{func}_{window}d"
+            # Process features in chunks for each target column
+            for target_col in track_progress(target_columns, desc="Processing columns"):
+                window_features = {}
+                
+                # Create rolling window features in chunks
+                chunk_size = min(100000, len(data))  # Limit chunk size
+                n_chunks = (len(data) + chunk_size - 1) // chunk_size
+                
+                for chunk_idx in track_progress(range(n_chunks), desc=f"Processing chunks for {target_col}"):
+                    start_idx = chunk_idx * chunk_size
+                    end_idx = min((chunk_idx + 1) * chunk_size, len(data))
+                    chunk_data = data.iloc[start_idx:end_idx].copy()
+                    
+                    # Calculate features for this chunk
+                    for window in self.time_windows:
+                        for group_key, group_data in groups:
+                            group_mask = None if group_key is None else chunk_data.index.isin(group_data.index)
+                            chunk_group_data = chunk_data if group_key is None else chunk_data[group_mask]
+                            
+                            if len(chunk_group_data) == 0:
+                                continue
+                            
+                            # Handle pre-module activity separately
+                            pre_module_mask = chunk_group_data[time_column] < 0
+                            if pre_module_mask.any():
+                                pre_module_data = chunk_group_data[pre_module_mask]
+                                feature_prefix = f"{target_col}_premodule"
+                                if group_key is not None:
+                                    feature_prefix = f"{feature_prefix}_{group_key}"
+                                
+                                window_features.update({
+                                    f"{feature_prefix}_total": pre_module_data[target_col].sum(),
+                                    f"{feature_prefix}_mean": pre_module_data[target_col].mean(),
+                                    f"{feature_prefix}_count": len(pre_module_data)
+                                })
+                                
+                                self.feature_names_.extend([
+                                    f"{feature_prefix}_{stat}" 
+                                    for stat in ['total', 'mean', 'count']
+                                ])
+                            
+                            # Regular rolling window features for all data
+                            rolling = chunk_group_data[target_col].rolling(
+                                window=window,
+                                min_periods=1
+                            )
+                            
+                            feature_prefix = f"{target_col}_{window}d"
                             if group_key is not None:
-                                feature_name = f"{feature_name}_{group_key}"
+                                feature_prefix = f"{feature_prefix}_{group_key}"
                             
-                            if func == 'mean':
-                                result_features[feature_name] = rolling.mean()
-                            elif func == 'std':
-                                result_features[feature_name] = rolling.std()
-                            elif func == 'max':
-                                result_features[feature_name] = rolling.max()
-                            elif func == 'min':
-                                result_features[feature_name] = rolling.min()
+                            # Calculate all aggregations at once
+                            aggs = rolling.agg(['mean', 'std', 'max', 'min'])
+                            for func in ['mean', 'std', 'max', 'min']:
+                                window_features[f"{feature_prefix}_{func}"] = aggs[func]
                             
-                            self.feature_names_.append(feature_name)
+                            self.feature_names_.extend([
+                                f"{feature_prefix}_{func}" 
+                                for func in ['mean', 'std', 'max', 'min']
+                            ])
+                    
+                    # Batch add window features for this chunk
+                    if window_features:
+                        chunk_df = pd.DataFrame(window_features)
+                        chunk_df = chunk_df.ffill().fillna(0)
+                        result_features.loc[chunk_df.index] = chunk_df
+                        
+                        # Clear chunk data
+                        del chunk_df
+                        window_features.clear()
+                        gc.collect()
                 
                 # Create lag features if enabled
                 if self.enable_lag_features:
-                    for lag in range(1, self.max_lag + 1):
-                        for group_key, group_data in groups:
-                            feature_name = f"{target_col}_lag_{lag}"
-                            if group_key is not None:
-                                feature_name = f"{feature_name}_{group_key}"
-                                
-                            result_features[feature_name] = group_data[target_col].shift(lag)
-                            self.feature_names_.append(feature_name)
-                            
-            # Add activity window features
-            for window_name, (start, end) in self.activity_windows.items():
-                mask = (data[time_column] >= start) & (data[time_column] < end)
-                for target_col in target_columns:
-                    feature_name = f"{target_col}_{window_name}"
-                    result_features[feature_name] = data[mask][target_col].agg(self.aggregation_functions)
-                    self.feature_names_.append(feature_name)
+                    lag_features = {}
                     
-            # Calculate temporal statistics
-            self._calculate_temporal_statistics(result_features)
+                    for lag in track_progress(range(1, self.max_lag + 1), desc="Creating lags"):
+                        for chunk_idx in range(n_chunks):
+                            start_idx = chunk_idx * chunk_size
+                            end_idx = min((chunk_idx + 1) * chunk_size, len(data))
+                            chunk_data = data.iloc[start_idx:end_idx].copy()
+                            
+                            for group_key, group_data in groups:
+                                group_mask = None if group_key is None else chunk_data.index.isin(group_data.index)
+                                chunk_group_data = chunk_data if group_key is None else chunk_data[group_mask]
+                                
+                                if len(chunk_group_data) == 0:
+                                    continue
+                                    
+                                feature_name = f"{target_col}_lag_{lag}"
+                                if group_key is not None:
+                                    feature_name = f"{feature_name}_{group_key}"
+                                
+                                # Handle lags across module boundary (negative to positive dates)
+                                series = chunk_group_data[target_col].copy()
+                                lag_features[feature_name] = series.shift(lag)
+                                self.feature_names_.append(feature_name)
+                        
+                        # Batch add lag features
+                        if lag_features:
+                            chunk_df = pd.DataFrame(lag_features)
+                            chunk_df = chunk_df.fillna(0)
+                            result_features.loc[chunk_df.index] = chunk_df
+                            del chunk_df
+                            lag_features.clear()
+                            gc.collect()
+            
+            # Create defragmented copy before returning
+            result_features = result_features.copy()
             
             return result_features
             
@@ -205,7 +262,7 @@ def calculate_time_based_statistics(
         data = data.set_index(time_column)
         
         if group_column:
-            groups = data.groupby(group_column)
+            groups = data.groupby(group_column, observed=False)
         else:
             groups = [(None, data)]
             
@@ -237,8 +294,50 @@ def calculate_time_based_statistics(
         logger.error(f"Error calculating time-based statistics: {str(e)}")
         raise
 
+def calculate_temporal_features(df, window_sizes=[7, 14, 30], features_to_track=None):
+    """Calculate temporal features with pre-allocated DataFrames and reduced memory fragmentation"""
+    if features_to_track is None:
+        numeric_cols = df.select_dtypes(include=['int64', 'float64']).columns
+        features_to_track = [col for col in numeric_cols if col not in ['student_id', 'timestamp']]
+    
+    # Pre-allocate the final DataFrame
+    result_features = pd.DataFrame(index=df.index)
+    
+    for window in window_sizes:
+        # Process features in chunks to reduce memory usage
+        chunk_size = 5  # Process 5 features at a time
+        feature_chunks = [features_to_track[i:i + chunk_size] for i in range(0, len(features_to_track), chunk_size)]
+        
+        for feature_chunk in feature_chunks:
+            chunk_features = {}
+            for feature in feature_chunk:
+                try:
+                    # Create a copy of the series to prevent fragmentation
+                    series = df[feature].copy()
+                    rolling = series.rolling(window=window, min_periods=1)
+                    
+                    # Calculate all statistics at once
+                    chunk_features.update({
+                        f"{feature}_mean_{window}d": rolling.mean(),
+                        f"{feature}_std_{window}d": rolling.std(),
+                        f"{feature}_max_{window}d": rolling.max(),
+                        f"{feature}_min_{window}d": rolling.min()
+                    })
+                except Exception as e:
+                    logger.warning(f"Error calculating features for {feature}: {str(e)}")
+                    continue
+            
+            # Add chunk features to result
+            if chunk_features:
+                result_features = pd.concat([result_features, pd.DataFrame(chunk_features)], axis=1)
+                
+            # Force garbage collection after each chunk
+            gc.collect()
+    
+    return result_features
+
 def create_temporal_features(
-    data: pd.DataFrame,
+    vle_data: pd.DataFrame,
     student_ids: Dict[str, List[str]],
     window_sizes: Optional[List[int]] = None,
     module_info: Optional[pd.DataFrame] = None,
@@ -246,24 +345,11 @@ def create_temporal_features(
 ) -> Dict[str, pd.DataFrame]:
     """
     Create temporal features for each data split.
-    
-    Args:
-        data: DataFrame with VLE interaction data
-        student_ids: Dictionary mapping split names to lists of student IDs
-        window_sizes: List of window sizes for temporal features
-        module_info: Optional DataFrame with module registration info
-        logger: Logger instance
-        
-    Returns:
-        Dictionary containing temporal features for each split
     """
     try:
-        if logger is None:
-            logger = logging.getLogger('edupredict')
-            
-        if window_sizes is None:
-            window_sizes = FEATURE_ENGINEERING['window_sizes']
-            
+        logger = logger or logging.getLogger('edupredict')
+        window_sizes = window_sizes or FEATURE_ENGINEERING['window_sizes']
+        
         # Initialize temporal processor
         processor = TemporalFeatureProcessor(
             time_windows=window_sizes,
@@ -271,13 +357,19 @@ def create_temporal_features(
             max_lag=TEMPORAL_CONFIG.get('max_lag', 3)
         )
         
-        # Process each split
+        # Process each split with progress tracking
         results = {}
+        
         for split_name, split_ids in student_ids.items():
             logger.info(f"Creating temporal features for {split_name} split...")
             
             # Filter data for this split
-            split_data = data[data['id_student'].isin(split_ids)].copy()
+            split_data = vle_data[vle_data['id_student'].isin(split_ids)].copy()
+            if len(split_data) == 0:
+                logger.warning(f"No VLE data found for {split_name} split!")
+                continue
+                
+            logger.info(f"Processing {len(split_data):,} interactions for {split_name}")
             
             # Add module context if available
             if module_info is not None:
@@ -289,20 +381,35 @@ def create_temporal_features(
                 )
                 split_data['time_since_registration'] = split_data['date'] - split_data['date_registration']
             
-            # Generate temporal features
-            temporal_features = processor.fit_transform(
-                data=split_data,
-                time_column='date',
-                target_columns=['sum_click', 'time_since_registration'] if module_info is not None else ['sum_click'],
-                group_columns=['id_student', 'code_module']
-            )
+            # Process features in chunks
+            chunk_size = min(100000, len(split_data))
+            chunks = [split_data[i:i + chunk_size] for i in range(0, len(split_data), chunk_size)]
             
-            results[split_name] = temporal_features
-            logger.info(f"Created {len(temporal_features.columns)} temporal features for {split_name}")
+            split_features = []
+            for i, chunk in enumerate(chunks, 1):
+                logger.info(f"Processing chunk {i}/{len(chunks)} for {split_name}")
+                
+                # Generate temporal features for this chunk
+                chunk_features = processor.fit_transform(
+                    data=chunk,
+                    time_column='date',
+                    target_columns=['sum_click'],
+                    group_columns=['id_student', 'code_module']
+                )
+                
+                split_features.append(chunk_features)
+                gc.collect()  # Force garbage collection after each chunk
             
+            # Combine chunks
+            results[split_name] = pd.concat(split_features, axis=0)
+            logger.info(f"Created {len(results[split_name].columns)} features for {split_name}")
+            
+            # Clear memory
+            del split_features
+            gc.collect()
+        
         return results
         
     except Exception as e:
-        if logger:
-            logger.error(f"Error creating temporal features: {str(e)}")
+        logger.error(f"Error creating temporal features: {str(e)}")
         raise

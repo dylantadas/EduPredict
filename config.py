@@ -80,6 +80,9 @@ TEMPORAL_CONFIG = {
         'mid_phase': [60, 120],  # Middle third
         'late_phase': [120, 180]  # Final third
     },
+    'padding_strategy': 'pre',  # Strategy for padding sequences ('pre' or 'post')
+    'truncating_strategy': 'pre',  # Strategy for truncating sequences ('pre' or 'post')
+    'normalize_sequences': True,  # Whether to normalize sequence values
     'assessment_timing': {
         'max_early_days': 7,  # Maximum days an assessment can be due before module starts
         'min_gap_days': 6,    # Minimum days between assessments
@@ -113,11 +116,118 @@ PRESENTATION_CODES = {
     }
 }
 
-# Feature engineering parameters
+# Feature engineering configuration
 FEATURE_ENGINEERING = {
-    "window_sizes": [7, 14, 30],
+    "window_sizes": [7, 14, 30],  # weekly, bi-weekly, monthly
+    "max_seq_length": 100,
+    "min_importance": 0.01,
     "correlation_threshold": 0.85,
-    "importance_threshold": 0.01
+    "categorical_cols": [
+        "code_module",
+        "code_presentation",
+        "gender",
+        "age_band",
+        "imd_band",
+        "region",
+        "highest_education",
+        "disability"
+    ],
+    "sequential_categorical_cols": [
+        "activity_type",
+        "assessment_type"
+    ],
+    "sequential_processing": {
+        "padding_strategy": "pre",
+        "truncating_strategy": "pre",
+        "normalize_sequences": True,
+        "session_gap_days": 0.125,  # 3 hours between sessions
+        "max_seq_length": 100,
+        "feature_columns": [
+            "type",
+            "activity_type",
+            "is_pre_module",
+            "week_number",
+            "day_of_week",
+            "is_assessment",
+            "effective_score"
+        ],
+        "auxiliary_features": [
+            "sequence_length",
+            "interaction_count",
+            "avg_interactions_per_step",
+            "total_clicks",
+            "avg_score",
+            "submission_count"
+        ],
+        "vle_activity_weights": {
+            "resource": 1.0,
+            "url": 1.0,
+            "quiz": 2.0,
+            "forum": 1.5,
+            "oucontent": 1.0,
+            "subpage": 1.0,
+            "homepage": 0.5,
+            "page": 1.0,
+            "questionnaire": 1.5,
+            "ouelluminate": 2.0,
+            "sharedsubpage": 1.0,
+            "externalquiz": 2.0,
+            "dataplus": 1.5,
+            "glossary": 1.0,
+            "htmlactivity": 1.5,
+            "oucollaborate": 2.0,
+            "dualpane": 1.0
+        }
+    },
+    "standardize_numeric": True,  # Added standardization flag
+    "numeric_cols": [
+        "studied_credits",
+        "num_of_prev_attempts",
+        "score",
+        "weight",
+        "date",
+        "sum_click"
+    ],
+    "missing_value_strategy": {
+        "numeric": "median",
+        "categorical": "mode",
+        "datetime": "drop"
+    },
+    "target_encoding": {
+        "column": "final_result",
+        "encoding": {
+            "Distinction": 0,  # not at risk
+            "Pass": 0,        # not at risk
+            "Fail": 1,        # at risk
+            "Withdrawn": 1    # at risk
+        },
+        "description": {
+            0: "not at risk (Pass/Distinction)",
+            1: "at risk (Fail/Withdrawn)"
+        }
+    },
+    "one_hot_encoding": True,
+    "activity_windows": {
+        "early": (0, 30),
+        "mid": (31, 150),
+        "late": (151, 240)
+    },
+    "standardization": {
+        "method": "standard",  # Options: 'standard', 'minmax', 'robust'
+        "exclude_cols": [
+            "id_student",
+            "final_result",
+            "code_module",
+            "code_presentation"
+        ],
+        "handle_outliers": True,
+        "outlier_threshold": 3  # Standard deviations for outlier detection
+    },
+    "target_handling": {
+        "encode_before_standardization": True,
+        "exclude_from_standardization": ["final_result"],
+        "preserve_columns": ["id_student", "code_module", "code_presentation", "final_result"]
+    }
 }
 
 # Model parameters

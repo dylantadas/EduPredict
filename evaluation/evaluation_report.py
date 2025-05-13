@@ -515,87 +515,6 @@ def compare_model_versions(
         return pd.DataFrame(columns=['model'] + metrics_to_compare)
 
 
-def export_evaluation_results(
-    results: Dict[str, Any], 
-    filepath: str
-) -> None:
-    """
-    Exports evaluation results to file.
-    
-    Args:
-        results: Dictionary of evaluation results
-        filepath: Path to save results
-        
-    Returns:
-        None
-    """
-    logger.info(f"Exporting evaluation results to {filepath}")
-    
-    # Ensure directory exists
-    output_dir = os.path.dirname(filepath)
-    os.makedirs(output_dir, exist_ok=True)
-    
-    # Convert numpy arrays and other non-serializable objects to lists or strings
-    def make_serializable(obj):
-        if isinstance(obj, np.ndarray):
-            return obj.tolist()
-        elif isinstance(obj, pd.DataFrame):
-            return obj.to_dict('records')
-        elif isinstance(obj, pd.Series):
-            return obj.to_dict()
-        elif isinstance(obj, np.integer):
-            return int(obj)
-        elif isinstance(obj, np.floating):
-            return float(obj)
-        elif isinstance(obj, (set, tuple)):
-            return list(obj)
-        elif hasattr(obj, '__dict__'):
-            return str(obj)
-        else:
-            return obj
-    
-    # Process dictionary recursively
-    def process_dict(d):
-        result = {}
-        for k, v in d.items():
-            if isinstance(v, dict):
-                result[k] = process_dict(v)
-            elif isinstance(v, list):
-                result[k] = [make_serializable(item) if not isinstance(item, dict) else process_dict(item) for item in v]
-            else:
-                result[k] = make_serializable(v)
-        return result
-    
-    # Create serializable version of results
-    serializable_results = process_dict(results)
-    
-    # Add metadata
-    serializable_results['metadata'] = {
-        'timestamp': datetime.now().isoformat(),
-        'format_version': '1.0'
-    }
-    
-    # Save to file
-    try:
-        ext = os.path.splitext(filepath)[1].lower()
-        
-        if ext == '.json':
-            with open(filepath, 'w') as f:
-                json.dump(serializable_results, f, indent=2)
-        elif ext == '.csv' and 'metrics' in serializable_results:
-            # If it's a CSV, try to convert main metrics to a dataframe
-            metrics_df = pd.DataFrame([serializable_results['metrics']])
-            metrics_df.to_csv(filepath, index=False)
-        else:
-            # Default to JSON with custom extension
-            with open(filepath, 'w') as f:
-                json.dump(serializable_results, f, indent=2)
-        
-        logger.info(f"Evaluation results exported to {filepath}")
-    except Exception as e:
-        logger.error(f"Error exporting evaluation results: {str(e)}")
-
-
 def run_reporting_pipeline(
     data_results: Dict[str, Any],
     feature_results: Dict[str, Any],
@@ -674,3 +593,181 @@ def run_reporting_pipeline(
     except Exception as e:
         logger.error(f"Error in reporting pipeline: {str(e)}")
         raise
+
+
+def generate_evaluation_report(
+    rf_results: Dict[str, Any],
+    gru_results: Dict[str, Any],
+    ensemble_results: Dict[str, Any],
+    explanations: Dict[str, Any],
+    output_path: Optional[str] = None,
+    logger: Optional[logging.Logger] = None
+) -> str:
+    """
+    Generate comprehensive evaluation report including model performance, fairness, and explanations.
+    
+    Args:
+        rf_results: Results from Random Forest model
+        gru_results: Results from GRU model
+        ensemble_results: Results from ensemble model
+        explanations: Model explanations
+        output_path: Path to save report
+        logger: Logger instance
+        
+    Returns:
+        Path to saved report
+    """
+    if logger is None:
+        logger = logging.getLogger('edupredict2')
+        
+    logger.info("Generating comprehensive evaluation report")
+    
+    report_lines = []
+    report_lines.append("# EduPredict Model Evaluation Report")
+    report_lines.append(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+    
+    # Model Performance Summary
+    report_lines.append("## Model Performance Summary")
+    
+    # Add performance comparison table
+    report_lines.append("\n### Performance Metrics Comparison")
+    report_lines.append("\n| Model | Accuracy | Precision | Recall | F1 Score | AUC-ROC |")
+    report_lines.append("|-------|----------|-----------|--------|----------|---------|")
+    
+    models = {
+        'Random Forest': rf_results,
+        'GRU': gru_results,
+        'Ensemble': ensemble_results
+    }
+    
+    for model_name, results in models.items():
+        if results and 'metrics' in results:
+            metrics = results['metrics'].get('test', results['metrics'])
+            row = [
+                metrics.get('accuracy', 'N/A'),
+                metrics.get('precision', 'N/A'),
+                metrics.get('recall', 'N/A'),
+                metrics.get('f1', 'N/A'),
+                metrics.get('auc_roc', 'N/A')
+            ]
+            # Format floating point values
+            row = [f"{v:.4f}" if isinstance(v, float) else str(v) for v in row]
+            report_lines.append(f"| {model_name} | {' | '.join(row)} |")
+    
+    # Random Forest Analysis
+    report_lines.append("\n## Random Forest Model Analysis")
+    
+    if rf_results:
+        # Feature importance
+        if 'feature_importance' in rf_results:
+            report_lines.append("\n### Top Feature Importance")
+            sorted_features = sorted(
+                rf_results['feature_importance'].items(),
+                key=lambda x: x[1],
+                reverse=True
+            )[:10]
+            
+            report_lines.append("\n| Feature | Importance |")
+            report_lines.append("|---------|------------|")
+            for feature, importance in sorted_features:
+                report_lines.append(f"| {feature} | {importance:.4f} |")
+            
+        # Add RF explanations
+        if explanations and 'rf' in explanations:
+            rf_exp = explanations['rf']
+            if 'global_explanations' in rf_exp:
+                report_lines.append("\n### Global Model Explanations")
+                global_exp = rf_exp['global_explanations']
+                if 'insights' in global_exp:
+                    report_lines.append("\nKey Insights:")
+                    for insight in global_exp['insights']:
+                        report_lines.append(f"- {insight['message']}")
+    
+    # GRU Model Analysis
+    report_lines.append("\n## GRU Model Analysis")
+    
+    if gru_results:
+        # Sequence metrics if available
+        if 'sequence_metrics' in gru_results:
+            report_lines.append("\n### Sequence-level Performance")
+            seq_metrics = gru_results['sequence_metrics'].get('test', {})
+            for metric, value in seq_metrics.items():
+                if isinstance(value, (int, float)):
+                    report_lines.append(f"- {metric}: {value:.4f}")
+        
+        # Add GRU attention analysis
+        if explanations and 'gru' in explanations:
+            gru_exp = explanations['gru']
+            if 'attention_explanations' in gru_exp:
+                report_lines.append("\n### Attention Analysis")
+                report_lines.append("\nVisualization paths:")
+                for path in gru_exp.get('visualization_paths', []):
+                    report_lines.append(f"- {path}")
+    
+    # Ensemble Analysis
+    report_lines.append("\n## Ensemble Model Analysis")
+    
+    if ensemble_results:
+        # Ensemble weights
+        if 'weights' in ensemble_results:
+            weights = ensemble_results['weights']
+            report_lines.append("\n### Model Weights")
+            report_lines.append(f"- Random Forest weight: {weights.get('rf_weight', 'N/A'):.4f}")
+            report_lines.append(f"- GRU weight: {weights.get('gru_weight', 'N/A'):.4f}")
+            report_lines.append(f"- Classification threshold: {weights.get('threshold', 'N/A'):.4f}")
+    
+    # Fairness Analysis
+    report_lines.append("\n## Fairness Analysis")
+    
+    for model_name, results in models.items():
+        if results and 'fairness_metrics' in results:
+            report_lines.append(f"\n### {model_name} Fairness Metrics")
+            fairness_metrics = results['fairness_metrics']
+            
+            for attr, metrics in fairness_metrics.items():
+                report_lines.append(f"\n#### {attr}")
+                for metric_name, value in metrics.items():
+                    if isinstance(value, (int, float)):
+                        report_lines.append(f"- {metric_name}: {value:.4f}")
+    
+    # Recommendations
+    report_lines.append("\n## Recommendations")
+    
+    # Performance-based recommendations
+    if ensemble_results and 'metrics' in ensemble_results:
+        metrics = ensemble_results['metrics'].get('test', ensemble_results['metrics'])
+        accuracy = metrics.get('accuracy', 0)
+        
+        report_lines.append("\n### Performance Recommendations")
+        if accuracy < 0.7:
+            report_lines.append("- Model performance needs significant improvement. Consider:")
+            report_lines.append("  - Feature engineering to create more informative predictors")
+            report_lines.append("  - Collecting additional training data")
+            report_lines.append("  - Experimenting with different model architectures")
+        elif accuracy < 0.8:
+            report_lines.append("- Model performance is acceptable but could be improved. Consider:")
+            report_lines.append("  - Fine-tuning model hyperparameters")
+            report_lines.append("  - Ensemble weight optimization")
+        else:
+            report_lines.append("- Model performance is good. Focus on:")
+            report_lines.append("  - Maintaining performance across demographic groups")
+            report_lines.append("  - Monitoring for concept drift")
+    
+    # Save report
+    report_text = "\n".join(report_lines)
+    
+    if output_path:
+        try:
+            output_path = Path(output_path)
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            
+            with open(output_path, 'w') as f:
+                f.write(report_text)
+                
+            logger.info(f"Evaluation report saved to {output_path}")
+            return str(output_path)
+            
+        except Exception as e:
+            logger.error(f"Error saving evaluation report: {str(e)}")
+            
+    return report_text

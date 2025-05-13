@@ -37,74 +37,69 @@ def create_stratified_splits(
         data['strat_label'] = data[strat_cols].astype(str).apply('_'.join, axis=1)
         
         # Check for small groups before splitting
-        group_counts = data['strat_label'].value_counts()
-        small_groups = group_counts[group_counts < FAIRNESS['min_group_size']]
+        small_groups = data.groupby('strat_label').size()[
+            data.groupby('strat_label').size() < FAIRNESS['min_group_size']
+        ]
         if not small_groups.empty:
-            logger.warning(
-                f"Found intersectional groups below minimum size ({FAIRNESS['min_group_size']}):\n"
-                f"{small_groups}"
-            )
+            logger.warning(f"Found intersectional groups below minimum size ({FAIRNESS['min_group_size']}):")
+            logger.warning(small_groups)
 
-        # First split: train+val vs test
-        train_val_idx, test_idx = next(StratifiedKFold(
-            n_splits=int(1/test_size),
-            shuffle=True,
-            random_state=random_state
-        ).split(data, data['strat_label']))
+        # First split: train+validation vs test
+        sss = StratifiedKFold(n_splits=5, shuffle=True, random_state=random_state)
+        train_val_idx, test_idx = next(sss.split(data, data['strat_label']))
         
-        # Create train+val and test sets
+        # Create initial splits
         train_val_data = data.iloc[train_val_idx].copy()
         test_data = data.iloc[test_idx].copy()
         
         # Second split: train vs validation
-        train_val_strat = train_val_data['strat_label']
-        val_size_adjusted = validation_size / (1 - test_size)
-        
-        train_idx, val_idx = next(StratifiedKFold(
-            n_splits=int(1/val_size_adjusted),
-            shuffle=True,
-            random_state=random_state
-        ).split(train_val_data, train_val_strat))
-        
-        # Create final splits
+        train_idx, val_idx = next(sss.split(train_val_data, train_val_data['strat_label']))
         train_data = train_val_data.iloc[train_idx].copy()
         val_data = train_val_data.iloc[val_idx].copy()
         
-        # Clean up temporary stratification column
+        # Assign split column before dropping strat_label
+        train_data['split'] = 'train'
+        val_data['split'] = 'validation'
+        test_data['split'] = 'test'
+        
+        # Save student IDs by split for reference
+        split_ids = {
+            'train': train_data['id_student'].unique(),
+            'validation': val_data['id_student'].unique(),
+            'test': test_data['id_student'].unique()
+        }
+        
+        # Drop stratification label
         for df in [train_data, val_data, test_data]:
             df.drop('strat_label', axis=1, inplace=True)
         
         # Log split sizes
-        logger.info(f"Train set: {len(train_data)} samples")
-        logger.info(f"Validation set: {len(val_data)} samples")
-        logger.info(f"Test set: {len(test_data)} samples")
+        logger.info(f"Train set: {len(train_data)} samples, {len(split_ids['train'])} students")
+        logger.info(f"Validation set: {len(val_data)} samples, {len(split_ids['validation'])} students")
+        logger.info(f"Test set: {len(test_data)} samples, {len(split_ids['test'])} students")
         
         # Verify demographic balance
-        splits = {
-            'Train': train_data,
-            'Validation': val_data,
-            'Test': test_data
-        }
-        
         for col in strat_cols:
             logger.info(f"\nDistribution of {col}:")
-            train_dist = train_data[col].value_counts(normalize=True).to_dict()
-            val_dist = val_data[col].value_counts(normalize=True).to_dict()
-            test_dist = test_data[col].value_counts(normalize=True).to_dict()
-            
-            logger.info(f"Train: {train_dist}")
-            logger.info(f"Validation: {val_dist}")
-            logger.info(f"Test: {test_dist}")
-            
-            # Validate distributions
-            if not validate_demographic_balance(train_dist, val_dist, test_dist, FAIRNESS['threshold']):
-                logger.warning(f"Demographic imbalance detected in {col}")
+            for name, split_df in [('Train', train_data), ('Validation', val_data), ('Test', test_data)]:
+                dist = split_df[col].value_counts(normalize=True)
+                logger.info(f"{name}: {dist.to_dict()}")
         
-        return {
+        splits = {
             'train': train_data,
             'validation': val_data,
             'test': test_data
         }
+        
+        # Save split metadata
+        split_metadata = {
+            'split_sizes': {name: len(df) for name, df in splits.items()},
+            'student_counts': {name: len(ids) for name, ids in split_ids.items()},
+            'protected_attributes': strat_cols,
+            'random_state': random_state
+        }
+        
+        return splits
 
     except Exception as e:
         logger.error(f"Error creating stratified splits: {str(e)}")

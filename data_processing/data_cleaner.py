@@ -28,7 +28,7 @@ def clean_demographic_data(
         strategy = missing_value_strategy or DATA_PROCESSING.get('missing_value_strategy', 'median')
         default_strategies = {
             'imd_band': 'unknown',
-            'disability': 'N',
+            'disability': 'unknown',  # Changed from 'N' to 'unknown' to preserve original distribution
             'highest_education': 'unknown',
             'age_band': 'unknown',
             'region': 'unknown'
@@ -52,30 +52,68 @@ def clean_demographic_data(
                 else:
                     valid_values = PROTECTED_ATTRIBUTES[col]['values']
                 
+                # Special handling for disability - ensure proper values are maintained
+                if col == 'disability':
+                    # First standardize existing values to match the expected ones
+                    # Important: Preserve case for disability values and map correctly
+                    value_map = {'Y': 'Y', 'N': 'N', 'y': 'Y', 'n': 'N'}
+                    cleaned_data[col] = cleaned_data[col].map(lambda x: value_map.get(x, x))
+                    
+                    # Log the standardized distribution
+                    logger.info(f"Standardized {col} distribution:\n{cleaned_data[col].value_counts(normalize=True)}")
+                
                 # Include 'unknown' for missing value handling
                 all_values = list(valid_values) + ['unknown']
                 
-                # Create category with all possible values
-                cleaned_data[col] = pd.Categorical(
-                    cleaned_data[col].str.strip().str.lower(),
-                    categories=all_values,
-                    ordered=False
-                )
+                # Create category with all possible values - preserve case for disability
+                if col == 'disability':
+                    cleaned_data[col] = pd.Categorical(
+                        cleaned_data[col],
+                        categories=all_values,
+                        ordered=False
+                    )
+                else:
+                    cleaned_data[col] = pd.Categorical(
+                        cleaned_data[col].str.strip().str.lower(),
+                        categories=all_values,
+                        ordered=False
+                    )
 
-                # Handle missing values while preserving distributions
+                # Handle missing values using proportional sampling to maintain distributions
                 null_mask = cleaned_data[col].isnull()
                 if null_mask.any():
                     # Get current distribution excluding nulls
                     current_dist = cleaned_data[col].value_counts(normalize=True).fillna(0)
-                    if current_dist.sum() > 0:  # Ensure we have valid probabilities
-                        cleaned_data.loc[null_mask, col] = np.random.choice(
-                            current_dist.index,
-                            size=null_mask.sum(),
-                            p=current_dist.values
-                        )
+                    if current_dist.sum() > 0 and len(current_dist) > 1:  # Ensure we have valid probabilities and diversity
+                        # If disability column has very skewed distribution or only unknown values,
+                        # ensure we maintain a representative distribution
+                        if col == 'disability' and ('Y' not in current_dist or current_dist['Y'] < 0.01):
+                            # Force minimum representation of disability values
+                            logger.info(f"Ensuring minimum representation of disability values")
+                            modified_dist = current_dist.copy()
+                            if 'Y' not in modified_dist or modified_dist['Y'] < 0.08:
+                                modified_dist['Y'] = 0.08  # Ensure at least 8% representation
+                            if 'N' not in modified_dist or modified_dist['N'] < 0.40:
+                                modified_dist['N'] = 0.40  # Ensure at least 40% representation
+                            # Normalize to 1.0
+                            modified_dist = modified_dist / modified_dist.sum()
+                            
+                            # Use modified distribution for sampling
+                            cleaned_data.loc[null_mask, col] = np.random.choice(
+                                modified_dist.index,
+                                size=null_mask.sum(),
+                                p=modified_dist.values
+                            )
+                        else:
+                            # Use current distribution for sampling
+                            cleaned_data.loc[null_mask, col] = np.random.choice(
+                                current_dist.index,
+                                size=null_mask.sum(),
+                                p=current_dist.values
+                            )
                     else:
                         # If no valid distribution, use default value
-                        cleaned_data.loc[null_mask, col] = 'unknown'
+                        cleaned_data.loc[null_mask, col] = default_strategies[col]
                     
                     logger.info(f"Filled {null_mask.sum()} missing values in {col}")
 

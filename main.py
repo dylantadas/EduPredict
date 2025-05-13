@@ -47,20 +47,24 @@ from data_processing.data_monitor import detect_data_quality_issues, analyze_tem
 # Feature engineering imports
 from feature_engineering.categorical_encoder import CategoricalEncoder
 from feature_engineering.demographic_features import create_demographic_features
-from feature_engineering.sequential_features import create_sequential_features
+from feature_engineering.sequential_features import (
+    create_sequential_features,
+    SequentialFeatureProcessor
+)
 from feature_engineering.temporal_features import create_temporal_features
 from feature_engineering.feature_selector import (
+    FeatureSelector,
     analyze_feature_importance,
-    analyze_feature_correlations,
-    remove_correlated_features,
-    select_features_by_importance,
-    analyze_demographic_impact,
-    export_feature_metadata
+    analyze_feature_correlations
 )
 
 # Model imports
 from model_implementation.random_forest_model import RandomForestModel
-from model_implementation.gru_model import GRUModel, plot_training_history, visualize_attention_weights
+from model_implementation.gru_model import (
+    GRUModel,
+    tune_gru_model,
+    find_optimal_threshold
+)
 from model_implementation.sequence_preprocessor import SequencePreprocessor
 from ensemble.ensemble_model import EnsembleModel
 from ensemble.prediction_combiner import optimize_ensemble_weights, PredictionCombiner
@@ -73,10 +77,10 @@ from evaluation.performance_metrics import (
 )
 from evaluation.fairness_metrics import evaluate_model_fairness, analyze_subgroup_fairness, calculate_fairness_metrics
 from evaluation.fairness_analysis import analyze_bias_patterns
-from evaluation.evaluation_report import generate_fairness_report, run_reporting_pipeline
+from evaluation.evaluation_report import generate_fairness_report, run_reporting_pipeline, generate_evaluation_report, generate_performance_report, compare_model_versions
 from evaluation.cross_validation import perform_cross_validation
-from evaluation.bias_mitigation import apply_threshold_adjustment, apply_reweighting
-from evaluation.model_explainer import explain_model_predictions, generate_explanation_plots
+from evaluation.bias_mitigation import apply_reweighting
+from evaluation.model_explainer import generate_global_explanations, create_feature_impact_visualizations
 
 # Visualization imports
 from visualization.performance_visualizer import (
@@ -111,7 +115,7 @@ from config import (
     DIRS, DATA_PROCESSING, FEATURE_ENGINEERING, 
     FAIRNESS, PROTECTED_ATTRIBUTES,
     LOG_DIR, LOG_LEVEL, RANDOM_SEED, OUTPUT_DIR,
-    GRU_CONFIG, RF_CONFIG, ENSEMBLE_CONFIG
+    GRU_CONFIG, RF_CONFIG
 )
 
 # Custom JSON encoder for numpy types
@@ -183,6 +187,12 @@ def parse_arguments() -> argparse.Namespace:
         '--load-features',
         action='store_true',
         help='Load pre-engineered features (skip feature engineering)'
+    )
+    
+    parser.add_argument(
+        '--use-full-dataset',
+        action='store_true',
+        help='Use the full dataset instead of sampling'
     )
     
     # Fairness and visualization options
@@ -332,6 +342,23 @@ def run_data_processing_workflow(
             for rec in quality_report['recommendations']:
                 logger.warning(f"- {rec}")
         
+        # Apply fairness-aware sampling by default unless full dataset is requested
+        if not args.use_full_dataset:
+            sample_size = DATA_PROCESSING.get('sample_size', 5000)
+            logger.info(f"Using fairness-aware sampling with sample size: {sample_size}")
+            
+            # Create balanced sample using protected attributes
+            from data_processing.data_loader import create_fairness_aware_sample
+            datasets = create_fairness_aware_sample(
+                datasets,
+                sample_size=sample_size,
+                random_state=RANDOM_SEED,
+                logger=logger
+            )
+            logger.info(f"Using sampled dataset with {len(datasets['student_info'])} students")
+        else:
+            logger.info(f"Using full dataset with {len(datasets['student_info'])} students")
+        
         # Clean datasets with progress tracking
         logger.info("Cleaning datasets...")
         clean_data = {}
@@ -441,88 +468,37 @@ def run_feature_engineering(
     args: argparse.Namespace,
     logger: logging.Logger
 ) -> Dict[str, Any]:
-    """
-    Execute the feature engineering pipeline.
-    
-    Args:
-        data_results: Results from data processing
-        dirs: Directory paths
-        args: Command-line arguments
-        logger: Logger instance
-        
-    Returns:
-        Dictionary containing engineered features and metadata
-    """
+    """Run feature engineering workflow with proper sequence processing"""
     try:
+        # Get processed data directory and splits
+        processed_dir = dirs['processed_data']
         clean_data = data_results.get('clean_data', {})
         splits = data_results.get('splits', {})
-        
-        if not clean_data or not splits:
-            raise ValueError("Missing required data processing results")
-            
-        # Initialize result dictionary
-        feature_results = {
-            'static_features': {},
-            'sequential_features': {},
-            'feature_metadata': {},
-        }
-            
-        # Load data if not already in memory
+
         if not clean_data:
-            processed_dir = dirs['processed_data']
-            logger.info("Loading processed data from disk...")
-            
-            demographics_path = processed_dir / "demographics.parquet"
-            vle_path = processed_dir / "vle.parquet"
-            assessment_path = processed_dir / "assessments.parquet"
-            submissions_path = processed_dir / "submissions.parquet"
-            registration_path = processed_dir / "registration.parquet"
-            
+            logger.info("Loading cleaned data from disk...")
             clean_data = {
-                'demographics': pd.read_parquet(demographics_path),
-                'vle': pd.read_parquet(vle_path),
-                'assessments': pd.read_parquet(assessment_path),
-                'submissions': pd.read_parquet(submissions_path),
-                'registration': pd.read_parquet(registration_path)
+                'demographics': pd.read_parquet(processed_dir / "demographics.parquet"),
+                'vle': pd.read_parquet(processed_dir / "vle.parquet"),
+                'assessments': pd.read_parquet(processed_dir / "assessments.parquet"),
+                'submissions': pd.read_parquet(processed_dir / "submissions.parquet"),
+                'registration': pd.read_parquet(processed_dir / "registration.parquet")
             }
-        
-        # Create train/validation/test indices for consistent splitting
-        if not splits:
-            logger.info("Creating data splits...")
-            splits = create_stratified_splits(
-                clean_data['demographics'],
-                target_col='final_result',
-                strat_cols=list(PROTECTED_ATTRIBUTES.keys()),
-                test_size=0.2,
-                validation_size=0.2,
-                random_state=RANDOM_SEED,
-                logger=logger
-            )
-            
-        # Extract student IDs for each split
-        student_ids = {
-            'train': splits['train']['id_student'].unique(),
-            'validation': splits['validation']['id_student'].unique(),
-            'test': splits['test']['id_student'].unique()
-        }
-        
-        # Create static features (demographic and educational)
+
+        # Get student IDs for each split
+        student_ids = {split: df['id_student'].unique() 
+                      for split, df in splits.items()}
+
+        # Create demographic features
         logger.info("Creating demographic features...")
-        demographic_features = create_demographic_features(
+        static_features = create_demographic_features(
             clean_data['demographics'],
             categorical_cols=FEATURE_ENGINEERING['categorical_cols'],
-            one_hot=FEATURE_ENGINEERING['one_hot_encoding'],
+            one_hot=FEATURE_ENGINEERING.get('one_hot_encoding', True),
             logger=logger
         )
-        
-        # Filter static features by split
-        static_features = {}
-        for split_name in ['train', 'validation', 'test']:
-            split_mask = demographic_features['id_student'].isin(student_ids[split_name])
-            static_features[split_name] = demographic_features[split_mask].copy()
-            logger.info(f"Created {len(static_features[split_name])} static features for {split_name}")
-            
-        # Create temporal features with multiple window sizes
+
+        # Create temporal features
         logger.info("Creating temporal features...")
         temporal_features = create_temporal_features(
             clean_data['vle'],
@@ -531,151 +507,148 @@ def run_feature_engineering(
             module_info=clean_data.get('registration', None),
             logger=logger
         )
-        
-        # Create sequential features for GRU model
+
+        # Create sequential features with proper configuration
         logger.info("Creating sequential features...")
-        sequential_features = create_sequential_features(
-            clean_data['vle'],
-            clean_data['submissions'],
-            student_ids=student_ids,
-            max_seq_length=FEATURE_ENGINEERING['max_seq_length'],
-            categorical_cols=FEATURE_ENGINEERING['sequential_categorical_cols'],
-            logger=logger
-        )
+        seq_config = FEATURE_ENGINEERING['sequential_processing']
         
-        # Combine all static features
-        logger.info("Combining features...")
+        # Initialize SequentialFeatureProcessor with configuration
+        processor = SequentialFeatureProcessor(
+            sequence_length=seq_config['max_seq_length'],
+            padding=seq_config['padding_strategy'],
+            truncating=seq_config['truncating_strategy'],
+            normalize=seq_config['normalize_sequences']
+        )
+
+        # Process sequential features
+        sequential_features = create_sequential_features(
+            vle_data=clean_data['vle'],
+            submission_data=clean_data['submissions'],
+            student_ids=student_ids,
+            max_seq_length=seq_config['max_seq_length'],
+            categorical_cols=seq_config['feature_columns'],
+            logger=logger,
+            courses_df=clean_data.get('registration', None),
+            vle_materials_df=clean_data.get('vle_materials', None)
+        )
+
+        # Merge temporal features with static features
+        logger.info("Merging features...")
+        combined_features = {}
+        
         for split_name in ['train', 'validation', 'test']:
+            # Get base features for this split
+            split_mask = static_features['id_student'].isin(student_ids[split_name])
+            combined_features[split_name] = static_features[split_mask].copy()
+            
+            # Add temporal features if available
             if split_name in temporal_features:
-                # Merge temporal features with static features
-                static_features[split_name] = pd.merge(
-                    static_features[split_name],
-                    temporal_features[split_name],
+                temporal_split = temporal_features[split_name]
+                combined_features[split_name] = combined_features[split_name].merge(
+                    temporal_split,
                     on='id_student',
                     how='left'
                 )
-                
-                # Add split label
-                static_features[split_name]['split'] = split_name
-                
-        # Feature selection and engineering only on training data
-        train_features = static_features['train'].copy()
-        
-        # Analyze feature importance
-        logger.info("Analyzing feature importance...")
-        importance_results = analyze_feature_importance(
-            train_features,
-            target_col='final_result',
-            categorical_cols=FEATURE_ENGINEERING['categorical_cols'],
-            random_state=RANDOM_SEED,
-            logger=logger
-        )
-        
-        # Identify and remove highly correlated features
-        logger.info("Analyzing feature correlations...")
-        correlation_results = analyze_feature_correlations(
-            train_features.drop(columns=['id_student', 'final_result', 'split']),
-            threshold=FEATURE_ENGINEERING['correlation_threshold'],
-            logger=logger
-        )
-        
-        # Get optimal feature subset
-        logger.info("Selecting optimal feature subset...")
-        selected_features = select_features_by_importance(
-            importance_results,
-            correlation_results,
-            top_k=FEATURE_ENGINEERING['top_k_features'],
-            min_importance=FEATURE_ENGINEERING['min_importance'],
-            logger=logger
-        )
-        
-        # Analyze impact of feature selection on demographics
-        logger.info("Analyzing demographic impact of feature selection...")
-        demographic_impact = analyze_demographic_impact(
-            train_features,
-            selected_features,
-            protected_attributes=PROTECTED_ATTRIBUTES,
-            target_col='final_result',
-            logger=logger
-        )
-        
-        if demographic_impact['warnings']:
-            for warning in demographic_impact['warnings']:
-                logger.warning(f"Feature selection impact: {warning}")
-                
-        # Apply feature selection to all splits
-        selected_cols = ['id_student', 'final_result', 'split'] + selected_features
-        for split_name in ['train', 'validation', 'test']:
-            # Keep only selected features plus ID, target and split columns
-            available_cols = [col for col in selected_cols if col in static_features[split_name].columns]
-            static_features[split_name] = static_features[split_name][available_cols]
             
-            # Count features
-            feature_count = len(static_features[split_name].columns) - 3  # Subtract ID, target and split
-            logger.info(f"{split_name} set: {feature_count} selected features for {len(static_features[split_name])} students")
-        
-        # Export feature metadata
-        logger.info("Exporting feature metadata...")
-        feature_metadata = export_feature_metadata(
-            static_features['train'],
-            importance_results,
-            correlation_results,
-            demographic_impact,
-            dirs['feature_data'],
-            logger=logger
-        )
-        
-        # Save engineered features
-        logger.info("Saving engineered features...")
-        feature_dir = dirs['feature_data']
-        
-        # Save all static features
-        for split_name in ['train', 'validation', 'test']:
-            output_path = feature_dir / f"{split_name}_static_features.parquet"
-            static_features[split_name].to_parquet(output_path)
-            logger.info(f"Saved {split_name} static features to {output_path}")
+            # Fill missing values appropriately
+            combined_features[split_name] = combined_features[split_name].fillna(0)
             
-        # Save all sequential features
+            logger.info(f"{split_name} set shape: {combined_features[split_name].shape}")
+
+        # Initialize feature selector
+        feature_selector = FeatureSelector(
+            method='importance',
+            threshold=FEATURE_ENGINEERING['min_importance'],
+            random_state=RANDOM_SEED
+        )
+
+        # Select features using training data
+        selected_features = {}
+        feature_names = None
+        
         for split_name in ['train', 'validation', 'test']:
-            if split_name in sequential_features and 'sequence_data' in sequential_features[split_name]:
-                # Save sequences in an appropriate format
-                output_path = feature_dir / f"{split_name}_sequences.npz"
-                seq_data = sequential_features[split_name]['sequence_data']
-                student_ids = sequential_features[split_name]['student_ids']
-                targets = sequential_features[split_name].get('targets', None)
+            split_features = combined_features[split_name]
+            
+            if split_name == 'train':
+                # Fit selector on training data
+                target_col = 'final_result'
+                feature_cols = [col for col in split_features.columns 
+                              if col not in ['id_student', 'final_result', 'split']]
                 
-                np.savez_compressed(
-                    output_path,
-                    sequences=seq_data,
-                    student_ids=student_ids,
-                    targets=targets if targets is not None else []
+                X = split_features[feature_cols]
+                y = split_features[target_col]
+                
+                selected_features[split_name] = feature_selector.fit_transform(
+                    X, y,
+                    protected_attributes=list(PROTECTED_ATTRIBUTES.keys())
                 )
-                logger.info(f"Saved {split_name} sequential features to {output_path}")
-                
-                # Also save any metadata
-                if 'metadata' in sequential_features[split_name]:
-                    metadata_path = feature_dir / f"{split_name}_sequence_metadata.json"
-                    with open(metadata_path, 'w') as f:
-                        json.dump(
-                            sequential_features[split_name]['metadata'],
-                            f,
-                            cls=NumpyJSONEncoder,
-                            indent=2
-                        )
-                
-        # Store results
-        feature_results = {
-            'static_features': static_features,
-            'sequential_features': sequential_features,
-            'feature_metadata': feature_metadata,
-            'selected_features': selected_features,
-            'importance_results': importance_results
+                feature_names = feature_selector.selected_features_
+            else:
+                # Transform other splits using fitted selector
+                selected_features[split_name] = feature_selector.transform(
+                    split_features[feature_cols]
+                )
+
+        # Save feature metadata
+        logger.info("Saving feature metadata...")
+        metadata_dir = dirs['feature_metadata']
+        metadata_dir.mkdir(parents=True, exist_ok=True)
+
+        metadata = {
+            'static_features': {
+                'categorical_cols': FEATURE_ENGINEERING['categorical_cols'],
+                'numeric_cols': FEATURE_ENGINEERING['numeric_cols'],
+                'selected_features': feature_names
+            },
+            'temporal_features': {
+                'window_sizes': FEATURE_ENGINEERING['window_sizes'],
+                'statistics': temporal_features.get('statistics', {})
+            },
+            'sequential_features': {
+                'config': seq_config,
+                'feature_mapping': sequential_features.get('train', {}).get('metadata', {}).get('feature_mapping', {}),
+                'sequence_stats': sequential_features.get('train', {}).get('metadata', {}).get('sequence_stats', {})
+            },
+            'processing_info': {
+                'timestamp': datetime.now().isoformat(),
+                'selected_feature_count': len(feature_names) if feature_names else 0
+            }
         }
+
+        with open(metadata_dir / 'feature_engineering_metadata.json', 'w') as f:
+            json.dump(metadata, f, cls=NumpyJSONEncoder, indent=2)
+
+        # Save processed features
+        logger.info("Saving processed features...")
+        feature_dir = dirs['features']
         
-        return feature_results
-        
+        for split_name in ['train', 'validation', 'test']:
+            # Save static/temporal features
+            static_path = feature_dir / f"{split_name}_static_features.parquet"
+            selected_features[split_name].to_parquet(static_path)
+            
+            # Save sequential features if available
+            if split_name in sequential_features:
+                seq_path = feature_dir / f"{split_name}_sequences.npz"
+                np.savez_compressed(
+                    seq_path,
+                    sequences=sequential_features[split_name]['sequence_data'],
+                    sequence_lengths=sequential_features[split_name]['sequence_lengths'],
+                    student_ids=sequential_features[split_name]['student_ids'],
+                    targets=sequential_features[split_name].get('targets', []),
+                    auxiliary_features=sequential_features[split_name].get('auxiliary_features', {})
+                )
+
+        logger.info("Feature engineering complete")
+        return {
+            'static_features': selected_features,
+            'sequential_features': sequential_features,
+            'feature_metadata': metadata,
+            'feature_selector': feature_selector
+        }
+
     except Exception as e:
-        logger.error(f"Feature engineering workflow failed: {str(e)}")
+        logger.error(f"Feature engineering failed: {str(e)}")
         raise
 
 @track_execution_time
@@ -1090,14 +1063,8 @@ def run_gru_pipeline(
         if args.export_visualizations:
             logger.info("Generating GRU performance visualizations...")
             
-            # Plot training history
-            history_fig = plot_training_history(
-                train_history,
-                title="GRU Training History"
-            )
-            history_path = dirs['visualizations'] / "gru_training_history.png"
-            history_fig.savefig(history_path)
-            plt.close(history_fig)
+            # Plot training history using GRUModel's built-in method
+            gru_model._plot_training_history(train_history.history)
             
             # Plot ROC curves
             roc_fig = plot_roc_curves(
@@ -1117,17 +1084,30 @@ def run_gru_pipeline(
             pr_fig.savefig(pr_path)
             plt.close(pr_fig)
             
-            # Visualize attention weights for a few examples
+            # Visualize attention weights if the model uses attention
             if GRU_CONFIG.get('use_attention', True):
-                attn_fig = visualize_attention_weights(
-                    attention_weights['test'][:5],  # First 5 test samples
-                    seq_data['test']['lengths'][:5],
-                    title="GRU Attention Visualization"
-                )
+                # Create attention visualization using model's internal data
+                test_attention = attention_weights['test'][:5]  # First 5 test samples
+                test_lengths = seq_data['test']['lengths'][:5]
+                
+                # Create figure for attention visualization
+                fig, axes = plt.subplots(len(test_attention), 1, figsize=(15, 3*len(test_attention)))
+                if len(test_attention) == 1:
+                    axes = [axes]
+                else:
+                    axes = np.array(axes).flatten()
+                
+                for idx, (attn, seq_len) in zip(range(len(test_attention)), zip(test_attention, test_lengths)):
+                    # Plot attention weights for this sequence
+                    axes[idx].imshow(attn[:seq_len].reshape(1, -1), cmap='hot', aspect='auto')
+                    axes[idx].set_title(f'Sequence {idx+1} Attention Weights')
+                    axes[idx].set_xlabel('Timestep')
+                
+                plt.tight_layout()
                 attn_path = dirs['visualizations'] / "gru_attention_weights.png"
-                attn_fig.savefig(attn_path)
-                plt.close(attn_fig)
-        
+                plt.savefig(attn_path)
+                plt.close()
+
         # Save model
         logger.info("Saving GRU model...")
         model_dir = dirs['models'] / "final"
@@ -1176,10 +1156,10 @@ def run_ensemble_integration(
     logger: logging.Logger
 ) -> Dict[str, Any]:
     """
-    Integrate Random Forest and GRU models into an ensemble model.
+    Execute the ensemble model integration pipeline.
     
     Args:
-        rf_results: Results from random forest pipeline
+        rf_results: Results from Random Forest pipeline
         gru_results: Results from GRU pipeline
         feature_results: Results from feature engineering
         dirs: Directory paths
@@ -1187,10 +1167,10 @@ def run_ensemble_integration(
         logger: Logger instance
         
     Returns:
-        Dictionary containing ensemble model results
+        Dictionary containing ensemble results
     """
     try:
-        logger.info("Starting ensemble model integration...")
+        logger.info("Starting ensemble integration pipeline...")
         
         # Initialize results dictionary
         ensemble_results = {
@@ -1198,241 +1178,127 @@ def run_ensemble_integration(
             'predictions': {},
             'thresholds': {},
             'metrics': {},
-            'feature_importance': None
+            'weights': None
         }
         
-        # Get predictions from base models
-        rf_predictions = rf_results.get('predictions', {})
-        gru_predictions = gru_results.get('predictions', {})
+        # Extract predictions from both models
+        rf_predictions = rf_results['predictions']
+        gru_predictions = gru_results['predictions']
         
-        if not rf_predictions or not gru_predictions:
-            raise ValueError("Missing required predictions from base models for ensemble integration")
-        
-        # Extract demographic features for fairness-aware ensembling
-        demographic_features = feature_results.get('tabular_features', {}).get('demographic_features', {})
-        
-        # Initialize prediction combiner
-        prediction_combiner = PredictionCombiner(
-            method=ENSEMBLE_CONFIG.get('method', 'weighted_average'),
-            weights=ENSEMBLE_CONFIG.get('weights', {'rf': 0.6, 'gru': 0.4}),
-            optimize_weights=ENSEMBLE_CONFIG.get('optimize_weights', True),
-            fairness_constraints=ENSEMBLE_CONFIG.get('fairness_constraints', None),
+        # Initialize ensemble combiner
+        ensemble = PredictionCombiner(
+            method='weighted_average',
+            threshold=0.5,  # Initial threshold, will be optimized
+            fairness_constraints=FAIRNESS['thresholds'] if args.fairness_aware else None,
             random_state=RANDOM_SEED,
             logger=logger
         )
         
-        # Preprocess and combine predictions
-        logger.info("Combining model predictions...")
-        combined_predictions = {}
-        
-        for split_name in ['train', 'validation', 'test']:
-            if split_name not in rf_predictions or split_name not in gru_predictions:
-                logger.warning(f"Missing {split_name} predictions from one of the base models")
-                continue
-                
-            # Prepare prediction DataFrames
-            rf_pred_df = rf_predictions[split_name]
-            gru_pred_df = gru_predictions[split_name]
-            
-            # Merge predictions by student ID
-            merged_df = pd.merge(
-                rf_pred_df, 
-                gru_pred_df,
-                on=['id_student', 'true_label'],
-                suffixes=('_rf', '_gru')
-            )
-            
-            # Add demographic features if available and configured
-            if ENSEMBLE_CONFIG.get('use_demographics', False) and split_name in demographic_features:
-                # Get demographic features for this split
-                demo_df = demographic_features[split_name]
-                
-                # Merge demographic features by student ID
-                merged_df = pd.merge(
-                    merged_df,
-                    demo_df,
-                    on='id_student',
-                    how='left'
-                )
-            
-            # For validation set, optimize ensemble weights if configured
-            if split_name == 'validation' and ENSEMBLE_CONFIG.get('optimize_weights', True):
-                logger.info("Optimizing ensemble weights on validation data...")
-                optimal_weights = prediction_combiner.optimize_weights(
-                    merged_df['pred_proba_rf'],
-                    merged_df['pred_proba_gru'],
-                    merged_df['true_label'],
-                    sensitive_features=merged_df['gender'] if 'gender' in merged_df.columns else None
-                )
-                logger.info(f"Optimal ensemble weights: {optimal_weights}")
-            
-            # Combine predictions
-            merged_df['ensemble_proba'] = prediction_combiner.combine_predictions(
-                merged_df['pred_proba_rf'],
-                merged_df['pred_proba_gru'],
-                sensitive_features=merged_df['gender'] if 'gender' in merged_df.columns else None
-            )
-            
-            combined_predictions[split_name] = merged_df
-        
-        # Create ensemble model
-        logger.info("Creating ensemble model...")
-        ensemble_model = EnsembleModel(
-            base_models={
-                'random_forest': rf_results.get('model'),
-                'gru': gru_results.get('model')
-            },
-            prediction_combiner=prediction_combiner,
-            random_state=RANDOM_SEED
+        # Optimize ensemble weights using validation set
+        logger.info("Optimizing ensemble weights...")
+        optimal_weights = ensemble.optimize_weights(
+            rf_proba=rf_predictions['validation']['pred_proba'],
+            gru_proba=gru_predictions['validation']['pred_proba'],
+            true_labels=rf_predictions['validation']['true_label'],
+            sensitive_features=feature_results['static_features']['validation'][list(PROTECTED_ATTRIBUTES.keys())] if args.fairness_aware else None
         )
         
-        # Find optimal ensemble threshold(s)
-        logger.info("Finding optimal ensemble thresholds...")
+        logger.info(f"Optimal ensemble weights: {optimal_weights}")
         
-        # Get validation predictions
-        val_preds = combined_predictions['validation']
-        
-        # If fairness-aware thresholds are configured
-        if ENSEMBLE_CONFIG.get('fairness_aware_thresholds', False) and 'gender' in val_preds.columns:
-            thresholds = {}
-            
-            # Find separate thresholds for each demographic group
-            for group in val_preds['gender'].unique():
-                group_idx = val_preds['gender'] == group
-                group_thresh = ensemble_model.find_optimal_threshold(
-                    val_preds.loc[group_idx, 'ensemble_proba'],
-                    val_preds.loc[group_idx, 'true_label'],
-                    metric=ENSEMBLE_CONFIG.get('threshold_metric', 'f1')
-                )
-                thresholds[group] = group_thresh
-                logger.info(f"Optimal threshold for {group}: {group_thresh:.4f}")
-        else:
-            # Find single optimal threshold
-            threshold = ensemble_model.find_optimal_threshold(
-                val_preds['ensemble_proba'],
-                val_preds['true_label'],
-                metric=ENSEMBLE_CONFIG.get('threshold_metric', 'f1')
-            )
-            thresholds = {'default': threshold}
-            logger.info(f"Optimal ensemble threshold: {threshold:.4f}")
-        
-        # Apply thresholds and evaluate metrics
-        logger.info("Evaluating ensemble model performance...")
+        # Generate ensemble predictions for all splits
+        predictions = {}
         metrics = {}
         
-        for split_name, pred_df in combined_predictions.items():
-            # Apply threshold (group-specific if available)
-            if len(thresholds) > 1 and 'gender' in pred_df.columns:
-                # Apply group-specific thresholds
-                pred_df['ensemble_label'] = pred_df.apply(
-                    lambda row: 1 if row['ensemble_proba'] >= thresholds.get(row['gender'], 0.5) else 0,
-                    axis=1
-                )
-            else:
-                # Apply default threshold
-                default_threshold = thresholds.get('default', 0.5)
-                pred_df['ensemble_label'] = (pred_df['ensemble_proba'] >= default_threshold).astype(int)
+        for split in ['train', 'validation', 'test']:
+            # Combine predictions
+            combined_proba = ensemble.combine_predictions(
+                rf_proba=rf_predictions[split]['pred_proba'],
+                gru_proba=gru_predictions[split]['pred_proba'],
+                sensitive_features=feature_results['static_features'][split][list(PROTECTED_ATTRIBUTES.keys())] if args.fairness_aware else None
+            )
+            
+            # Create prediction DataFrame
+            pred_df = pd.DataFrame({
+                'id_student': rf_predictions[split]['id_student'],
+                'true_label': rf_predictions[split]['true_label'],
+                'pred_proba': combined_proba
+            })
             
             # Calculate metrics
             split_metrics = calculate_model_metrics(
                 pred_df['true_label'],
-                pred_df['ensemble_label'],
-                pred_df['ensemble_proba'],
+                (pred_df['pred_proba'] >= ensemble.threshold).astype(int),
+                pred_df['pred_proba'],
                 logger=logger
             )
             
-            metrics[split_name] = split_metrics
-            logger.info(f"{split_name} set ensemble metrics: {split_metrics}")
+            predictions[split] = pred_df
+            metrics[split] = split_metrics
             
-            # Compare with base models
-            rf_metrics = rf_results.get('metrics', {}).get(split_name, {})
-            gru_metrics = gru_results.get('metrics', {}).get(split_name, {})
-            
-            if rf_metrics and gru_metrics:
-                logger.info(f"{split_name} performance comparison:")
-                logger.info(f"  Random Forest F1: {rf_metrics.get('f1_score', 0):.4f}")
-                logger.info(f"  GRU F1: {gru_metrics.get('f1_score', 0):.4f}")
-                logger.info(f"  Ensemble F1: {split_metrics.get('f1_score', 0):.4f}")
+            logger.info(f"{split} set ensemble metrics: {split_metrics}")
         
         # Generate visualizations
         if args.export_visualizations:
-            logger.info("Generating ensemble model visualizations...")
+            logger.info("Generating ensemble visualizations...")
             
-            # Create comparison plot of ROC curves for all models
-            models_roc_data = {}
-            for split_name in ['test']:  # Only test for final evaluation
-                if split_name in combined_predictions:
-                    pred_df = combined_predictions[split_name]
-                    models_roc_data = {
-                        'Random Forest': (pred_df['true_label'], pred_df['pred_proba_rf']),
-                        'GRU': (pred_df['true_label'], pred_df['pred_proba_gru']),
-                        'Ensemble': (pred_df['true_label'], pred_df['ensemble_proba'])
-                    }
+            # Plot ROC curves
+            roc_fig = plot_roc_curves(
+                {split: pred_df for split, pred_df in predictions.items()},
+                title="Ensemble ROC Curves"
+            )
+            roc_path = dirs['visualizations'] / "ensemble_roc_curves.png"
+            roc_fig.savefig(roc_path)
+            plt.close(roc_fig)
             
-            if models_roc_data:
-                # Plot ROC curve comparison
-                roc_fig = plot_model_comparison_curves(
-                    models_roc_data,
-                    curve_type='roc',
-                    title="Model Comparison: ROC Curves"
-                )
-                roc_path = dirs['visualizations'] / "ensemble_model_comparison_roc.png"
-                roc_fig.savefig(roc_path)
-                plt.close(roc_fig)
-                
-                # Plot precision-recall curve comparison
-                pr_fig = plot_model_comparison_curves(
-                    models_roc_data,
-                    curve_type='precision_recall',
-                    title="Model Comparison: Precision-Recall Curves"
-                )
-                pr_path = dirs['visualizations'] / "ensemble_model_comparison_pr.png"
-                pr_fig.savefig(pr_path)
-                plt.close(pr_fig)
+            # Plot precision-recall curves
+            pr_fig = plot_precision_recall_curves(
+                {split: pred_df for split, pred_df in predictions.items()},
+                title="Ensemble Precision-Recall Curves"
+            )
+            pr_path = dirs['visualizations'] / "ensemble_precision_recall_curves.png"
+            pr_fig.savefig(pr_path)
+            plt.close(pr_fig)
             
-            # Generate model weights visualization
-            weights = prediction_combiner.get_weights()
-            weight_fig = visualize_ensemble_weights(weights)
+            # Visualize ensemble weights
+            weight_fig = visualize_ensemble_weights(optimal_weights)
             weight_path = dirs['visualizations'] / "ensemble_weights.png"
             weight_fig.savefig(weight_path)
             plt.close(weight_fig)
         
-        # Save ensemble model
-        logger.info("Saving ensemble model...")
-        model_dir = dirs['models'] / "ensemble"
-        model_dir.mkdir(exist_ok=True, parents=True)
+        # Save ensemble configuration
+        logger.info("Saving ensemble configuration...")
+        ensemble_dir = dirs['models'] / "ensemble"
+        ensemble_dir.mkdir(exist_ok=True, parents=True)
         
-        model_path = model_dir / "ensemble_model.pkl"
-        ensemble_model.save(model_path)
-        
-        # Save ensemble metadata
+        # Save metadata
         metadata = {
-            'model_configuration': ensemble_model.get_config(),
-            'thresholds': thresholds,
+            'weights': optimal_weights,
+            'threshold': ensemble.threshold,
+            'fairness_constraints': ensemble.fairness_constraints,
             'metrics': metrics,
             'timestamp': time.strftime("%Y-%m-%d %H:%M:%S")
         }
         
-        metadata_path = model_dir / "ensemble_metadata.json"
+        metadata_path = ensemble_dir / "ensemble_config.json"
         with open(metadata_path, 'w') as f:
             json.dump(metadata, f, cls=NumpyJSONEncoder, indent=2)
         
         # Store results
         ensemble_results = {
-            'model': ensemble_model,
-            'predictions': combined_predictions,
-            'thresholds': thresholds,
-            'metrics': metrics
+            'model': ensemble,
+            'predictions': predictions,
+            'metrics': metrics,
+            'weights': optimal_weights
         }
         
         return ensemble_results
         
     except Exception as e:
-        logger.error(f"Ensemble integration failed: {str(e)}")
+        logger.error(f"Ensemble integration pipeline failed: {str(e)}")
         raise
 
 @track_execution_time
-def run_fairness_pipeline(
+def run_evaluation_pipeline(
     rf_results: Dict[str, Any],
     gru_results: Dict[str, Any],
     ensemble_results: Dict[str, Any],
@@ -1441,261 +1307,302 @@ def run_fairness_pipeline(
     args: argparse.Namespace,
     logger: logging.Logger
 ) -> Dict[str, Any]:
-    """
-    Execute the fairness evaluation workflow.
+    """Runs comprehensive model evaluation including explanations."""
     
-    Args:
-        rf_results: Results from Random Forest pipeline
-        gru_results: Results from GRU pipeline
-        ensemble_results: Results from ensemble pipeline
-        feature_results: Results from feature engineering
-        dirs: Directory paths
-        args: Command-line arguments
-        logger: Logger instance
-        
-    Returns:
-        Dictionary containing fairness evaluation results
-    """
+    evaluation_results = {}
+    
     try:
-        # Extract models and test data
-        rf_model = rf_results['rf_model']
-        gru_model = gru_results['gru_model']
-        ensemble = ensemble_results['ensemble']
+        # Get test data
+        X_test_rf = rf_results.get('test_features')
+        test_sequences = gru_results.get('test_sequences')
+        y_test = rf_results.get('test_labels')
         
-        # Test data
-        X_test_rf = rf_results['X_test']
-        y_test = rf_results['y_test']
-        test_sequences = gru_results['test_sequences']
-        test_student_id_map = gru_results['student_id_maps']['test']
-        splits = feature_results['splits']
+        # Generate model explanations
+        logger.info("Generating model explanations...")
         
-        # Get demographic data for test set
-        test_demographics = splits['test'][list(PROTECTED_ATTRIBUTES.keys()) + ['id_student']]
-        
-        # Get predictions from all models on test set
-        logger.info("Generating predictions on test set...")
-        
-        # RF predictions
-        rf_probs = rf_model.predict_proba(X_test_rf)
-        rf_preds = rf_model.predict(X_test_rf, threshold=rf_results['optimal_threshold'])
-        
-        # GRU predictions
-        gru_probs = gru_model.predict_proba(test_sequences)
-        gru_preds = gru_model.predict(test_sequences, threshold=0.5)
-        
-        # Ensemble predictions
-        ensemble_probs = ensemble.predict_proba(
-            static_features=X_test_rf,
-            sequential_features=test_sequences,
-            student_id_map=test_student_id_map
-        )
-        ensemble_preds = ensemble.predict(
-            static_features=X_test_rf,
-            sequential_features=test_sequences,
-            student_id_map=test_student_id_map,
-            use_demographic_thresholds=args.fairness_aware
+        # RF model explanations
+        rf_explanations = generate_global_explanations(
+            model=rf_results['model'],
+            X=X_test_rf,
+            feature_names=X_test_rf.columns.tolist()
         )
         
-        # Evaluate fairness for each model
-        logger.info("Evaluating model fairness across demographic groups...")
+        # Create visualization paths
+        rf_viz_path = dirs['visualizations'] / 'rf_explanations'
+        rf_viz_path.mkdir(exist_ok=True)
         
-        # Create protected attribute arrays
-        protected_attributes_dict = {}
-        for attr in PROTECTED_ATTRIBUTES:
-            protected_attributes_dict[attr] = test_demographics[attr].values
-        
-        # RF fairness evaluation
-        logger.info("Evaluating Random Forest fairness...")
-        rf_fairness = evaluate_model_fairness(
-            y_true=y_test,
-            y_pred=rf_preds,
-            y_prob=rf_probs,
-            protected_attributes=protected_attributes_dict,
-            thresholds=FAIRNESS['thresholds'],
-            metrics=['accuracy', 'precision', 'recall', 'f1', 'auc'],
-            fairness_metrics=['demographic_parity_difference', 'disparate_impact_ratio', 'equal_opportunity_difference'],
-            min_group_size=FAIRNESS['min_group_size'],
-            logger=logger
+        # Generate RF visualizations
+        rf_viz_paths = create_feature_impact_visualizations(
+            rf_explanations,
+            str(rf_viz_path / 'rf')
         )
         
-        # GRU fairness evaluation
-        logger.info("Evaluating GRU fairness...")
-        gru_fairness = evaluate_model_fairness(
-            y_true=y_test,
-            y_pred=gru_preds,
-            y_prob=gru_probs,
-            protected_attributes=protected_attributes_dict,
-            thresholds=FAIRNESS['thresholds'],
-            metrics=['accuracy', 'precision', 'recall', 'f1', 'auc'],
-            fairness_metrics=['demographic_parity_difference', 'disparate_impact_ratio', 'equal_opportunity_difference'],
-            min_group_size=FAIRNESS['min_group_size'],
-            logger=logger
-        )
+        # GRU model explanations if available
+        gru_explanations = None
+        gru_viz_paths = []
+        if hasattr(gru_results.get('model'), 'get_attention_weights'):
+            logger.info("Generating GRU attention-based explanations...")
+            gru_viz_path = dirs['visualizations'] / 'gru_explanations'
+            gru_viz_path.mkdir(exist_ok=True)
+            
+            # Generate attention-based explanations
+            attention_weights = gru_results['model'].get_attention_weights(test_sequences)
+            gru_explanations = {
+                'attention_weights': attention_weights,
+                'timesteps': list(range(len(attention_weights[0]))),
+                'features': gru_results.get('feature_names', [])
+            }
+            
+            # Generate GRU visualizations
+            gru_viz_paths = create_feature_impact_visualizations(
+                gru_explanations,
+                str(gru_viz_path / 'gru')
+            )
         
-        # Ensemble fairness evaluation
-        logger.info("Evaluating Ensemble fairness...")
-        ensemble_fairness = evaluate_model_fairness(
-            y_true=y_test,
-            y_pred=ensemble_preds,
-            y_prob=ensemble_probs,
-            protected_attributes=protected_attributes_dict,
-            thresholds=FAIRNESS['thresholds'],
-            metrics=['accuracy', 'precision', 'recall', 'f1', 'auc'],
-            fairness_metrics=['demographic_parity_difference', 'disparate_impact_ratio', 'equal_opportunity_difference'],
-            min_group_size=FAIRNESS['min_group_size'],
-            logger=logger
-        )
-        
-        # Analyze intersectional fairness for ensemble
-        logger.info("Analyzing intersectional fairness...")
-        intersectional_fairness = analyze_subgroup_fairness(
-            y_true=y_test,
-            y_pred=ensemble_preds,
-            y_prob=ensemble_probs,
-            protected_attributes=protected_attributes_dict,
-            metrics=['accuracy', 'f1'],
-            fairness_metrics=['demographic_parity_difference', 'equal_opportunity_difference'],
-            min_group_size=FAIRNESS['min_group_size'],
-            logger=logger
-        )
-        
-        # Generate fairness reports
-        logger.info("Generating fairness reports...")
-        
-        # RF fairness report
-        rf_report = generate_fairness_report(
-            fairness_results=rf_fairness,
-            thresholds=FAIRNESS['thresholds'],
-            output_path=dirs['reports_fairness'] / "rf_fairness_report.md",
-            logger=logger
-        )
-        
-        # GRU fairness report
-        gru_report = generate_fairness_report(
-            fairness_results=gru_fairness,
-            thresholds=FAIRNESS['thresholds'],
-            output_path=dirs['reports_fairness'] / "gru_fairness_report.md",
-            logger=logger
-        )
-        
-        # Ensemble fairness report
-        ensemble_report = generate_fairness_report(
-            fairness_results=ensemble_fairness,
-            thresholds=FAIRNESS['thresholds'],
-            output_path=dirs['reports_fairness'] / "ensemble_fairness_report.md",
-            logger=logger
-        )
-        
-        # Analyze bias patterns
-        logger.info("Analyzing bias patterns...")
-        bias_analysis = analyze_bias_patterns(
-            ensemble_fairness,
-            feature_importance=rf_results['feature_importance'],
-            demographic_impact=feature_results['demographic_impact'],
-            logger=logger
-        )
-        
-        # Save bias analysis
-        bias_report_path = dirs['reports_fairness'] / "bias_analysis_report.json"
-        with open(bias_report_path, 'w') as f:
-            json.dump(bias_analysis, f, cls=NumpyJSONEncoder, indent=2)
-        logger.info(f"Bias analysis saved to {bias_report_path}")
-        
-        # Return results
-        return {
-            'rf__fairness': rf_fairness,
-            'gru_fairness': gru_fairness,
-            'ensemble_fairness': ensemble_fairness,
-            'intersectional_fairness': intersectional_fairness,
-            'bias_analysis': bias_analysis,
-            'reports': {
-                'rf': rf_report,
-                'gru': gru_report,
-                'ensemble': ensemble_report
-            },
-            'predictions': {
-                'rf_probs': rf_probs,
-                'rf_preds': rf_preds,
-                'gru_probs': gru_probs,
-                'gru_preds': gru_preds,
-                'ensemble_probs': ensemble_probs,
-                'ensemble_preds': ensemble_preds
+        # Store explanations
+        evaluation_results['explanations'] = {
+            'rf': {
+                'global_explanations': rf_explanations,
+                'visualization_paths': rf_viz_paths
             }
         }
+        if gru_explanations:
+            evaluation_results['explanations']['gru'] = {
+                'attention_explanations': gru_explanations,
+                'visualization_paths': gru_viz_paths
+            }
         
-    except Exception as e:  
-        logger.error(f"Fairness evaluation workflow failed: {str(e)}")
+        # Generate individual model performance reports
+        logger.info("Generating individual model performance reports...")
+        
+        if rf_results.get('metrics'):
+            rf_perf_path = dirs['reports'] / 'rf_performance_report.md'
+            generate_performance_report(rf_results['metrics'], str(rf_perf_path))
+            evaluation_results['rf_performance_report'] = str(rf_perf_path)
+            
+        if gru_results.get('metrics'):
+            gru_perf_path = dirs['reports'] / 'gru_performance_report.md'
+            generate_performance_report(gru_results['metrics'], str(gru_perf_path))
+            evaluation_results['gru_performance_report'] = str(gru_perf_path)
+            
+        if ensemble_results.get('metrics'):
+            ensemble_perf_path = dirs['reports'] / 'ensemble_performance_report.md'
+            generate_performance_report(ensemble_results['metrics'], str(ensemble_perf_path))
+            evaluation_results['ensemble_performance_report'] = str(ensemble_perf_path)
+        
+        # Generate fairness reports if fairness analysis was performed
+        if args.fairness_aware:
+            logger.info("Generating fairness reports...")
+            
+            for model_name, results in [
+                ('rf', rf_results),
+                ('gru', gru_results),
+                ('ensemble', ensemble_results)
+            ]:
+                if results.get('fairness_metrics'):
+                    fairness_path = dirs['reports'] / f'{model_name}_fairness_report.md'
+                    generate_fairness_report(
+                        results['fairness_metrics'],
+                        thresholds=FAIRNESS['thresholds'],
+                        output_path=str(fairness_path)
+                    )
+                    evaluation_results[f'{model_name}_fairness_report'] = str(fairness_path)
+        
+        # Compare model versions if multiple versions exist
+        if all(results.get('metrics') for results in [rf_results, gru_results, ensemble_results]):
+            logger.info("Comparing model versions...")
+            comparison_df = compare_model_versions(
+                metrics_list=[
+                    rf_results['metrics'],
+                    gru_results['metrics'],
+                    ensemble_results['metrics']
+                ],
+                model_names=['Random Forest', 'GRU', 'Ensemble']
+            )
+            
+            # Save comparison results
+            comparison_path = dirs['reports'] / 'model_comparison.csv'
+            comparison_df.to_csv(comparison_path)
+            evaluation_results['model_comparison'] = str(comparison_path)
+        
+        # Generate comprehensive evaluation report
+        logger.info("Generating comprehensive evaluation report...")
+        eval_report_path = dirs['reports'] / 'model_evaluation.md'
+        evaluation_results['evaluation_report'] = generate_evaluation_report(
+            rf_results=rf_results,
+            gru_results=gru_results,
+            ensemble_results=ensemble_results,
+            explanations=evaluation_results['explanations'],
+            output_path=str(eval_report_path),
+            logger=logger
+        )
+        
+        logger.info("Model evaluation pipeline completed")
+        
+    except Exception as e:
+        logger.error(f"Error in evaluation pipeline: {str(e)}")
         raise
-
+    
+    return evaluation_results
 
 def run_pipeline(args: argparse.Namespace, logger: logging.Logger) -> None:
     """
     Run the complete EduPredict 2.0 pipeline with enhanced logging and error handling.
+    Pipeline modes:
+    - 'processing': Only run data processing
+    - 'feature': Run processing and feature engineering
+    - 'rf': Run through Random Forest model training
+    - 'gru': Run through GRU model training
+    - 'ensemble': Run full pipeline including ensemble integration
+    - 'evaluation': Run full pipeline with evaluation
+    - 'full': Run everything including evaluation and reporting
     """
     try:
-        # Initialize directory structure
+        # Initialize directory structure and results dictionaries
         dirs, logger = setup_environment(args)
-        
-        # Process data
-        if args.mode == 'processing':
+        data_results = {}
+        feature_results = {}
+        rf_results = {}
+        gru_results = {}
+        ensemble_results = {}
+        evaluation_results = {}
+
+        # Data Processing Stage (required for all modes except when loading processed data)
+        if not args.load_processed:
+            logger.info("Starting data processing pipeline...")
             data_results = run_data_processing_workflow(args, dirs, logger)
-            # Skip other phases but create minimal report
+        else:
+            logger.info("Loading pre-processed data...")
+            processed_dir = dirs['processed_data']
+            
+            # Load pre-processed data
+            demographics = pd.read_parquet(processed_dir / "demographics.parquet")
+            vle = pd.read_parquet(processed_dir / "vle.parquet")
+            assessments = pd.read_parquet(processed_dir / "assessments.parquet")
+            submissions = pd.read_parquet(processed_dir / "submissions.parquet")
+            registration = pd.read_parquet(processed_dir / "registration.parquet")
+            
+            # Structure data_results to match run_data_processing_workflow output
+            data_results = {
+                'clean_data': {
+                    'demographics': demographics,
+                    'vle': vle,
+                    'assessments': assessments,
+                    'submissions': submissions,
+                    'registration': registration
+                },
+                'splits': {
+                    'train': demographics[demographics['split'] == 'train'],
+                    'validation': demographics[demographics['split'] == 'validation'],
+                    'test': demographics[demographics['split'] == 'test']
+                }
+            }
+            logger.info("Successfully loaded pre-processed data")
+
+        if args.mode == 'processing':
+            logger.info("Processing mode completed")
+            run_reporting_pipeline(data_results, {}, {}, {}, dirs, args, logger)
+            return
+
+        # Feature Engineering Stage
+        if not args.load_features:
+            logger.info("Starting feature engineering pipeline...")
+            feature_results = run_feature_engineering(data_results, dirs, args, logger)
+        else:
+            logger.info("Loading pre-engineered features...")
+            feature_dir = dirs['feature_data']
+            # Load pre-engineered features
+            feature_results = {
+                'static_features': {},
+                'sequential_features': {},
+                'feature_metadata': {}
+            }
+            for split in ['train', 'validation', 'test']:
+                feature_results['static_features'][split] = pd.read_parquet(
+                    feature_dir / f"{split}_static_features.parquet"
+                )
+                if os.path.exists(feature_dir / f"{split}_sequences.npz"):
+                    seq_data = np.load(feature_dir / f"{split}_sequences.npz", allow_pickle=True)
+                    feature_results['sequential_features'][split] = {
+                        'sequence_data': seq_data['sequences'],
+                        'student_ids': seq_data['student_ids'],
+                        'targets': seq_data['targets']
+                    }
+
+        if args.mode == 'feature':
+            logger.info("Feature engineering mode completed")
+            run_reporting_pipeline(data_results, feature_results, {}, {}, dirs, args, logger)
+            return
+
+        # Random Forest Model Stage
+        if args.mode in ['rf', 'ensemble', 'evaluation', 'full']:
+            logger.info("Starting Random Forest pipeline...")
+            rf_results = run_random_forest_pipeline(feature_results, dirs, args, logger)
+
+        if args.mode == 'rf':
+            logger.info("Random Forest mode completed")
+            run_reporting_pipeline(data_results, feature_results, {'rf': rf_results}, {}, dirs, args, logger)
+            return
+
+        # GRU Model Stage
+        if args.mode in ['gru', 'ensemble', 'evaluation', 'full']:
+            logger.info("Starting GRU pipeline...")
+            gru_results = run_gru_pipeline(feature_results, dirs, args, logger)
+
+        if args.mode == 'gru':
+            logger.info("GRU mode completed")
+            run_reporting_pipeline(data_results, feature_results, {'gru': gru_results}, {}, dirs, args, logger)
+            return
+
+        # Ensemble Integration Stage
+        if args.mode in ['ensemble', 'evaluation', 'full']:
+            logger.info("Starting ensemble integration...")
+            if not rf_results or not gru_results:
+                raise ValueError("Both RF and GRU results required for ensemble integration")
+            ensemble_results = run_ensemble_integration(
+                rf_results, gru_results, feature_results, dirs, args, logger
+            )
+
+        if args.mode == 'ensemble':
+            logger.info("Ensemble mode completed")
             run_reporting_pipeline(
-                data_results=data_results,
-                feature_results={},  # Empty since feature engineering not run yet
-                model_results={},    # Empty since models not trained yet
-                fairness_results={}, # Empty since fairness analysis not run yet
-                dirs=dirs,
-                args=args,
-                logger=logger
+                data_results, 
+                feature_results,
+                {
+                    'rf': rf_results, 
+                    'gru': gru_results, 
+                    'ensemble': ensemble_results
+                },
+                {},
+                dirs, args, logger
             )
             return
 
-        # Continue with feature engineering if not just processing
-        if args.mode in ['feature', 'training', 'evaluation', 'complete']:
-            data_results = run_data_processing_workflow(args, dirs, logger)
-            feature_results = run_feature_engineering(
-                data_results, dirs, args, logger
+        # Evaluation Stage
+        if args.mode in ['evaluation', 'full']:
+            logger.info("Starting evaluation pipeline...")
+            if not ensemble_results:
+                raise ValueError("Ensemble results required for evaluation")
+            evaluation_results = run_evaluation_pipeline(
+                rf_results, gru_results, ensemble_results, feature_results, dirs, args, logger
             )
-            
-            if args.mode == 'feature':
-                run_reporting_pipeline(data_results, feature_results, {}, {}, dirs, args, logger)
-                return
-                
-        # Continue with model training if applicable
-        if args.mode in ['training', 'evaluation', 'complete']:
-            model_results = run_random_forest_pipeline(
-                feature_results, dirs, args, logger
-            )
-            
-            if args.mode == 'training':
-                run_reporting_pipeline(data_results, feature_results, model_results, {}, dirs, args, logger)
-                return
-                
-        # Run GRU model pipeline if applicable
-        if args.mode in ['gru', 'complete']:
-            gru_results = run_gru_pipeline(
-                feature_results, dirs, args, logger
-            )
-            if args.mode == 'gru':
-                run_reporting_pipeline(data_results, feature_results, {}, {}, dirs, args, logger)
-                return
 
-        # Run ensemble integration if applicable
-        if args.mode in ['ensemble', 'complete']:
-            ensemble_results = run_ensemble_integration(
-                model_results, gru_results, feature_results, dirs, args, logger
+        # For evaluation or full mode, run complete reporting
+        if args.mode in ['evaluation', 'full']:
+            logger.info("Generating final reports...")
+            run_reporting_pipeline(
+                data_results,
+                feature_results,
+                {
+                    'rf': rf_results,
+                    'gru': gru_results,
+                    'ensemble': ensemble_results
+                },
+                evaluation_results,
+                dirs,
+                args,
+                logger
             )
-            if args.mode == 'ensemble':
-                run_reporting_pipeline(data_results, feature_results, {}, {}, dirs, args, logger)
-                return
-
-        # Run evaluation if applicable
-        if args.mode in ['evaluation', 'complete']:
-            fairness_results = run_fairness_pipeline(
-                model_results, feature_results, dirs, args, logger
-            )
-            run_reporting_pipeline(data_results, feature_results, model_results, fairness_results, dirs, args, logger)
 
     except Exception as e:
         logger.error(f"Pipeline execution failed: {str(e)}")
@@ -1725,4 +1632,5 @@ def main():
         return 1
 
 if __name__ == "__main__":
-    sys.exit(main())
+    exit_code = main()
+    sys.exit(exit_code)

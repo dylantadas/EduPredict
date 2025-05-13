@@ -420,3 +420,159 @@ def save_datasets_versioned(
     except Exception as e:
         logger.error(f"Error saving versioned datasets: {str(e)}")
         raise
+
+def create_fairness_aware_sample(
+    datasets: Dict[str, pd.DataFrame],
+    sample_size: int = 5000,
+    random_state: int = 42,
+    logger: Optional[logging.Logger] = None
+) -> Dict[str, pd.DataFrame]:
+    """
+    Creates a fairness-aware sample of the data that preserves demographic distributions
+    across all protected attributes defined in the configuration.
+    
+    Args:
+        datasets: Dictionary of dataframes to sample from
+        sample_size: Target size for student sample (default 5000)
+        random_state: Random seed for reproducibility
+        logger: Logger instance
+    
+    Returns:
+        Dictionary of sampled dataframes
+    """
+    from config import FAIRNESS, PROTECTED_ATTRIBUTES
+    
+    logger = logger or logging.getLogger('edupredict')
+    
+    try:
+        # Get student info dataframe
+        student_info = datasets['student_info']
+        
+        # Get protected attributes from configuration
+        protected_attrs = FAIRNESS.get('protected_attributes', [])
+        
+        if not protected_attrs:
+            logger.warning("No protected attributes defined in configuration. Using default attributes.")
+            protected_attrs = ['gender', 'age_band', 'imd_band']
+        
+        # Filter to only include protected attributes that exist in the dataset
+        available_attrs = [attr for attr in protected_attrs if attr in student_info.columns]
+        
+        if not available_attrs:
+            logger.warning("None of the configured protected attributes found in dataset. Using stratified random sampling.")
+            # Fall back to simple random sampling if no protected attributes are available
+            sampled_student_info = student_info.sample(n=min(sample_size, len(student_info)), random_state=random_state)
+            sampled_ids = sampled_student_info['id_student'].unique()
+        else:
+            # Calculate original demographic proportions for logging purposes
+            demo_props = {}
+            for attr in available_attrs:
+                demo_props[attr] = student_info[attr].value_counts(normalize=True)
+                logger.info(f"Original {attr} distribution:\n{demo_props[attr]}")
+            
+            # Create stratified sample using all available protected attributes
+            # Start by creating a composite strata column
+            student_info_copy = student_info.copy()
+            student_info_copy['strata'] = ''
+            for attr in available_attrs:
+                student_info_copy['strata'] += student_info_copy[attr].astype(str) + '_'
+            
+            strata_counts = student_info_copy['strata'].value_counts()
+            
+            # Calculate sample size for each stratum proportionally
+            sample_sizes = {}
+            min_size_per_stratum = 1  # Ensure at least one sample per stratum
+            
+            # Apply balanced thresholds from config if available
+            for stratum, count in strata_counts.items():
+                # Calculate proportional sample size
+                prop_size = int((count / len(student_info)) * sample_size)
+                
+                # Apply minimum thresholds from config for protected attributes
+                stratum_attrs = stratum.split('_')[:-1]  # Last element is empty due to trailing '_'
+                
+                # Check if any protected attribute has a minimum threshold
+                for i, attr_value in enumerate(stratum_attrs):
+                    attr_name = available_attrs[i]
+                    if attr_name in PROTECTED_ATTRIBUTES:
+                        balanced_threshold = PROTECTED_ATTRIBUTES[attr_name].get('balanced_threshold')
+                        if balanced_threshold:
+                            # Ensure this group gets at least the minimum specified percentage
+                            min_threshold_size = int(balanced_threshold * sample_size)
+                            prop_size = max(prop_size, min_threshold_size)
+                
+                # Ensure at least minimum size
+                sample_sizes[stratum] = max(prop_size, min_size_per_stratum)
+            
+            # Adjust to match target sample size
+            total_allocated = sum(sample_sizes.values())
+            if total_allocated > sample_size:
+                # Scale down proportionally
+                scaling_factor = sample_size / total_allocated
+                sample_sizes = {k: max(1, int(v * scaling_factor)) for k, v in sample_sizes.items()}
+            
+            # Sample from each stratum
+            sampled_students = []
+            for stratum, size in sample_sizes.items():
+                stratum_df = student_info_copy[student_info_copy['strata'] == stratum]
+                if len(stratum_df) > 0:
+                    if len(stratum_df) >= size:
+                        sampled = stratum_df.sample(n=size, random_state=random_state)
+                    else:
+                        # If not enough samples, take all available and note the shortage
+                        logger.warning(f"Stratum {stratum} has only {len(stratum_df)} samples, needed {size}")
+                        sampled = stratum_df
+                    sampled_students.append(sampled)
+            
+            # Combine all sampled strata
+            sampled_student_info = pd.concat(sampled_students).drop(columns=['strata'])
+            sampled_ids = sampled_student_info['id_student'].unique()
+        
+        # Create samples for other datasets based on sampled student IDs
+        sampled_datasets = {
+            'student_info': sampled_student_info
+        }
+        
+        # Sample other datasets based on sampled student IDs
+        for name, df in datasets.items():
+            if name != 'student_info':
+                if 'id_student' in df.columns:
+                    sampled_df = df[df['id_student'].isin(sampled_ids)]
+                    sampled_datasets[name] = sampled_df
+                else:
+                    sampled_datasets[name] = df
+        
+        # Log sampling results
+        logger.info(f"Created fairness-aware sample with {len(sampled_ids)} students")
+        for name, df in sampled_datasets.items():
+            logger.info(f"Sampled {name}: {len(df)} rows")
+            
+        # Verify demographic distributions
+        if available_attrs:
+            new_props = {}
+            dist_changes = {}
+            
+            for attr in available_attrs:
+                new_props[attr] = sampled_student_info[attr].value_counts(normalize=True)
+                # Calculate absolute difference in distributions
+                attr_diffs = {}
+                for category in set(demo_props[attr].index) | set(new_props[attr].index):
+                    orig_val = demo_props[attr].get(category, 0)
+                    new_val = new_props[attr].get(category, 0)
+                    attr_diffs[category] = abs(new_val - orig_val)
+                
+                dist_changes[attr] = attr_diffs
+                
+                logger.info(f"Final {attr} distribution:\n{new_props[attr]}")
+                max_diff = max(attr_diffs.values()) if attr_diffs else 0
+                logger.info(f"Maximum distribution difference for {attr}: {max_diff:.4f}")
+                
+                # Check if distribution difference exceeds fairness threshold
+                if max_diff > FAIRNESS.get('threshold', 0.1):
+                    logger.warning(f"Distribution difference for {attr} exceeds fairness threshold")
+        
+        return sampled_datasets
+        
+    except Exception as e:
+        logger.error(f"Error creating fairness-aware sample: {str(e)}")
+        raise

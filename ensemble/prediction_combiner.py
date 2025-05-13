@@ -7,7 +7,7 @@ from sklearn.isotonic import IsotonicRegression
 from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import f1_score, accuracy_score, roc_auc_score
 from config import FAIRNESS
-from evaluation.performance_metrics import evaluate_fairness_metrics
+from evaluation.fairness_metrics import evaluate_model_fairness
 
 class PredictionCombiner:
     """Combines predictions from multiple models with optional fairness constraints."""
@@ -147,20 +147,31 @@ class PredictionCombiner:
             
             # Calculate performance and fairness metrics
             if sensitive_features is not None:
+                # Prepare protected attributes dictionary
+                protected_attrs = {'group': sensitive_features.values}
+                
+                # Convert combined to binary predictions
+                binary_preds = (combined >= self.threshold).astype(int)
+                
                 # Evaluate fairness metrics
-                fairness_metrics = evaluate_fairness_metrics(
-                    true_labels,
-                    combined,
-                    sensitive_features
+                fairness_results = evaluate_model_fairness(
+                    y_true=true_labels,
+                    y_pred=binary_preds,
+                    y_prob=combined,
+                    protected_attributes=protected_attrs,
+                    thresholds=self.fairness_constraints
                 )
                 
                 # Check if fairness constraints are satisfied
                 constraints_satisfied = True
                 for metric_name, threshold in self.fairness_constraints.items():
                     if metric_name != 'thresholds':  # Skip classification thresholds
-                        if fairness_metrics.get(metric_name, float('inf')) > threshold:
-                            constraints_satisfied = False
-                            break
+                        for attr_results in fairness_results.values():
+                            if attr_results['fairness_metrics'].get(metric_name, float('inf')) > threshold:
+                                constraints_satisfied = False
+                                break
+                    if not constraints_satisfied:
+                        break
                 
                 # Only consider weights that satisfy fairness constraints
                 if not constraints_satisfied:

@@ -16,6 +16,104 @@ from evaluation.fairness_metrics import calculate_group_metrics, calculate_fairn
 # Set up the logger
 logger = logging.getLogger('edupredict2')
 
+def perform_cross_validation(
+    model: Any,
+    X: pd.DataFrame,
+    y: pd.Series,
+    protected_attributes: Optional[List[str]] = None,
+    n_folds: Optional[int] = None,
+    random_state: Optional[int] = None,
+    output_dir: Optional[Path] = None,
+    logger: Optional[logging.Logger] = None
+) -> Dict[str, Any]:
+    """
+    Performs comprehensive cross-validation including fairness evaluation.
+    
+    Args:
+        model: Model to evaluate
+        X: Feature DataFrame
+        y: Target Series
+        protected_attributes: List of protected attribute columns
+        n_folds: Number of CV folds (default from config)
+        random_state: Random seed (default from config)
+        output_dir: Directory to save results
+        logger: Logger instance
+        
+    Returns:
+        Dictionary containing CV results
+    """
+    if logger is None:
+        logger = logging.getLogger('edupredict2')
+        
+    logger.info("Starting cross-validation evaluation")
+    
+    # Use defaults from config if not specified
+    if n_folds is None:
+        n_folds = EVALUATION.get('cv_folds', 5)
+    
+    if random_state is None:
+        random_state = RANDOM_SEED
+        
+    if protected_attributes is None:
+        protected_attributes = list(FAIRNESS.get('protected_attributes', {}).keys())
+    
+    # Validate protected attributes exist in data
+    if protected_attributes:
+        missing_attrs = [attr for attr in protected_attributes if attr not in X.columns]
+        if missing_attrs:
+            logger.warning(f"Protected attributes {missing_attrs} not found in data. They will be ignored.")
+            protected_attributes = [attr for attr in protected_attributes if attr not in missing_attrs]
+        
+        if not protected_attributes:
+            logger.warning("No valid protected attributes found. Fairness evaluation will be skipped.")
+    
+    # Perform stratified CV
+    cv_results = perform_stratified_cv(
+        model=model,
+        X=X,
+        y=y,
+        n_folds=n_folds,
+        stratify_cols=protected_attributes,
+        random_state=random_state
+    )
+    
+    # Evaluate CV results
+    evaluation = evaluate_cv_results(cv_results)
+    
+    # Save results if output directory provided
+    if output_dir:
+        try:
+            output_dir = Path(output_dir)
+            output_dir.mkdir(parents=True, exist_ok=True)
+            
+            # Save overall metrics
+            metrics_path = output_dir / 'cv_metrics.json'
+            pd.DataFrame([evaluation['summary']]).to_json(metrics_path, orient='records')
+            
+            # Save predictions
+            preds_path = output_dir / 'cv_predictions.csv'
+            cv_results['predictions'].to_csv(preds_path, index=False)
+            
+            # Save feature importance if available
+            if cv_results.get('feature_importance') is not None:
+                importance_path = output_dir / 'feature_importance.csv'
+                cv_results['feature_importance'].to_csv(importance_path, index=False)
+            
+            # Save fairness metrics if available
+            if evaluation.get('fairness'):
+                fairness_path = output_dir / 'fairness_metrics.json'
+                pd.DataFrame([evaluation['fairness']]).to_json(fairness_path, orient='records')
+                
+            logger.info(f"Cross-validation results saved to {output_dir}")
+            
+        except Exception as e:
+            logger.error(f"Error saving cross-validation results: {str(e)}")
+    
+    return {
+        'cv_results': cv_results,
+        'evaluation': evaluation
+    }
+
 def perform_stratified_cv(
     model: Any, 
     X: pd.DataFrame, 
